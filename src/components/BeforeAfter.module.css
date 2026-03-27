@@ -1,0 +1,17 @@
+.beforeAfter {
+  position: relative;
+  overflow-x: hidden;
+}
+
+.fullWidthSlider {
+  width: 100vw;
+  position: relative;
+  /* Break out of standard constraints to stretch full screen */
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: var(--space-2xl);
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+

@@ -1,0 +1,216 @@
+.stylesSection {
+  position: relative;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
+}
+
+.card {
+  padding: var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-gradient);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.cardIcon {
+  font-size: 3rem;
+  margin-bottom: var(--space-lg);
+}
+
+.cardTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  color: var(--text-on-light);
+}
+
+.cardDesc {
+  font-size: var(--font-size-base);
+  color: var(--text-on-light-secondary);
+  line-height: 1.7;
+  max-width: 300px;
+}
+
+.cardTag {
+  display: inline-block;
+  margin-top: auto; /* Pushes everything below it to the bottom */
+  padding: var(--space-xs) var(--space-md);
+  background: rgba(212, 160, 90, 0.1);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--accent-dark);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.moreStylesContainer {
+  margin-top: var(--space-2xl);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.moreStylesText {
+  color: var(--text-on-light-secondary);
+  font-size: var(--font-size-base);
+}
+
+/* Modal and Gallery Styles */
+.viewExamples {
+  margin-top: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-on-light);
+  font-weight: 600;
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+}
+
+.card:hover .viewExamples {
+  background: var(--text-on-light);
+  color: white;
+  border-color: var(--text-on-light);
+}
+
+.card {
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 12, 24, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  animation: fadeIn 0.3s ease;
+}
+
+.modalContent {
+  background: var(--bg-dark-alt);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-2xl);
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.closeButton {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  background: transparent;
+  border: none;
+  color: var(--text-on-dark-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: var(--space-xs);
+}
+
+.closeButton:hover {
+  color: var(--text-on-dark);
+}
+
+.modalHeader {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.modalIcon {
+  color: var(--accent-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.modalTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--text-on-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.modalDesc {
+  color: var(--text-on-dark-secondary);
+  font-size: var(--font-size-sm);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-lg);
+}
+
+.galleryImageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-dark);
+}
+
+.galleryImage {
+  object-fit: cover;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

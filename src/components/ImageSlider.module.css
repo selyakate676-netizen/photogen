@@ -1,0 +1,124 @@
+.container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 1; /* 3 images side by side */
+  overflow: hidden;
+  cursor: ew-resize;
+  user-select: none;
+  background: var(--bg-light-alt);
+}
+
+.gridContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--bg-dark); /* acts as a separator line between images */
+  pointer-events: none;
+}
+
+.imageGridItem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.foregroundWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  will-change: clip-path;
+  pointer-events: none;
+}
+
+.label {
+  position: absolute;
+  bottom: var(--space-xl);
+  padding: var(--space-sm) var(--space-lg);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.labelRight {
+  right: var(--space-2xl);
+  color: var(--text-on-light-secondary);
+}
+
+.labelLeft {
+  left: var(--space-2xl);
+  background: var(--accent-gradient);
+  color: #1a1000;
+}
+
+.handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: white;
+  z-index: 10;
+  pointer-events: none;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.handleLine {
+  display: none; /* using thick handle instead */
+}
+
+.handleButton {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-on-light);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 1024px) {
+  .container {
+    aspect-ratio: 2 / 1;
+  }
+  .gridContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .imageGridItem:nth-child(n+3) {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    aspect-ratio: 1 / 1.2;
+  }
+  .gridContainer {
+    grid-template-columns: 1fr;
+  }
+  .imageGridItem:nth-child(n+2) {
+    display: none;
+  }
+  .labelLeft { left: var(--space-md); transform: none; }
+  .labelRight { right: var(--space-md); transform: none; }
+}

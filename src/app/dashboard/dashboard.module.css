@@ -1,0 +1,70 @@
+.dashboardPage {
+  min-height: 100vh;
+  background: var(--bg-dark);
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2xl);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logoutButton {
+  padding: var(--space-xs) var(--space-md);
+  background: transparent;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  color: var(--text-on-dark-secondary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.logoutButton:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.welcomeCard {
+  background: var(--bg-dark-alt);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  text-align: center;
+}
+
+.welcomeText {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--text-on-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.email {
+  color: var(--accent-primary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  margin-bottom: var(--space-lg);
+}
+
+.hint {
+  color: var(--text-on-dark-muted);
+  font-size: var(--font-size-sm);
+}
