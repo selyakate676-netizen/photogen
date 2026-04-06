@@ -9,9 +9,9 @@ export default function FinalCTA() {
         <Reveal>
           <div className={`${styles.ctaCard} light-card`}>
             <div className={styles.content}>
-              <h2 className={styles.title}>Хватит откладывать классные фото на потом</h2>
+              <h2 className={styles.title}>Твоя лучшая фотосессия начнется сейчас</h2>
               <p className={styles.subtitle}>
-                Создайте свой идеальный образ прямо сейчас. Первые результаты уже через 15 минут.
+                Создайте свой идеальный образ за 15 минут. Никаких студий, визажистов и сложных промптов.
               </p>
               <Link href="/login" className="btn btn-primary btn-lg">
                 Начать фотосессию

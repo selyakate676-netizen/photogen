@@ -13,6 +13,24 @@
 }
 
 /* === Горизонтальный скролл === */
+.scrollWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Эффект затухания справа */
+.scrollWrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 80px; /* Reduced from 150px */
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95));
+  pointer-events: none;
+  z-index: 5;
+}
+
 .scrollTrack {
   overflow-x: scroll;
   overflow-y: visible;
@@ -21,6 +39,7 @@
   cursor: grab;
   user-select: none;
   width: 100%;
+  padding-right: 80px; /* Reduced from 150px */
 }
 
 .scrollTrack::-webkit-scrollbar {
@@ -34,29 +53,70 @@
   width: max-content;
 }
 
-/* === Карточки фото === */
+/* Кнопки навигации */
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1a1a1a;
+  opacity: 0;
+  visibility: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.scrollWrapper:hover .navBtn {
+  opacity: 1;
+  visibility: visible;
+}
+
+.navBtn:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.navBtnLeft {
+  left: 20px;
+}
+
+.navBtnRight {
+  right: 20px;
+}
+
+/* === Картчоки фото XL & Sharp === */
 .photoCard {
   position: relative;
   flex-shrink: 0;
-  width: 260px;
-  height: 380px;
-  border-radius: var(--radius-lg, 16px);
+  width: 340px; /* Reduced from 400px */
+  height: 500px; /* Reduced from 560px */
+  border-radius: 0;
   overflow: hidden;
   background: var(--bg-light-alt);
   transition: all var(--transition-base, 250ms ease);
-  box-shadow: var(--shadow-card-light);
 }
 
 .photoCard:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  transform: scale(1.02);
+  z-index: 2;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
 }
 
 .photoImg {
   object-fit: cover;
   object-position: top center;
   transition: transform var(--transition-slow, 400ms ease);
-  pointer-events: none;
 }
 
 .photoCard:hover .photoImg {
@@ -71,6 +131,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-lg);
+  width: 100%;
 }
 
 .moreStylesText {
@@ -79,23 +140,244 @@
   font-weight: 500;
 }
 
+/* === Modal Window Styles === */
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  animation: fadeIn 300ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalContainer {
+  background: white;
+  width: 100%;
+  max-width: 1200px;
+  height: min-content;
+  max-height: 95vh;
+  position: relative;
+  border-radius: 0;
+  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.4);
+  overflow-y: auto;
+  animation: slideUp 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: white;
+  color: #1a1a1a;
+  border: 1px solid var(--border-light);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 200ms;
+}
+
+.closeBtn:hover {
+  background: #f5f5f5;
+  transform: rotate(90deg);
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 1:1 ratio for better balance */
+}
+
+.modalImageCard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 700px; /* Taller main image */
+  background: #f0f0f0;
+}
+
+.modalImg {
+  object-fit: cover;
+}
+
+.iaBadge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modalInfo {
+  padding: 40px 50px; /* Reduced padding from 60px */
+  display: flex;
+  flex-direction: column;
+}
+
+.categoryLabel {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent-primary);
+  margin-bottom: 4px;
+}
+
+.modalTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: var(--space-lg);
+}
+
+.promptBox {
+  background: #f8f8f8;
+  padding: var(--space-lg); /* Smaller padding */
+  border-left: 4px solid var(--accent-primary);
+  margin-bottom: var(--space-xl);
+}
+
+.promptLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.promptText {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #555;
+  font-style: italic;
+}
+
+.tryBtn {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+  margin-bottom: var(--space-lg);
+}
+
+.similarSection {
+  margin-top: var(--space-md);
+}
+
+.similarLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: var(--space-sm);
+}
+
+.similarGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px; /* Compact grid for larger images */
+}
+
+.similarThumb {
+  position: relative;
+  aspect-ratio: 1/1;
+  background: #eee;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.similarThumb:hover::after {
+  content: '+';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  font-size: var(--font-size-xl);
+}
+
+.moreLink {
+  display: inline-block;
+  margin-top: var(--space-xl);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-on-light-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: fit-content;
+}
+
+.moreLink:hover {
+  color: var(--accent-primary);
+}
+
 /* === Мобилки === */
+@media (max-width: 991px) {
+  .modalGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modalImageCard {
+    height: 400px;
+    min-height: 400px;
+  }
+
+  .modalInfo {
+    padding: 30px;
+  }
+}
+
 @media (max-width: 768px) {
-  .sectionBlock {
-    margin-bottom: var(--space-4xl);
+  .modalContainer {
+    max-height: 95vh;
   }
 
   .photoCard {
-    width: 200px;
-    height: 300px;
+    width: 250px;
+    height: 360px;
   }
 
   .scrollRow {
-    padding: 0 20px var(--space-sm);
-    gap: 12px;
+    padding: 0 20px 32px;
+    gap: 8px;
   }
 
-  .moreStylesContainer {
-    margin-top: var(--space-2xl);
+  .navBtn {
+    display: none;
+  }
+
+  .scrollWrapper::after {
+    width: 60px;
+  }
+
+  .photoCard {
+    width: 280px;
+    height: 400px;
   }
 }

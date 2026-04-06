@@ -19,9 +19,9 @@ export default function Home() {
       <BeforeAfter />
       <HowItWorks />
       <StylesPreview />
-      <Reviews />
       <Pricing />
       <FAQ />
+      <Reviews />
       <FinalCTA />
       <Footer />
     </>
