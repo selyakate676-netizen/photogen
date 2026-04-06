@@ -1,55 +1,96 @@
 'use client';
 
+import Image from 'next/image';
 import styles from './Reviews.module.css';
 import Reveal from './Reveal';
 
-const reviews = [
+const reviewsData = [
   {
-    name: "Алексей С.",
-    role: "Основатель стартапа",
-    text: "Нужно было срочно обновить фото для интервью. Сгенерили за 20 минут. Журналисты даже не поняли, что это всё нейросеть.",
-    initial: "А"
+    type: 'image',
+    name: 'Карина',
+    text: 'Это просто находка! Заменила все свои старые селфи на профильные кадры. Теперь профиль в соцсетях выглядит как после дорогой съемки в кафе или за границей. Очень естественно! ✨',
+    image: '/dating-woman-2.png',
+    stars: 5,
   },
   {
-    name: "Марина В.",
-    role: "UX/UI Дизайнер",
-    text: "Идеально подошло для Тиндера. Искала естественные кадры без пафоса дорогих студий. Получилось супер, количество метчей выросло в 3 раза!",
-    initial: "М"
+    type: 'text',
+    name: 'Екатерина М.',
+    text: 'Я просто в восторге от качества! Не могла остановиться, пока не примерила все образы: от бизнес-леди до лайфстайла. Теперь у меня есть крутой контент на месяцы вперед, и всё это за копейки. Всем советую попробовать! 🚀',
+    stars: 5,
   },
   {
-    name: "Игорь Д.",
-    role: "Product Manager",
-    text: "Ненавижу фотографироваться. Загрузил старые фотки из отпуска и получил шикарные строгие деловые портреты для своего профиля.",
-    initial: "И"
-  }
+    type: 'image',
+    name: 'Юлия',
+    text: 'Нет слов, одни эмоции! Как нейросеть так точно передает мой взгляд? Это реально будущее. Теперь не нужно мучиться с выбором студии и визажиста. 📸',
+    image: '/ashley-1.png',
+  },
+  {
+    type: 'image',
+    name: 'Алена',
+    text: 'Нужны были профессиональные фото для экспертного блога, но не хотелось отдавать 20-30к за один раз. С PhotoGen сделала всё за 15 минут. Результат — пушка! 🔥',
+    image: '/social-woman-1.png',
+    stars: 5,
+  },
+  {
+    type: 'text',
+    name: 'Артем',
+    role: 'Product Manager',
+    text: 'Обновил фото в LinkedIn и рабочих мессенджерах. Коллеги даже не заподозрили подвоха, спрашивали, у какого фотографа снимался. Свет и детализация на высоте!',
+    stars: 5,
+  },
+  {
+    type: 'image',
+    name: 'Мария',
+    text: 'Смотрите, какую эстетику мне выдал сервис! 😍 Идеально для сторис и аватарок. Совсем не выглядит как «компьютерная графика», очень живые и теплые кадры.',
+    image: '/dating-woman-1.png',
+    stars: 5,
+  },
 ];
 
 export default function Reviews() {
   return (
-    <section className="section" id="reviews">
+    <section className="section section-light-alt" id="reviews">
       <div className="container">
         <Reveal>
           <h2 className="section-title">
-            Реальные <span className="gradient-text">отзывы</span>
+            Реальные <span className="gradient-text">истории</span>
           </h2>
-          <p className="section-subtitle">
-            Вот что говорят те, кто уже получил свои первые фотографии от нашего AI
-          </p>
+          <p className="section-subtitle">Посмотрите, как наши пользователи преобразили свои профили</p>
         </Reveal>
 
-        <div className={styles.grid}>
-          {reviews.map((review, i) => (
-            <Reveal key={i} delay={i + 1} className={styles.revealWrapper}>
-              <div className={`${styles.card} light-card`}>
-                <div className={styles.stars}>★★★★★</div>
-                <p className={styles.text}>"{review.text}"</p>
-                <div className={styles.author}>
-                  <div className={styles.avatar}>{review.initial}</div>
-                  <div className={styles.authorInfo}>
-                    <div className={styles.name}>{review.name}</div>
-                    <div className={styles.role}>{review.role}</div>
+        <div className={styles.masonryGrid}>
+          {reviewsData.map((review, idx) => (
+            <Reveal key={idx} delay={idx * 0.1}>
+              <div className={`${styles.reviewCard} ${review.type === 'text' ? styles.textCard : styles.imageCard}`}>
+                {review.type === 'image' ? (
+                  <div className={styles.imageWrapper}>
+                    <Image
+                      src={review.image as string}
+                      alt={review.name}
+                      fill
+                      className={styles.bgImage}
+                      sizes="(max-width: 768px) 100vw, 400px"
+                    />
+                    <div className={styles.overlay}>
+                      <div className={styles.overlayContent}>
+                        <span className={styles.nameOnImage}>{review.name}</span>
+                        {review.stars && <div className={styles.stars}>{'★'.repeat(review.stars)}</div>}
+                        <p className={styles.textOnImage}>«{review.text}»</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className={styles.cardPadding}>
+                    <div className={styles.authorHeader}>
+                      <div className={styles.avatarPlaceholder}>{review.name.charAt(0)}</div>
+                      <div className={styles.authorMeta}>
+                        <span className={styles.name}>{review.name}</span>
+                        {review.stars && <div className={styles.stars}>{'★'.repeat(review.stars)}</div>}
+                      </div>
+                    </div>
+                    <p className={styles.reviewText}>{review.text}</p>
+                  </div>
+                )}
               </div>
             </Reveal>
           ))}

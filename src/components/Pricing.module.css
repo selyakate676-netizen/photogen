@@ -105,7 +105,16 @@
 @media (max-width: 768px) {
   .plans {
     grid-template-columns: 1fr;
-    max-width: 400px;
+    max-width: 360px;
     margin: 0 auto;
+    gap: var(--space-lg);
+  }
+  
+  .plan {
+    padding: var(--space-xl);
+  }
+
+  .planPrice {
+    font-size: var(--font-size-4xl);
   }
 }

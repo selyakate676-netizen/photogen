@@ -111,14 +111,19 @@
 
 @media (max-width: 768px) {
   .container {
-    aspect-ratio: 1 / 1.2;
+    aspect-ratio: 1 / 1.1;
   }
   .gridContainer {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
-  .imageGridItem:nth-child(n+2) {
+  .imageGridItem:nth-child(n+3) {
     display: none;
   }
-  .labelLeft { left: var(--space-md); transform: none; }
-  .labelRight { right: var(--space-md); transform: none; }
+  .label {
+    font-size: var(--font-size-xs);
+    bottom: var(--space-lg);
+    padding: var(--space-xs) var(--space-md);
+  }
+  .labelLeft { left: var(--space-md); }
+  .labelRight { right: var(--space-md); }
 }

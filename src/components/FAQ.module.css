@@ -76,3 +76,16 @@
   line-height: 1.6;
   font-size: var(--font-size-base);
 }
+@media (max-width: 768px) {
+  .question {
+    font-size: var(--font-size-base);
+  }
+  
+  .accordionHeader {
+    padding: var(--space-md);
+  }
+  
+  .accordionContent {
+    padding: 0 var(--space-md) var(--space-md);
+  }
+}
