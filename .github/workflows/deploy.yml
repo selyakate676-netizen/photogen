@@ -18,8 +18,8 @@ jobs:
             # 1. Clear resources and processes
             echo "Cleaning up environment..."
             pm2 kill || true
-            # Kill anything on port 3000 if fuser is available
-            fuser -k 3000/tcp || true
+            # Kill anything on port 3001 if fuser is available
+            fuser -k 3001/tcp || true
             
             # 2. Swap setup (ensure active)
             if ! grep -q "/swapfile" /etc/fstab; then
@@ -50,4 +50,4 @@ jobs:
             
             # 5. Diagnostic
             pm2 status
-            netstat -tulpn | grep :3000 || echo "Port 3000 NOT active!"
+            netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"
