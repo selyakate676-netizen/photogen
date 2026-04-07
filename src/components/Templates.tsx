@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { ChevronRight } from 'lucide-react';
 import styles from './Templates.module.css';
 import Reveal from './Reveal';
 
@@ -35,6 +37,17 @@ const templates = [
 ];
 
 export default function Templates() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const amount = 400;
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -amount : amount,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <section className={`${styles.templates} section section-dark`} id="templates">
       <div className="container">
@@ -48,19 +61,29 @@ export default function Templates() {
         </Reveal>
       </div>
 
-      <div className={styles.scrollContainer}>
-        <div className={styles.grid}>
-          {templates.map((tpl, i) => (
-            <Reveal key={tpl.id} delay={i * 1.5} className={styles.cardWrapper}>
-              <div className={styles.card}>
-                <img src={tpl.src} alt={tpl.title} className={styles.image} />
-                <div className={styles.overlay}>
-                  <div className={styles.pillLabel}>{tpl.title}</div>
+      <div className={styles.scrollWrapper}>
+        <div className={styles.scrollContainer} ref={scrollRef}>
+          <div className={styles.grid}>
+            {templates.map((tpl, i) => (
+              <Reveal key={tpl.id} delay={i * 1.5} className={styles.cardWrapper}>
+                <div className={styles.card}>
+                  <img src={tpl.src} alt={tpl.title} className={styles.image} />
+                  <div className={styles.overlay}>
+                    <div className={styles.pillLabel}>{tpl.title}</div>
+                  </div>
                 </div>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            ))}
+          </div>
         </div>
+        
+        <button 
+          className={styles.navBtn} 
+          onClick={() => scroll('right')}
+          aria-label="Scroll right"
+        >
+          <ChevronRight size={24} />
+        </button>
       </div>
     </section>
   );

@@ -4,6 +4,24 @@
   overflow: hidden;
 }
 
+.scrollWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Edge Fade Effect */
+.scrollWrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100px;
+  background: linear-gradient(to right, transparent, rgba(10, 10, 10, 0.9));
+  pointer-events: none;
+  z-index: 5;
+}
+
 .scrollContainer {
   width: 100%;
   overflow-x: auto;
@@ -19,20 +37,20 @@
 
 .grid {
   display: flex;
-  gap: 16px; /* Match StylesPreview gap */
+  gap: 16px;
   width: max-content;
-  padding: 0 40px; /* Match StylesPreview side padding */
+  padding: 0 40px;
 }
 
 .cardWrapper {
   flex: 0 0 auto;
-  width: 320px; /* Aligned with StylesPreview */
+  width: 320px;
 }
 
 .card {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5; /* Closer to portrait style in reference */
+  aspect-ratio: 4 / 5; /* Tall portrait as requested */
   overflow: hidden;
   border-radius: 0;
   background: #000;
@@ -48,6 +66,34 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* Navigation Arrow */
+.navBtn {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.navBtn:hover {
+  background: white;
+  color: black;
+  transform: translateY(-50%) scale(1.1);
 }
 
 .overlay {
