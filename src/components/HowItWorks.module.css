@@ -94,14 +94,135 @@
   position: relative;
   width: 100%;
   aspect-ratio: 9/19;
-  background: #000;
+  background: #0d0d12;
   box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+}
+
+.phoneHeader {
+  padding: 20px 15px 10px;
+  text-align: center;
+}
+
+.phoneTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.phoneBody {
+  flex: 1;
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.phoneStepLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 15px;
+}
+
+.phonePhotoContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+}
+
+.phonePhotoGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid cyan;
+  border-radius: 12px;
+  box-shadow: 0 0 15px cyan;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.phonePhotoLabel {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .phoneImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.phoneStatus {
+  font-size: 0.7rem;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+.phoneFooter {
+  width: 100%;
+  margin-top: auto;
+  padding-bottom: 15px;
+}
+
+.phoneRecentsLabel {
+  font-size: 0.65rem;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.phoneRecentsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.phoneRecentItem {
+  aspect-ratio: 1/1;
+  background: #222;
+  border-radius: 6px;
+  opacity: 0.5;
+}
+
+.phoneButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.phoneBtnPrimary, .phoneBtnSecondary {
+  font-size: 0.55rem;
+  padding: 8px 4px;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.phoneBtnPrimary {
+  background: var(--accent-gradient);
+  color: #000;
+}
+
+.phoneBtnSecondary {
+  background: #222;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .phoneGlow {

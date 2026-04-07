@@ -67,11 +67,38 @@ export default function HowItWorks() {
             <Reveal delay={3} className={styles.mockupReveal}>
               <div className={styles.phoneMockup}>
                 <div className={styles.phoneScreen}>
-                  <img 
-                    src="/mobile-mockup.png" 
-                    alt="Мобильный интерфейс приложения" 
-                    className={styles.phoneImage} 
-                  />
+                   {/* UI Overlays to match user reference */}
+                  <div className={styles.phoneHeader}>
+                    <div className={styles.phoneTitle}>Create Your AI Avatar</div>
+                  </div>
+                  
+                  <div className={styles.phoneBody}>
+                    <div className={styles.phoneStepLabel}>Step 1: Select Your Selfie</div>
+                    <div className={styles.phonePhotoContainer}>
+                      <img 
+                        src="/mobile-mockup.png" 
+                        alt="Мобильный интерфейс приложения" 
+                        className={styles.phoneImage} 
+                      />
+                      <div className={styles.phonePhotoGlow} />
+                      <div className={styles.phonePhotoLabel}>Selected Photo</div>
+                    </div>
+                    <div className={styles.phoneStatus}>Selection Complete</div>
+                    
+                    <div className={styles.phoneFooter}>
+                       <div className={styles.phoneRecentsLabel}>Recents</div>
+                       <div className={styles.phoneRecentsGrid}>
+                          <div className={styles.phoneRecentItem} />
+                          <div className={styles.phoneRecentItem} />
+                          <div className={styles.phoneRecentItem} />
+                          <div className={styles.phoneRecentItem} />
+                       </div>
+                       <div className={styles.phoneButtons}>
+                          <div className={styles.phoneBtnSecondary}>Retake Photo</div>
+                          <div className={styles.phoneBtnPrimary}>Proceed to Analyze ✨</div>
+                       </div>
+                    </div>
+                  </div>
                 </div>
                 <div className={styles.phoneGlow} />
               </div>
