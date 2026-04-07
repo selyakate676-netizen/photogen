@@ -35,7 +35,7 @@ jobs:
             swapon --show
             
             # 3. Update and Build
-            cd /root/photogen
+            cd /root
             git fetch origin
             git checkout -f origin/main -B main
             git clean -fd
