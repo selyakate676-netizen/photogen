@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef } from 'react';
 import { ChevronRight } from 'lucide-react';
 import styles from './Templates.module.css';
