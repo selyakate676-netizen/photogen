@@ -9,7 +9,7 @@ export default function FinalCTA() {
         <Reveal>
           <div className={`${styles.ctaCard} light-card`}>
             <div className={styles.content}>
-              <h2 className={styles.title}>Твоя лучшая фотосессия начнется сейчас</h2>
+              <h2 className={styles.title}>Твоя идеальная фотосессия начинается здесь</h2>
               <p className={styles.subtitle}>
                 Создайте свой идеальный образ за 15 минут. Никаких студий, визажистов и сложных промптов.
               </p>
