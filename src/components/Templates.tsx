@@ -38,28 +38,21 @@ export default function Templates() {
   return (
     <section className={`${styles.templates} section section-dark`} id="templates">
       <div className="container">
-        <Reveal>
-          <h2 className="section-title">
-            Идеи для <span className="gradient-text">вдохновения</span>
-          </h2>
-          <p className="section-subtitle">
-            Мы переносим вас в лучшие работы мировых фотографов
-          </p>
         </Reveal>
+      </div>
 
-        <div className={styles.scrollContainer}>
-          <div className={styles.grid}>
-            {templates.map((tpl, i) => (
-              <Reveal key={tpl.id} delay={i * 1.5} className={styles.cardWrapper}>
-                <div className={styles.card}>
-                  <img src={tpl.src} alt={tpl.title} className={styles.image} />
-                  <div className={styles.overlay}>
-                    <div className={styles.pillLabel}>{tpl.title}</div>
-                  </div>
+      <div className={styles.scrollContainer}>
+        <div className={styles.grid}>
+          {templates.map((tpl, i) => (
+            <Reveal key={tpl.id} delay={i * 1.5} className={styles.cardWrapper}>
+              <div className={styles.card}>
+                <img src={tpl.src} alt={tpl.title} className={styles.image} />
+                <div className={styles.overlay}>
+                  <div className={styles.pillLabel}>{tpl.title}</div>
                 </div>
-              </Reveal>
-            ))}
-          </div>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
