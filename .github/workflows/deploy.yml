@@ -15,9 +15,15 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            # 1. Create swap file if it doesn't exist or isn't in fstab
+            # 1. Clear resources and processes
+            echo "Cleaning up environment..."
+            pm2 kill || true
+            # Kill anything on port 3000 if fuser is available
+            fuser -k 3000/tcp || true
+            
+            # 2. Swap setup (ensure active)
             if ! grep -q "/swapfile" /etc/fstab; then
-              echo "Setting up swap file..."
+              echo "Re-initializing swap..."
               swapoff -a || true
               rm -f /swapfile
               fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
@@ -26,21 +32,22 @@ jobs:
               swapon /swapfile
               echo '/swapfile none swap sw 0 0' >> /etc/fstab
             fi
+            swapon --show
             
-            # 2. Update code
+            # 3. Update and Build
             cd /root/photogen
             git fetch origin
             git checkout -f origin/main -B main
             git clean -fd
+            rm -rf .next
             
-            # 3. Clean and build (using safe memory-saving flags)
             npm install
             npm run build-safe
             
-            # 4. Restart or start with PM2
-            pm2 delete photogen || true
+            # 4. Fresh Start
             pm2 start npm --name "photogen" -- start
             pm2 save
             
-            # 5. Verify status
-            pm2 status photogen
+            # 5. Diagnostic
+            pm2 status
+            netstat -tulpn | grep :3000 || echo "Port 3000 NOT active!"
