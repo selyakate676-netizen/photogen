@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './Templates.module.css';
 import Reveal from './Reveal';
 
@@ -64,6 +64,14 @@ export default function Templates() {
       </div>
 
       <div className={styles.scrollWrapper}>
+        <button 
+          className={`${styles.navBtn} ${styles.navBtnLeft}`} 
+          onClick={() => scroll('left')}
+          aria-label="Scroll left"
+        >
+          <ChevronLeft size={24} />
+        </button>
+
         <div className={styles.scrollContainer} ref={scrollRef}>
           <div className={styles.grid}>
             {templates.map((tpl, i) => (
@@ -80,7 +88,7 @@ export default function Templates() {
         </div>
         
         <button 
-          className={styles.navBtn} 
+          className={`${styles.navBtn} ${styles.navBtnRight}`} 
           onClick={() => scroll('right')}
           aria-label="Scroll right"
         >
