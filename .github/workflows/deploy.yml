@@ -15,6 +15,16 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
+            # Create swap file if it doesn't exist to prevent OOM build crashes
+            if [ ! -f /swapfile ]; then
+              echo "Creating 2GB swap file..."
+              fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+              chmod 600 /swapfile
+              mkswap /swapfile
+              swapon /swapfile
+              echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
+            fi
+            
             cd /root/photogen
             git fetch origin
             git checkout -f origin/main -B main
