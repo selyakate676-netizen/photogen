@@ -61,17 +61,6 @@ export default function Templates() {
             ))}
           </div>
         </div>
-
-        <Reveal delay={2} className={styles.footerReveal}>
-          <div className={styles.templatesFooter}>
-            <p className={styles.footerText}>
-              И ещё 15+ направлений съёмки ждут вас внутри
-            </p>
-            <button className={`${styles.ctaButton} btn-primary`}>
-              Смотреть все стили
-            </button>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

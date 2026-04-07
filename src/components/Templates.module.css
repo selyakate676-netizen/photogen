@@ -5,36 +5,48 @@
 }
 
 .scrollContainer {
-  width: 100%;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
   overflow-x: auto;
-  padding-bottom: var(--space-lg);
+  padding-bottom: var(--space-xl);
   margin-top: var(--space-3xl);
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
 }
 
 .scrollContainer::-webkit-scrollbar {
-  display: none; /* Hide scrollbar for Chrome/Safari */
+  display: none;
 }
 
 .grid {
   display: flex;
-  gap: 8px; /* TIGHT gap like in reference */
+  gap: 12px;
   width: max-content;
-  padding: 0 var(--space-lg);
+  padding: 0 10vw; /* Padding on sides to show photos of the edges */
 }
 
 .cardWrapper {
   flex: 0 0 auto;
-  width: 320px;
+  width: 350px;
+  scroll-snap-align: center;
 }
 
 .card {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1; /* Square photos in reference */
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: 0;
   background: #000;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
 }
 
 .image {
@@ -53,8 +65,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 20px;
-  background: linear-gradient(transparent 70%, rgba(0, 0, 0, 0.4));
+  padding-bottom: 24px;
+  background: linear-gradient(transparent 60%, rgba(0, 0, 0, 0.6));
   pointer-events: none;
 }
 
