@@ -5,17 +5,12 @@
 }
 
 .scrollContainer {
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
+  width: 100%;
   overflow-x: auto;
   padding-bottom: var(--space-xl);
   margin-top: var(--space-3xl);
   scrollbar-width: none;
-  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 
 .scrollContainer::-webkit-scrollbar {
@@ -24,21 +19,20 @@
 
 .grid {
   display: flex;
-  gap: 12px;
+  gap: 16px; /* Match StylesPreview gap */
   width: max-content;
-  padding: 0 10vw; /* Padding on sides to show photos of the edges */
+  padding: 0 40px; /* Match StylesPreview side padding */
 }
 
 .cardWrapper {
   flex: 0 0 auto;
-  width: 350px;
-  scroll-snap-align: center;
+  width: 320px; /* Aligned with StylesPreview */
 }
 
 .card {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5; /* Closer to portrait style in reference */
   overflow: hidden;
   border-radius: 0;
   background: #000;
