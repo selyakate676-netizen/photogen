@@ -15,19 +15,28 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            # Create swap file if it doesn't exist to prevent OOM build crashes
-            if [ ! -f /swapfile ]; then
-              echo "Creating 2GB swap file..."
+            # 1. Create swap file if it doesn't exist or isn't in fstab
+            if ! grep -q "/swapfile" /etc/fstab; then
+              echo "Setting up swap file..."
+              swapoff -a || true
+              rm -f /swapfile
               fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
               chmod 600 /swapfile
               mkswap /swapfile
               swapon /swapfile
-              echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
+              echo '/swapfile none swap sw 0 0' >> /etc/fstab
             fi
             
+            # 2. Update code
             cd /root/photogen
             git fetch origin
             git checkout -f origin/main -B main
+            
+            # 3. Clean and build (using memory-safe flags)
             npm install
             npm run build
-            pm2 restart photogen
+            
+            # 4. Restart or start with PM2
+            pm2 delete photogen || true
+            pm2 start npm --name "photogen" -- start
+            pm2 save
