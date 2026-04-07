@@ -31,12 +31,16 @@ jobs:
             cd /root/photogen
             git fetch origin
             git checkout -f origin/main -B main
+            git clean -fd
             
-            # 3. Clean and build (using memory-safe flags)
+            # 3. Clean and build (using safe memory-saving flags)
             npm install
-            npm run build
+            npm run build-safe
             
             # 4. Restart or start with PM2
             pm2 delete photogen || true
             pm2 start npm --name "photogen" -- start
             pm2 save
+            
+            # 5. Verify status
+            pm2 status photogen
