@@ -38,7 +38,7 @@ const sections = [
       { src: '/dating-woman-1.png', label: 'Золотой час' },
       { src: '/studio-bw-man.png', label: 'Чёрно-белое' },
       { src: '/dating-man-1.png', label: 'В кафе' },
-      { src: '/studio-red-light.png', label: 'В прожекторе' },
+      { src: '/studio-red-light-v2.png', label: 'В прожекторе' },
       { src: '/social-woman-car.png', label: 'Стритстайл' },
       { src: '/dating-woman-3.png', label: 'Естественный кадр' },
     ],
@@ -51,7 +51,7 @@ const sections = [
     desc: 'Путешествия, стрит-стайл и лайфстайл — образы на каждый день.',
     prompt: 'Стильный городской образ, стрит-стайл, мягкая журнальная ретушь, яркие цвета.',
     photos: [
-      { src: '/studio-red-light.png', label: 'Красный неон' },
+      { src: '/studio-red-light-v2.png', label: 'Красный неон' },
       { src: '/studio-stool-woman.png', label: 'Журнальная обложка' },
       { src: '/social-woman-1.png', label: 'Отдых у моря' },
       { src: '/studio-white-suit.png', label: 'Элегантность' },
