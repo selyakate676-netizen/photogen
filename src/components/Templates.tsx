@@ -38,6 +38,13 @@ export default function Templates() {
   return (
     <section className={`${styles.templates} section section-dark`} id="templates">
       <div className="container">
+        <Reveal>
+          <h2 className="section-title">
+            Идеи для <span className="gradient-text">вдохновения</span>
+          </h2>
+          <p className="section-subtitle">
+            Мы переносим вас в лучшие работы мировых фотографов
+          </p>
         </Reveal>
       </div>
 
