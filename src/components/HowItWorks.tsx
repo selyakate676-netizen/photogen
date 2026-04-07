@@ -48,6 +48,17 @@ export default function HowItWorks() {
             </Reveal>
           ))}
         </div>
+
+        <Reveal delay={4} className={styles.mockupReveal}>
+          <div className={styles.mockupWrapper}>
+            <div className={styles.mockupGlow} />
+            <img 
+              src="/app-mockup.png" 
+              alt="Интерфейс панели управления PhotoGen" 
+              className={styles.mockupImage} 
+            />
+          </div>
+        </Reveal>
       </div>
     </section>
   );
