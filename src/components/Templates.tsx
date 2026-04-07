@@ -4,51 +4,33 @@ import Reveal from './Reveal';
 const templates = [
   {
     id: 1,
-    title: 'Ретро Кинематограф',
-    desc: 'Винтажная обработка, пленочное зерно.',
-    src: '/ref-vintage.png',
-  },
-  {
-    id: 2,
-    title: 'Неоновый киберпанк',
-    desc: 'Драматичное раздельное освещение.',
+    title: 'Красный неон',
     src: '/ref-neon.png',
   },
   {
+    id: 2,
+    title: 'Журнальная обложка',
+    src: '/ref-vintage.png',
+  },
+  {
     id: 3,
-    title: 'Золотой час',
-    desc: 'Теплые лучи солнца сквозь жалюзи.',
+    title: 'Отдых у моря',
     src: '/ref-golden.png',
   },
   {
     id: 4,
-    title: 'Fine Art Noir',
-    desc: 'Резкие тени и контрастное ч/б.',
+    title: 'Элегантность',
     src: '/ref-bw-blinds.png',
   },
   {
     id: 5,
-    title: 'Business Editorial',
-    desc: 'Стильный деловой портрет.',
+    title: 'В парке',
     src: '/studio-red-light-v2.png',
   },
   {
     id: 6,
-    title: 'Studio Glow',
-    desc: 'Минималистичный студийный свет.',
+    title: 'Студийный свет',
     src: '/ref-golden.png',
-  },
-  {
-    id: 7,
-    title: 'Cinematic Red',
-    desc: 'Атмосферный красный свет.',
-    src: '/ref-neon.png',
-  },
-  {
-    id: 8,
-    title: 'Old Money',
-    desc: 'Классический люксовый портрет.',
-    src: '/ref-vintage.png',
   },
 ];
 
@@ -60,6 +42,9 @@ export default function Templates() {
           <h2 className="section-title">
             Идеи для <span className="gradient-text">вдохновения</span>
           </h2>
+          <p className="section-subtitle">
+            Мы переносим вас в лучшие работы мировых фотографов
+          </p>
         </Reveal>
 
         <div className={styles.scrollContainer}>
@@ -69,13 +54,24 @@ export default function Templates() {
                 <div className={styles.card}>
                   <img src={tpl.src} alt={tpl.title} className={styles.image} />
                   <div className={styles.overlay}>
-                    <h3 className={styles.cardTitle}>{tpl.title}</h3>
+                    <div className={styles.pillLabel}>{tpl.title}</div>
                   </div>
                 </div>
               </Reveal>
             ))}
           </div>
         </div>
+
+        <Reveal delay={2} className={styles.footerReveal}>
+          <div className={styles.templatesFooter}>
+            <p className={styles.footerText}>
+              И ещё 15+ направлений съёмки ждут вас внутри
+            </p>
+            <button className={`${styles.ctaButton} btn-primary`}>
+              Смотреть все стили
+            </button>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

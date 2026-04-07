@@ -18,9 +18,9 @@
 
 .grid {
   display: flex;
-  gap: var(--space-md);
+  gap: 8px; /* TIGHT gap like in reference */
   width: max-content;
-  padding-right: var(--space-lg);
+  padding: 0 var(--space-lg);
 }
 
 .cardWrapper {
@@ -31,15 +31,10 @@
 .card {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1; /* Square photos in reference */
   overflow: hidden;
-  border-radius: 0; /* NO rounded corners */
+  border-radius: 0;
   background: #000;
-  transition: transform var(--transition-fast) ease;
-}
-
-.card:hover {
-  transform: scale(1.02);
 }
 
 .image {
@@ -54,27 +49,57 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: var(--space-md);
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  top: 0;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 20px;
+  background: linear-gradient(transparent 70%, rgba(0, 0, 0, 0.4));
+  pointer-events: none;
 }
 
-.cardTitle {
-  font-size: var(--font-size-base); /* Smaller font */
-  font-weight: 600;
+.pillLabel {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.footerReveal {
+  margin-top: 4rem;
+  width: 100%;
+}
+
+.templatesFooter {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.footerText {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+.ctaButton {
+  min-width: 250px;
+  padding: var(--space-lg) var(--space-3xl);
+  font-weight: 700;
+  background: var(--accent-gradient) !important;
+  color: #000 !important;
+  border: none !important;
 }
 
 @media (max-width: 768px) {
   .cardWrapper {
-    width: 260px;
-  }
-  .cardTitle {
-    font-size: var(--font-size-sm);
+    width: 240px;
   }
 }
