@@ -26,7 +26,7 @@ const templates = [
   },
   {
     id: 5,
-    title: 'В парке',
+    title: 'Студийный неон',
     src: '/studio-red-light-v2.png',
   },
   {
