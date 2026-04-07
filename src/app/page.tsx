@@ -3,6 +3,7 @@ import Hero from '@/components/Hero';
 import BeforeAfter from '@/components/BeforeAfter';
 import HowItWorks from '@/components/HowItWorks';
 import StylesPreview from '@/components/StylesPreview';
+import Templates from '@/components/Templates';
 import Reviews from '@/components/Reviews';
 import Pricing from '@/components/Pricing';
 import FAQ from '@/components/FAQ';
@@ -19,6 +20,7 @@ export default function Home() {
       <BeforeAfter />
       <HowItWorks />
       <StylesPreview />
+      <Templates />
       <Pricing />
       <FAQ />
       <Reviews />

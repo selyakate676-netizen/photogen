@@ -36,29 +36,63 @@ export default function HowItWorks() {
           </p>
         </Reveal>
 
-        <div className={styles.steps}>
-          {steps.map((step, index) => (
-            <Reveal key={index} delay={index + 1} className={styles.revealWrapper}>
+        <div className={styles.layout}>
+          {/* Left Column (Step 1 & 2) */}
+          <div className={styles.columnDesc}>
+            <Reveal delay={1} className={styles.revealWrapper}>
               <div className={`${styles.step} glass-card`}>
-                <div className={styles.stepNumber}>{step.number}</div>
-                <div className={styles.stepIcon}>{step.icon}</div>
-                <h3 className={styles.stepTitle}>{step.title}</h3>
-                <p className={styles.stepDesc}>{step.desc}</p>
+                <div className={styles.stepHeader}>
+                  <div className={styles.stepNumber}>01</div>
+                  <div className={styles.stepIcon}>{steps[0].icon}</div>
+                </div>
+                <h3 className={styles.stepTitle}>{steps[0].title}</h3>
+                <p className={styles.stepDesc}>{steps[0].desc}</p>
               </div>
             </Reveal>
-          ))}
-        </div>
 
-        <Reveal delay={4} className={styles.mockupReveal}>
-          <div className={styles.mockupWrapper}>
-            <div className={styles.mockupGlow} />
-            <img 
-              src="/app-mockup.png" 
-              alt="Интерфейс панели управления PhotoGen" 
-              className={styles.mockupImage} 
-            />
+            <Reveal delay={2} className={styles.revealWrapper}>
+              <div className={`${styles.step} glass-card`}>
+                <div className={styles.stepHeader}>
+                  <div className={styles.stepNumber}>02</div>
+                  <div className={styles.stepIcon}>{steps[1].icon}</div>
+                </div>
+                <h3 className={styles.stepTitle}>{steps[1].title}</h3>
+                <p className={styles.stepDesc}>{steps[1].desc}</p>
+              </div>
+            </Reveal>
           </div>
-        </Reveal>
+
+          {/* Center Column (Phone) */}
+          <div className={styles.columnCenter}>
+            <Reveal delay={3} className={styles.mockupReveal}>
+              <div className={styles.phoneMockup}>
+                <div className={styles.phoneScreen}>
+                  <img 
+                    src="/mobile-mockup.png" 
+                    alt="Мобильный интерфейс приложения" 
+                    className={styles.phoneImage} 
+                  />
+                </div>
+                <div className={styles.phoneGlow} />
+              </div>
+            </Reveal>
+          </div>
+
+          {/* Right Column (Step 3) */}
+          <div className={styles.columnDesc}>
+            <Reveal delay={4} className={styles.revealWrapper}>
+              <div className={`${styles.step} glass-card`} style={{ marginTop: 'auto', marginBottom: 'auto' }}>
+                <div className={styles.stepHeader}>
+                  <div className={styles.stepNumber}>03</div>
+                  <div className={styles.stepIcon}>{steps[2].icon}</div>
+                </div>
+                <h3 className={styles.stepTitle}>{steps[2].title}</h3>
+                <p className={styles.stepDesc}>{steps[2].desc}</p>
+              </div>
+            </Reveal>
+            <div className={styles.spacer}></div>
+          </div>
+        </div>
       </div>
     </section>
   );
