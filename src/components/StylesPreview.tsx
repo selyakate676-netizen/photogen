@@ -15,14 +15,14 @@ const sections = [
     desc: 'Профессиональный портрет для hh.ru, деловых чатов и сайтов компаний.',
     prompt: 'Профессиональный бизнес-портрет, студийный свет, офисный стиль, высокое разрешение.',
     photos: [
-      '/career-woman-blazer.png',
-      '/career-man-editorial.png',
-      '/career-woman-1.png',
-      '/career-man-1.png',
-      '/career-woman-2.png',
-      '/review-avatar-1.png',
-      '/career-woman-3.png',
-      '/review-avatar-2.png',
+      { src: '/career-woman-blazer.png', label: 'у окна офиса' },
+      { src: '/career-man-editorial.png', label: 'строгий editorial' },
+      { src: '/career-woman-1.png', label: 'в светлом зале' },
+      { src: '/career-man-1.png', label: 'dark academy' },
+      { src: '/career-woman-2.png', label: 'классический блейзер' },
+      { src: '/review-avatar-1.png', label: 'профессиональный портрет' },
+      { src: '/career-woman-3.png', label: 'креативный класс' },
+      { src: '/review-avatar-2.png', label: 'в переговорной' },
     ],
   },
   {
@@ -33,14 +33,14 @@ const sections = [
     desc: 'Живые, притягательные фото для Mamba, Badoo и Авито Знакомств.',
     prompt: 'Живое лайфстайл фото, естественный свет, теплая атмосфера, кинематографичный вид.',
     photos: [
-      '/dating-woman-mirror.png',
-      '/dating-man-outdoor.png',
-      '/dating-woman-1.png',
-      '/ashley-1.png',
-      '/dating-man-1.png',
-      '/dating-woman-2.png',
-      '/ashley-2.png',
-      '/dating-woman-3.png',
+      { src: '/dating-woman-mirror.png', label: 'романтика вечера' },
+      { src: '/dating-man-outdoor.png', label: 'золотой час' },
+      { src: '/dating-woman-1.png', label: 'городская прогулка' },
+      { src: '/ashley-1.png', label: 'теплый свет' },
+      { src: '/dating-man-1.png', label: 'харизматично в кафе' },
+      { src: '/dating-woman-2.png', label: 'непринужденно' },
+      { src: '/ashley-2.png', label: 'в красивом интерьере' },
+      { src: '/dating-woman-3.png', label: 'casual-sensual' },
     ],
   },
   {
@@ -51,20 +51,25 @@ const sections = [
     desc: 'Путешествия, стрит-стайл и лайфстайл — образы на каждый день.',
     prompt: 'Стильный городской образ, стрит-стайл, мягкая журнальная ретушь, яркие цвета.',
     photos: [
-      '/social-woman-car.png',
-      '/social-woman-cafe.png',
-      '/social-woman-1.png',
-      '/gallery-1.png',
-      '/social-woman-2.png',
-      '/selfie-2.png',
-      '/social-woman-3.png',
-      '/gallery-3.png',
+      { src: '/social-woman-car.png', label: 'стрит-мода' },
+      { src: '/social-woman-cafe.png', label: 'в парижском кафе' },
+      { src: '/social-woman-1.png', label: 'отдых у моря' },
+      { src: '/gallery-1.png', label: 'молодежный вайб' },
+      { src: '/social-woman-2.png', label: 'летнее настроение' },
+      { src: '/selfie-2.png', label: 'инста-контент' },
+      { src: '/social-woman-3.png', label: 'в движении' },
+      { src: '/gallery-3.png', label: 'чиллаут' },
     ],
   },
 ];
 
+interface PhotoItem {
+  src: string;
+  label: string;
+}
+
 interface ScrollRowProps {
-  photos: string[];
+  photos: PhotoItem[];
   title: string;
   onPhotoClick: (src: string) => void;
 }
@@ -125,23 +130,24 @@ function ScrollRow({ photos, title, onPhotoClick }: ScrollRowProps) {
         onMouseLeave={() => { isDragging.current = false; }}
       >
         <div className={styles.scrollRow}>
-          {photos.map((src, pIdx) => (
+          {photos.map((photo, pIdx) => (
             <div 
               key={pIdx} 
               className={styles.photoCard}
               onClick={() => {
                   const duration = Date.now() - startTime.current;
-                  if (duration < 200) onPhotoClick(src);
+                  if (duration < 200) onPhotoClick(photo.src);
               }}
             >
               <Image
-                src={src}
-                alt={title}
+                src={photo.src}
+                alt={photo.label}
                 fill
                 className={styles.photoImg}
                 sizes="(max-width: 768px) 300px, 450px"
                 draggable={false}
               />
+              <div className={styles.photoLabel}>{photo.label}</div>
             </div>
           ))}
         </div>
@@ -255,13 +261,13 @@ export default function StylesPreview() {
                 <div className={styles.similarSection}>
                   <p className={styles.similarLabel}>Похожие варианты:</p>
                   <div className={styles.similarGrid}>
-                    {selectedSection.photos.slice(0, 8).map((src, i) => (
+                    {selectedSection.photos.slice(0, 8).map((photo, i) => (
                       <div 
                         key={i} 
                         className={styles.similarThumb}
-                        onClick={() => setSelectedPhoto(src)}
+                        onClick={() => setSelectedPhoto(photo.src)}
                       >
-                        <Image src={src} alt="Similar" fill className="object-cover" />
+                        <Image src={photo.src} alt="Similar" fill className="object-cover" />
                       </div>
                     ))}
                   </div>
