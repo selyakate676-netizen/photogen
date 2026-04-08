@@ -15,17 +15,9 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            # 1. Clear resources and processes
-            echo "Cleaning up environment..."
-            pm2 kill || true
-            # Kill anything on port 3001 if fuser is available
-            fuser -k 3001/tcp || true
-            
-            # 2. Swap setup (ensure active)
+            # 1. Swap setup (ensure active for build)
+            echo "Checking swap..."
             if ! grep -q "/swapfile" /etc/fstab; then
-              echo "Re-initializing swap..."
-              swapoff -a || true
-              rm -f /swapfile
               fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
               chmod 600 /swapfile
               mkswap /swapfile
@@ -34,18 +26,26 @@ jobs:
             fi
             swapon --show
             
-            # 3. Update and Build
+            # 2. Update code
             cd /root
+            echo "Updating code..."
             git fetch origin
             git checkout -f origin/main -B main
             git clean -fd
-            rm -rf .next
             
+            # 3. Build while old version is still running
+            echo "Installing dependencies..."
             npm install
-            npm run build-safe
             
-            # 4. Fresh Start
-            pm2 start npm --name "photogen" -- start
+            echo "Building project..."
+            rm -rf .next
+            npm run build
+            
+            # 4. Fresh Start (Minimal downtime)
+            echo "Restarting application..."
+            pm2 delete photogen || true
+            fuser -k 3001/tcp || true
+            pm2 start npm --name "photogen" -- run start
             pm2 save
             
             # 5. Diagnostic
