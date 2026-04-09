@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import SocialAuth from '@/components/SocialAuth';
-import styles from './Login.module.css';
+import styles from './login.module.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
