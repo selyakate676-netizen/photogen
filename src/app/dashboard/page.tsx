@@ -16,8 +16,14 @@ export default async function DashboardPage() {
     return redirect('/login');
   }
 
-  // В будущем здесь будет запрос к БД для получения списка фотосессий
-  const photoshoots: any[] = [];
+  // Получаем список фотосессий из БД, отсортированный от новых к старым
+  const { data: photoshootsData, error } = await supabase
+    .from('photoshoots')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const photoshoots = photoshootsData || [];
 
   return (
     <>
@@ -49,7 +55,42 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className={styles.photoshootsGrid}>
-              {/* Здесь будет список существующих фотосессий */}
+              {photoshoots.map((shoot) => (
+                <div key={shoot.id} className={styles.shootCard}>
+                  <div className={styles.shootHeader}>
+                    <span className={styles.shootDate}>
+                      {new Date(shoot.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                    </span>
+                    <span className={`${styles.shootStatus} ${styles[`status_${shoot.status}`] || styles.status_pending}`}>
+                      {shoot.status === 'pending' && 'В ожидании'}
+                      {shoot.status === 'training' && 'Обучение нейросети...'}
+                      {shoot.status === 'generating' && 'Генерация...'}
+                      {shoot.status === 'completed' && 'Готово'}
+                      {shoot.status === 'error' && 'Ошибка'}
+                    </span>
+                  </div>
+                  <div className={styles.shootBody}>
+                    <p className={styles.shootStyle}>Стиль: <strong>{shoot.style_id}</strong></p>
+                    <p className={styles.shootImagesCount}>Загружено фото: {shoot.images?.length || 0}</p>
+                  </div>
+                  <div className={styles.shootFooter}>
+                    {shoot.status === 'completed' ? (
+                      <button className={`btn btn-primary btn-sm ${styles.actionBtn}`}>Результат</button>
+                    ) : shoot.status === 'pending' ? (
+                      <button className={`btn btn-secondary btn-sm ${styles.actionBtn}`} disabled>Ожидает оплаты</button>
+                    ) : (
+                      <button className={`btn btn-secondary btn-sm ${styles.actionBtn}`} disabled>В процессе</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {/* Карточка для новой генерации */}
+              <div className={styles.shootCard} style={{ borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                <Link href="/dashboard/new" className="btn btn-primary btn-sm" style={{ width: '100%', textAlign: 'center' }}>
+                  + Новая фотосессия
+                </Link>
+              </div>
             </div>
           )}
 
@@ -57,7 +98,7 @@ export default async function DashboardPage() {
             <div className={styles.statGrid}>
               <div className={styles.statCard}>
                 <h3>Всего генераций</h3>
-                <p className={styles.statValue}>0</p>
+                <p className={styles.statValue}>{photoshoots.length}</p>
               </div>
               <div className={styles.statCard}>
                 <h3>Активных заказов</h3>
