@@ -3,48 +3,67 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, ShieldCheck, Loader2, CheckCircle2 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
 import styles from './PhotoUpload.module.css';
 
 interface PhotoUploadProps {
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  onUploadComplete?: (keys: string[]) => void;
 }
 
-export default function PhotoUpload({ files, setFiles }: PhotoUploadProps) {
+export default function PhotoUpload({ files, setFiles, onUploadComplete }: PhotoUploadProps) {
   const [uploadingStatus, setUploadingStatus] = useState<Record<string, 'pending' | 'uploading' | 'success' | 'error'>>({});
-  const supabase = createClient();
 
   const uploadFile = async (file: File) => {
     const fileId = `${file.name}-${file.size}`;
     setUploadingStatus(prev => ({ ...prev, [fileId]: 'uploading' }));
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not found');
+      // 1. Получаем временную ссылку от нашего сервера
+      const res = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type
+        })
+      });
 
-      const fileName = `${user.id}/${Date.now()}-${file.name}`;
-      
-      const { error } = await supabase.storage
-        .from('photoshoots')
-        .upload(fileName, file);
+      if (!res.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl, key } = await res.json();
 
-      if (error) throw error;
+      // 2. Загружаем файл напрямую в Beget S3
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+
+      if (!uploadRes.ok) throw new Error('Upload failed');
       
       setUploadingStatus(prev => ({ ...prev, [fileId]: 'success' }));
+      return key;
     } catch (err) {
       console.error('Upload error:', err);
       setUploadingStatus(prev => ({ ...prev, [fileId]: 'error' }));
+      return null;
     }
   };
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const newFiles = [...files, ...acceptedFiles].slice(0, 25);
     setFiles(newFiles);
     
-    // Сразу начинаем загрузку новых файлов
-    acceptedFiles.forEach(file => uploadFile(file));
-  }, [files, setFiles]);
+    const uploadPromises = acceptedFiles.map(file => uploadFile(file));
+    const keys = await Promise.all(uploadPromises);
+    
+    const successfulKeys = keys.filter((k): k is string => k !== null);
+    if (onUploadComplete && successfulKeys.length > 0) {
+      onUploadComplete(successfulKeys);
+    }
+  }, [files, setFiles, onUploadComplete]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

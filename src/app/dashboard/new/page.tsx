@@ -12,13 +12,14 @@ import { createPhotoshoot } from './actions';
 
 export default function NewPhotoshootPage() {
   const [files, setFiles] = useState<File[]>([]);
+  const [uploadedKeys, setUploadedKeys] = useState<string[]>([]);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const handleStart = async () => {
-    if (files.length < 10) {
-      alert('Нужно минимум 10 фото');
+    if (uploadedKeys.length < 10) {
+      alert('Подождите, пока загрузится минимум 10 фото');
       return;
     }
     if (!selectedStyle) {
@@ -28,11 +29,9 @@ export default function NewPhotoshootPage() {
 
     setIsSubmitting(true);
     try {
-      // 1. PhotoUpload сам загрузит файлы при нажатии (изменим его логику)
-      // В этой версии мы просто вызываем действие создания записи
       const result = await createPhotoshoot({
         styleId: selectedStyle,
-        imageCount: files.length
+        imageKeys: uploadedKeys
       });
 
       if (result.error) throw new Error(result.error);
@@ -68,6 +67,7 @@ export default function NewPhotoshootPage() {
               <PhotoUpload 
                 files={files} 
                 setFiles={setFiles} 
+                onUploadComplete={(keys) => setUploadedKeys(prev => [...prev, ...keys])}
               />
             </section>
 

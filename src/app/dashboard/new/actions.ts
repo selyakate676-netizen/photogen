@@ -1,6 +1,3 @@
-'use client';
-// Внимание: В Next.js 15+ для серверных действий используется 'use server'
-// Но так как мы вызываем это из клиентского компонента, создаем отдельный файл
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
@@ -8,10 +5,10 @@ import { revalidatePath } from 'next/cache';
 
 interface CreatePhotoshootProps {
   styleId: string;
-  imageCount: number;
+  imageKeys: string[]; // Теперь передаем ключи загруженных фото из S3
 }
 
-export async function createPhotoshoot({ styleId, imageCount }: CreatePhotoshootProps) {
+export async function createPhotoshoot({ styleId, imageKeys }: CreatePhotoshootProps) {
   const supabase = await createClient();
 
   // 1. Проверяем пользователя
@@ -20,20 +17,16 @@ export async function createPhotoshoot({ styleId, imageCount }: CreatePhotoshoot
     return { error: 'Нужно войти в систему' };
   }
 
-  // 2. Получаем список файлов из хранилища для этого пользователя
-  // (чтобы сохранить ссылки на них в БД)
-  const { data: files } = await supabase.storage
-    .from('photoshoots')
-    .list(user.id);
+  if (!imageKeys || imageKeys.length === 0) {
+    return { error: 'Фотографии не загружены' };
+  }
 
-  const imageUrls = files?.map(f => `${user.id}/${f.name}`) || [];
-
-  // 3. Создаем запись о фотосессии
+  // 2. Создаем запись о фотосессии в Supabase
   const { data, error } = await supabase.from('photoshoots').insert({
     user_id: user.id,
     style_id: styleId,
     status: 'pending',
-    images: imageUrls
+    images: imageKeys // Сохраняем пути к файлам в Beget S3
   }).select().single();
 
   if (error) {
@@ -41,7 +34,7 @@ export async function createPhotoshoot({ styleId, imageCount }: CreatePhotoshoot
     return { error: 'Не удалось создать запись в базе' };
   }
 
-  // Обновляем данные на главной странице кабинета
+  // 3. Обновляем данные на главной странице кабинета
   revalidatePath('/dashboard');
 
   return { success: true, data };
