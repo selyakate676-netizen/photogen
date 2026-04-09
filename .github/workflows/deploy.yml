@@ -48,6 +48,29 @@ jobs:
             pm2 start npm --name "photogen" -- run start
             pm2 save
             
-            # 5. Diagnostic
+            # 5. Configure Nginx for photogenlab.ru
+            echo "Configuring Nginx for photogenlab.ru..."
+            cat > /etc/nginx/sites-available/photogenlab.ru << 'EOF'
+server {
+    listen 80;
+    server_name photogenlab.ru www.photogenlab.ru;
+
+    location / {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+EOF
+            if [ ! -f /etc/nginx/sites-enabled/photogenlab.ru ]; then
+                ln -s /etc/nginx/sites-available/photogenlab.ru /etc/nginx/sites-enabled/
+            fi
+            nginx -t && systemctl reload nginx
+
+            # 6. Diagnostic
             pm2 status
             netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"

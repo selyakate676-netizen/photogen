@@ -1,0 +1,115 @@
+.wrapper {
+  min-height: 100vh;
+  padding-top: 100px;
+  background: var(--bg-dark);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--space-xl) var(--space-4xl);
+}
+
+.header {
+  margin-bottom: var(--space-2xl);
+}
+
+.backLink {
+  display: inline-block;
+  color: var(--text-on-dark-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.backLink:hover {
+  color: var(--accent-primary);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+}
+
+.wizard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  backdrop-filter: blur(20px);
+}
+
+.stepHeader {
+  margin-bottom: var(--space-2xl);
+}
+
+.stepNumber {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.stepHeader h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.stepHeader p {
+  color: var(--text-on-dark-secondary);
+}
+
+.instructionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+}
+
+.instructCard {
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+}
+
+.instructCard h3 {
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-base);
+}
+
+.instructCard ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.good {
+  background: rgba(74, 222, 128, 0.05);
+  border: 1px solid rgba(74, 222, 128, 0.1);
+}
+
+.good h3 { color: #4ade80; }
+
+.bad {
+  background: rgba(255, 77, 77, 0.05);
+  border: 1px solid rgba(255, 77, 77, 0.1);
+}
+
+.bad h3 { color: #ff4d4d; }
+
+@media (max-width: 640px) {
+  .instructionGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .wizard {
+    padding: var(--space-lg);
+  }
+}

@@ -3,84 +3,111 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  background: rgba(8, 12, 24, 0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-dark);
+  height: 80px;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .navInner {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  height: 64px;
+  align-items: center;
+  width: 100%;
 }
 
 .logo {
-  font-size: var(--font-size-xl);
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-on-dark);
-}
-
-.logo:hover {
-  opacity: 0.9;
+  text-decoration: none;
+  z-index: 1001;
 }
 
 .navLinks {
   display: flex;
-  gap: var(--space-2xl);
+  gap: var(--space-xl);
+  align-items: center;
 }
 
 .navLinks a {
-  font-size: var(--font-size-sm);
   color: var(--text-on-dark-secondary);
-  transition: color var(--transition-fast);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .navLinks a:hover {
-  color: var(--accent-secondary);
+  color: var(--accent-primary);
+}
+
+.desktopActions {
+  display: flex;
+  align-items: center;
+}
+
+.userActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
 }
 
 .navCta {
-  padding: var(--space-sm) var(--space-lg) !important;
-  font-size: var(--font-size-sm) !important;
+  padding: 8px 24px;
+  font-size: var(--font-size-sm);
 }
 
+.signOutBtn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-on-dark-secondary);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
 
-/* Burger Button */
+.signOutBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-on-dark);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.signOutBtnMobile {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-sm);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-on-dark-secondary);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+/* Burger */
 .burger {
   display: none;
   flex-direction: column;
   justify-content: space-between;
-  width: 24px;
-  height: 18px;
+  width: 30px;
+  height: 20px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0;
-  z-index: 101;
+  z-index: 1001;
 }
 
 .burger span {
   width: 100%;
   height: 2px;
   background-color: var(--text-on-dark);
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.burgerActive span:nth-child(1) {
-  transform: translateY(8px) rotate(45deg);
-}
-
-.burgerActive span:nth-child(2) {
-  opacity: 0;
-}
-
-.burgerActive span:nth-child(3) {
-  transform: translateY(-8px) rotate(-45deg);
+  transition: all var(--transition-normal);
 }
 
 .mobileCta {
@@ -88,10 +115,6 @@
 }
 
 @media (max-width: 768px) {
-  .navCta {
-    display: none;
-  }
-
   .burger {
     display: flex;
   }
@@ -99,33 +122,46 @@
   .navLinks {
     position: fixed;
     top: 0;
-    left: 0;
+    right: -100%;
     width: 100%;
     height: 100vh;
-    background: rgba(8, 12, 24, 0.98);
-    backdrop-filter: blur(20px);
-    display: flex;
+    background: var(--bg-dark);
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    gap: var(--space-2xl);
-    transform: translateX(100%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
+    padding: var(--space-2xl);
+    transition: right var(--transition-normal);
   }
 
   .navLinksOpen {
-    transform: translateX(0);
+    right: 0;
   }
 
   .navLinks a {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-xl);
+    padding: var(--space-md) 0;
   }
 
   .mobileCta {
     display: block;
-    margin-top: var(--space-lg);
-    width: 200px;
+    margin-top: var(--space-xl);
+    width: 100%;
     text-align: center;
+    padding: 16px;
+  }
+
+  .desktopActions {
+    display: none;
+  }
+
+  .burgerActive span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+  }
+
+  .burgerActive span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .burgerActive span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
   }
 }
