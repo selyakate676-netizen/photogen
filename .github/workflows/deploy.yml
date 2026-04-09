@@ -50,7 +50,7 @@ jobs:
             
             # 5. Configure Nginx for photogenlab.ru
             echo "Configuring Nginx for photogenlab.ru..."
-            cat > /etc/nginx/sites-available/photogenlab.ru << 'EOF'
+            cat > /etc/nginx/sites-available/photogenlab.ru << 'NGINXEOF'
 server {
     listen 80;
     server_name photogenlab.ru www.photogenlab.ru;
@@ -65,12 +65,21 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 }
-EOF
+NGINXEOF
+
             if [ ! -f /etc/nginx/sites-enabled/photogenlab.ru ]; then
-                ln -s /etc/nginx/sites-available/photogenlab.ru /etc/nginx/sites-enabled/
+              ln -s /etc/nginx/sites-available/photogenlab.ru /etc/nginx/sites-enabled/
             fi
             nginx -t && systemctl reload nginx
 
-            # 6. Diagnostic
+            # 6. Install SSL (Certbot) if not already installed
+            if ! command -v certbot &> /dev/null; then
+              apt-get install -y certbot python3-certbot-nginx
+            fi
+            certbot --nginx -d photogenlab.ru -d www.photogenlab.ru \
+              --non-interactive --agree-tos -m selyakate676@gmail.com \
+              --redirect || echo "Certbot skipped (already configured or DNS issue)"
+
+            # 7. Diagnostic
             pm2 status
             netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"
