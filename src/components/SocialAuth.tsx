@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import styles from '../app/login/Login.module.css';
+import styles from '../app/login/login.module.css';
 
 export default function SocialAuth() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
