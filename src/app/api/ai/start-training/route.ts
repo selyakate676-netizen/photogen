@@ -106,7 +106,7 @@ export async function POST(request: Request) {
       "flux-dev-lora-trainer",
       "1d5bbcea62886c55d04cc61be37f480ad99ad5f98cfc840c95df4eb1fb05f257",
       {
-        destination: "ai-generations-platform", // Опционально: куда положить готовую модель на Replicate (можно не указывать, тогда останется приватным)
+        destination: "selyakate676-netizen/photogen_models", // Куда положить готовую модель на Replicate
         input: {
           input_images: zipUrl, // Передаем ссылку на ZIP
           trigger_word: "tok",   // Стандартное слово для активации лица
