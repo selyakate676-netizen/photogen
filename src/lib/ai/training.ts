@@ -82,20 +82,24 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   
   const zipUrl = await getSignedUrl(s3Client, presignedGetCommand, { expiresIn: 7200 });
 
-  // 5. Запуск Replicate
-  console.log("[Internal] Calling Replicate...");
+  // 5. Запуск Replicate (Прямым fetch-запросом для максимальной прозрачности)
+  console.log("[Internal] Calling Replicate API (Direct Fetch)...");
   const host = process.env.NEXT_PUBLIC_SITE_URL || "https://photogenlab.ru";
   const webhookUrl = `${host}/api/webhooks/replicate/training?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshoot.id}`;
 
   const token = process.env.REPLICATE_API_TOKEN;
-  console.log(`[Diagnostic] Using Token (prefix): ${token ? token.substring(0, 4) + '...' : 'MISSING'}`);
+  console.log(`[Diagnostic] Token status: ${token ? 'PRESENT (starts with ' + token.substring(0, 4) + ')' : 'MISSING'}`);
 
   try {
-    const training = await replicate.trainings.create(
-        "ostris",
-        "flux-dev-lora-trainer",
-        "1d5bbcea62886c55d04cc61be37f480ad99ad5f98cfc840c95df4eb1fb05f257",
-        {
+    const replicateResponse = await fetch(
+      "https://api.replicate.com/v1/models/ostris/flux-dev-lora-trainer/versions/1d5bbcea62886c55d04cc61be37f480ad99ad5f98cfc840c95df4eb1fb05f257/trainings",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           destination: "selyakate676-netizen/photogen_models",
           input: {
             input_images: zipUrl,
@@ -105,25 +109,30 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
           },
           webhook: webhookUrl,
           webhook_events_filter: ["completed"]
-        }
-      );
-    
-      // 6. Сохраняем ID
-      console.log(`[Internal] Replicate training started SUCCESS. ID: ${training.id}`);
-      await supabase
-        .from('photoshoots')
-        .update({ 
-          training_id: training.id 
         })
-        .eq('id', photoshoot.id);
-    
-      return { success: true, trainingId: training.id };
-  } catch (replicateErr: any) {
-    console.error(`[CRITICAL] Replicate API Error:`, replicateErr);
-    if (replicateErr.response) {
-        const body = await replicateErr.response.json();
-        console.error(`[CRITICAL] Replicate Error Body:`, JSON.stringify(body));
+      }
+    );
+
+    const resultData = await replicateResponse.json();
+
+    if (!replicateResponse.ok) {
+        console.error(`[CRITICAL] Replicate API Error (${replicateResponse.status}):`, JSON.stringify(resultData));
+        throw new Error(resultData.detail || "Replicate API error");
     }
-    throw replicateErr;
+    
+    // 6. Сохраняем ID
+    console.log(`[Internal] Replicate training started SUCCESS. ID: ${resultData.id}`);
+    await supabase
+      .from('photoshoots')
+      .update({ 
+        training_id: resultData.id 
+      })
+      .eq('id', photoshoot.id);
+  
+    return { success: true, trainingId: resultData.id };
+
+  } catch (err: any) {
+    console.error(`[CRITICAL] Fatal error in training trigger:`, err.message);
+    throw err;
   }
 }
