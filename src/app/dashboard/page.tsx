@@ -84,7 +84,13 @@ export default async function DashboardPage() {
                     ) : shoot.status === 'pending' ? (
                       <Link href={`/dashboard/pay/${shoot.id}`} className={`btn btn-primary btn-sm ${styles.actionBtn}`} style={{ display: 'inline-block', textAlign: 'center' }}>Оплатить</Link>
                     ) : (
-                      <button className={`btn btn-secondary btn-sm ${styles.actionBtn}`} disabled>В процессе</button>
+                      <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                        <button className={`btn btn-secondary btn-sm ${styles.actionBtn}`} disabled>В процессе</button>
+                        <form action="/dashboard/pay/actions" method="POST">
+                            <input type="hidden" name="photoshootId" value={shoot.id} />
+                            <button className={`btn btn-secondary btn-sm`} style={{ padding: 'var(--space-sm)' }} title="Перезапустить, если зависло">🔄</button>
+                        </form>
+                      </div>
                     )}
                   </div>
                 </div>
