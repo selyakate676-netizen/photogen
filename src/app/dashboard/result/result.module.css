@@ -1,0 +1,112 @@
+.wrapper {
+  background: var(--bg-dark);
+  min-height: 100vh;
+  padding: var(--space-4xl) 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-xl);
+}
+
+.header {
+  margin-bottom: var(--space-4xl);
+  text-align: center;
+}
+
+.backLink {
+  color: var(--text-on-dark-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  display: block;
+  margin-bottom: var(--space-md);
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: var(--accent-primary);
+}
+
+.title {
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--space-xs);
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-on-dark-secondary);
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-xl);
+}
+
+.imageCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s, border-color 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.imageCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-primary);
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+}
+
+.downloadBtn {
+  padding: var(--space-md);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-on-dark);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.downloadBtn:hover {
+  background: var(--accent-primary);
+}
+
+.nextSteps {
+  margin-top: var(--space-6xl);
+  padding: var(--space-4xl);
+  background: var(--accent-gradient-subtle);
+  border-radius: var(--radius-2xl);
+  text-align: center;
+}
+
+.nextSteps h3 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-sm);
+}
+
+.nextSteps p {
+  color: var(--text-on-dark-secondary);
+  margin-bottom: var(--space-xl);
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+}

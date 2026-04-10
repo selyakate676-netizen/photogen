@@ -59,34 +59,35 @@ export async function POST(request: Request) {
       const { data: photoshoot } = await supabase.from('photoshoots').select('style_id').eq('id', photoshootId).single();
       const styleId = photoshoot?.style_id || "business";
       
-      // Словарь промптов (Пока заглушки, потом вынесем в отдельный конфиг)
+      // Словарь промптов (Синхронизировано со StylesGrid.tsx)
       const prompts: Record<string, string> = {
-        "бизнес": "A professional cinematic portrait of a person TOK in a sleek modern office, wearing a high-end tailored business suit, soft window lighting, 8k, hyperrealistic, photography, highly detailed face.",
-        "фэшн": "A high-fashion magazine cover shot of a person TOK posing on a vibrant studio background, wearing avant-garde clothing, dramatic lighting, fashion photography, ultra realistic.",
-        "креатив": "An artistic neon-lit portrait of a person TOK with vibrant colored lighting cyberpunk style, bokeh, highly textured, dramatic shadow, 8k.",
-        "casual": "A candid lifestyle shot of a person TOK sitting in a cozy sunny cafe drinking coffee, 35mm lens, natural lighting, photorealistic."
+        "career": "A professional high-end cinematic business portrait of a person TOK wearing a tailored business suit, modern office background, soft studio lighting, ultra-realistic photography, 8k, detailed skin texture.",
+        "dating": "A stunning, attractive lifestyle portrait of a person TOK for a dating profile, natural sunny outdoor lighting, charismatic look, 35mm photography, soft bokeh, high quality.",
+        "social": "A trendy lifestyle shot of a person TOK in a modern urban cafe setting, cinematic lighting, high-end casual clothing, photorealistic, depth of field, 8k.",
+        "studio": "A minimal professional studio portrait of a person TOK, clean grey background, dramatic professional lighting, minimalist aesthetic, sharp focus, fashion photography.",
+        "neon": "A creative artistic portrait of a person TOK with vibrant neon lighting, cyberpunk style, glowing accents, cinematic atmosphere, 8k resolution, highly detailed.",
+        "bw": "A classic timeless black and white fine art portrait of a person TOK, dramatic shadows, deep contrast, elegant aesthetic, high-grain film look, professional photography."
       };
       
       // Формирование промпта
-      const basePrompt = prompts[styleId.toLowerCase()] || prompts["casual"];
+      const basePrompt = prompts[styleId.toLowerCase()] || prompts["social"];
 
       const host = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get("origin") || request.headers.get("host");
       const genWebhookUrl = `${host}/api/webhooks/replicate/generation?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshootId}`;
 
-      // 2. Вызываем генерацию (Допустим, используем flux-dev и передаем нашу свежую лору (lora_weights))
+      // 2. Вызываем генерацию (Используем официальный flux-dev)
       console.log("Triggering generation for photoshoot:", photoshootId);
       
-      // FLUX Dev поддерживает аргумент hf_loras (если лора сохранена на HF) или параметры lora (в других моделях). 
-      // В качестве примера используем ostris/flux-dev-lora. Если lora_url это прямая ссылка .safetensors (output тренировки)
-      // мы можем запустить lucataco/flux-dev-lora.
       const prediction = await replicate.predictions.create({
-        model: "lucataco/flux-dev-lora", // Модель для генерации с подставным safetensors
-        version: "1d5bbcea62886c55d04cc61be37f480ad99ad5f98cfc840c95df4eb1fb05f257",
+        model: "black-forest-labs/flux-dev",
         input: {
            prompt: basePrompt,
-           lora_weights: typeof loraUrl === 'string' ? loraUrl : "", // Путь к safetensors, полученный выше
-           num_outputs: 4, // Генерируем 4 фото для старта
-           output_format: "jpg"
+           extra_lora_url: typeof loraUrl === 'string' ? loraUrl : "", 
+           num_outputs: 4,
+           aspect_ratio: "3:4",
+           output_format: "jpg",
+           guidance: 3.5,
+           output_quality: 90
         },
         webhook: genWebhookUrl,
         webhook_events_filter: ["completed"]
