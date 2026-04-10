@@ -4,6 +4,8 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { startTrainingForPhotoshoot } from '@/lib/ai/training';
+
 export async function mockPayment(formData: FormData) {
   const photoshootId = formData.get('photoshootId') as string;
   if (!photoshootId) return;
@@ -15,7 +17,7 @@ export async function mockPayment(formData: FormData) {
     redirect('/login');
   }
 
-  // Меняем статус на 'training', эмулируя успешную оплату и начало процесса AI-обработки
+  // Меняем статус на 'training', эмулируя успешную оплату
   const { error } = await supabase
     .from('photoshoots')
     .update({ status: 'training' })
@@ -27,24 +29,12 @@ export async function mockPayment(formData: FormData) {
     throw new Error('Failed to update status');
   }
 
-  // Запускаем процесс упаковки и тренировки.
-  // Теперь мы ДОЖИДАЕМСЯ начала процесса, чтобы гарантировать запуск.
+  // Запускаем процесс упаковки и тренировки напрямую, без посредников-fetch.
+  // Теперь мы ДОЖИДАЕМСЯ начала процесса, чтобы гарантировать запуск (обычно это занимает 3-10 секунд).
   try {
-    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
-    const response = await fetch(`${appUrl}/api/ai/start-training`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ photoshootId }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Failed to trigger training:', errorData);
-      // Мы не прерываем редирект, чтобы не пугать пользователя, 
-      // но в логах сервера теперь будет ошибка.
-    }
+    await startTrainingForPhotoshoot(photoshootId);
   } catch (err) {
-    console.error('Network error while triggering training:', err);
+    console.error('Error starting training directly:', err);
   }
 
   // Обновляем страницу дашборда и возвращаем пользователя туда

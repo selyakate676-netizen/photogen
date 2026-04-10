@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import styles from './dashboard.module.css';
 import TrainingProgress from './TrainingProgress';
+import { retryTraining } from './actions';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -86,7 +87,7 @@ export default async function DashboardPage() {
                     ) : (
                       <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
                         <button className={`btn btn-secondary btn-sm ${styles.actionBtn}`} disabled>В процессе</button>
-                        <form action="/dashboard/pay/actions" method="POST">
+                        <form action={retryTraining}>
                             <input type="hidden" name="photoshootId" value={shoot.id} />
                             <button className={`btn btn-secondary btn-sm`} style={{ padding: 'var(--space-sm)' }} title="Перезапустить, если зависло">🔄</button>
                         </form>
