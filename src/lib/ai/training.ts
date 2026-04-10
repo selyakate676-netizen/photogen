@@ -87,31 +87,43 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   const host = process.env.NEXT_PUBLIC_SITE_URL || "https://photogenlab.ru";
   const webhookUrl = `${host}/api/webhooks/replicate/training?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshoot.id}`;
 
-  const training = await replicate.trainings.create(
-    "ostris",
-    "flux-dev-lora-trainer",
-    "1d5bbcea62886c55d04cc61be37f480ad99ad5f98cfc840c95df4eb1fb05f257",
-    {
-      destination: "selyakate676-netizen/photogen_models",
-      input: {
-        input_images: zipUrl,
-        trigger_word: "tok",
-        steps: 1000,
-        learning_rate: 0.0004
-      },
-      webhook: webhookUrl,
-      webhook_events_filter: ["completed"]
+  const token = process.env.REPLICATE_API_TOKEN;
+  console.log(`[Diagnostic] Using Token (prefix): ${token ? token.substring(0, 4) + '...' : 'MISSING'}`);
+
+  try {
+    const training = await replicate.trainings.create(
+        "ostris",
+        "flux-dev-lora-trainer",
+        "1d5bbcea62886c55d04cc61be37f480ad99ad5f98cfc840c95df4eb1fb05f257",
+        {
+          destination: "selyakate676-netizen/photogen_models",
+          input: {
+            input_images: zipUrl,
+            trigger_word: "tok",
+            steps: 1000,
+            learning_rate: 0.0004
+          },
+          webhook: webhookUrl,
+          webhook_events_filter: ["completed"]
+        }
+      );
+    
+      // 6. Сохраняем ID
+      console.log(`[Internal] Replicate training started SUCCESS. ID: ${training.id}`);
+      await supabase
+        .from('photoshoots')
+        .update({ 
+          training_id: training.id 
+        })
+        .eq('id', photoshoot.id);
+    
+      return { success: true, trainingId: training.id };
+  } catch (replicateErr: any) {
+    console.error(`[CRITICAL] Replicate API Error:`, replicateErr);
+    if (replicateErr.response) {
+        const body = await replicateErr.response.json();
+        console.error(`[CRITICAL] Replicate Error Body:`, JSON.stringify(body));
     }
-  );
-
-  // 6. Сохраняем ID
-  console.log(`[Internal] Replicate training started. ID: ${training.id}`);
-  await supabase
-    .from('photoshoots')
-    .update({ 
-      training_id: training.id 
-    })
-    .eq('id', photoshoot.id);
-
-  return { success: true, trainingId: training.id };
+    throw replicateErr;
+  }
 }
