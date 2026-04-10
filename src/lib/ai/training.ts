@@ -121,7 +121,7 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
 
   try {
     const replicateResponse = await fetch(
-      "https://api.replicate.com/v1/models/ostris/flux-dev-lora-trainer/versions/1d5bbcea62886c55d04cc61be37f480ad99ad5f98cfc840c95df4eb1fb05f257/trainings",
+      "https://api.replicate.com/v1/models/ostris/flux-dev-lora-trainer/versions/26dce37af90b9d997eeb970d92e47de3064d46c300504ae376c75bef6a9022d2/trainings",
       {
         method: "POST",
         headers: {
