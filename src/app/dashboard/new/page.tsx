@@ -79,8 +79,10 @@ export default function NewPhotoshootPage() {
 
             <div className={styles.finalAction}>
                 <div className={styles.hintBox}>
-                    {files.length < 10 ? (
-                        <p className={styles.hintWarning}>⚠️ Загрузите еще {10 - files.length} фото для активации</p>
+                    {uploadedKeys.length < 10 ? (
+                        <p className={styles.hintWarning}>
+                            ⚠️ {files.length >= 10 ? `Загружаем файлы... (${uploadedKeys.length}/10)` : `Добавьте еще ${10 - uploadedKeys.length} фото`}
+                        </p>
                     ) : !selectedStyle ? (
                         <p className={styles.hintWarning}>✨ Теперь выберите стиль выше</p>
                     ) : (
@@ -90,7 +92,7 @@ export default function NewPhotoshootPage() {
                 <button 
                     className={`btn btn-primary btn-lg ${styles.submitBtn}`}
                     onClick={handleStart}
-                    disabled={files.length < 10 || !selectedStyle || isSubmitting}
+                    disabled={uploadedKeys.length < 10 || !selectedStyle || isSubmitting}
                 >
                     {isSubmitting ? 'Создание...' : 'Начать фотосессию'}
                 </button>
