@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import styles from './dashboard.module.css';
+import TrainingProgress from './TrainingProgress';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -62,16 +63,20 @@ export default async function DashboardPage() {
                       {new Date(shoot.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                     </span>
                     <span className={`${styles.shootStatus} ${styles[`status_${shoot.status}`] || styles.status_pending}`}>
-                      {shoot.status === 'pending' && 'В ожидании'}
-                      {shoot.status === 'training' && 'Обучение нейросети...'}
-                      {shoot.status === 'generating' && 'Генерация...'}
-                      {shoot.status === 'completed' && 'Готово'}
-                      {shoot.status === 'error' && 'Ошибка'}
+                      {shoot.status === 'completed' ? 'Готово' : shoot.status === 'error' ? 'Ошибка' : 'В процессе'}
                     </span>
                   </div>
                   <div className={styles.shootBody}>
                     <p className={styles.shootStyle}>Стиль: <strong>{shoot.style_id}</strong></p>
                     <p className={styles.shootImagesCount}>Загружено фото: {shoot.images?.length || 0}</p>
+                    
+                    {/* Прогресс-бар для активных процессов */}
+                    {(shoot.status === 'training' || shoot.status === 'generating' || shoot.status === 'pending') && (
+                        <TrainingProgress 
+                            photoshootId={shoot.id} 
+                            initialStatus={shoot.status} 
+                        />
+                    )}
                   </div>
                   <div className={styles.shootFooter}>
                     {shoot.status === 'completed' ? (

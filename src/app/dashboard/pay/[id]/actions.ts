@@ -27,14 +27,25 @@ export async function mockPayment(formData: FormData) {
     throw new Error('Failed to update status');
   }
 
-  // Запускаем процесс упаковки и тренировки в фоновом режиме.
-  // Мы не дожидаемся ответа, чтобы пользователь не ждал, пока архивируются фото.
-  const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
-  fetch(`${appUrl}/api/ai/start-training`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ photoshootId }),
-  }).catch(err => console.error('Failed to trigger background training job:', err));
+  // Запускаем процесс упаковки и тренировки.
+  // Теперь мы ДОЖИДАЕМСЯ начала процесса, чтобы гарантировать запуск.
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
+    const response = await fetch(`${appUrl}/api/ai/start-training`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photoshootId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Failed to trigger training:', errorData);
+      // Мы не прерываем редирект, чтобы не пугать пользователя, 
+      // но в логах сервера теперь будет ошибка.
+    }
+  } catch (err) {
+    console.error('Network error while triggering training:', err);
+  }
 
   // Обновляем страницу дашборда и возвращаем пользователя туда
   revalidatePath('/dashboard');
