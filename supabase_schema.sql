@@ -5,8 +5,18 @@ CREATE TABLE IF NOT EXISTS photoshoots (
   style_id TEXT NOT NULL,
   status TEXT DEFAULT 'pending', -- pending, training, generating, completed, error
   images TEXT[] DEFAULT '{}', -- Список ссылок на загруженные селфи
+  training_id TEXT, -- ID процесса тренировки в Replicate
+  lora_url TEXT, -- Ссылка на обученные веса LoRA
+  generation_id TEXT, -- ID процесса генерации в Replicate
+  result_images TEXT[] DEFAULT '{}', -- Готовые сгенерированные фото
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Команды для обновления существующей базы данных (скопируйте и выполните в SQL Editor):
+-- ALTER TABLE photoshoots ADD COLUMN training_id TEXT;
+-- ALTER TABLE photoshoots ADD COLUMN lora_url TEXT;
+-- ALTER TABLE photoshoots ADD COLUMN generation_id TEXT;
+-- ALTER TABLE photoshoots ADD COLUMN result_images TEXT[] DEFAULT '{}';
 
 -- 2. Включаем защиту (RLS)
 ALTER TABLE photoshoots ENABLE ROW LEVEL SECURITY;

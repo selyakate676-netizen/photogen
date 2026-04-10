@@ -75,9 +75,9 @@ export default async function DashboardPage() {
                   </div>
                   <div className={styles.shootFooter}>
                     {shoot.status === 'completed' ? (
-                      <button className={`btn btn-primary btn-sm ${styles.actionBtn}`}>Результат</button>
+                      <Link href={`/dashboard/result/${shoot.id}`} className={`btn btn-primary btn-sm ${styles.actionBtn}`} style={{ display: 'inline-block', textAlign: 'center' }}>Результат</Link>
                     ) : shoot.status === 'pending' ? (
-                      <button className={`btn btn-secondary btn-sm ${styles.actionBtn}`} disabled>Ожидает оплаты</button>
+                      <Link href={`/dashboard/pay/${shoot.id}`} className={`btn btn-primary btn-sm ${styles.actionBtn}`} style={{ display: 'inline-block', textAlign: 'center' }}>Оплатить</Link>
                     ) : (
                       <button className={`btn btn-secondary btn-sm ${styles.actionBtn}`} disabled>В процессе</button>
                     )}
