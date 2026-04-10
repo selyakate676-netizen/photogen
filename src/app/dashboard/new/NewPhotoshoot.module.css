@@ -113,3 +113,38 @@
     padding: var(--space-lg);
   }
 }
+
+.finalAction {
+  margin-top: var(--space-3xl);
+  padding-top: var(--space-2xl);
+  border-top: 1px solid var(--border-dark);
+  text-align: center;
+}
+
+.hintBox {
+  margin-bottom: var(--space-lg);
+}
+
+.hintWarning {
+  font-size: var(--font-size-sm);
+  color: var(--accent-secondary);
+  background: rgba(232, 191, 128, 0.05);
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(232, 191, 128, 0.1);
+}
+
+.hintSuccess {
+  font-size: var(--font-size-sm);
+  color: var(--success);
+  background: rgba(74, 222, 128, 0.05);
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(74, 222, 128, 0.1);
+}
+
+.submitBtn {
+  min-width: 280px;
+}

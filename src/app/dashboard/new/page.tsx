@@ -78,9 +78,15 @@ export default function NewPhotoshootPage() {
             />
 
             <div className={styles.finalAction}>
-                <p className={styles.disclaimer}>
-                    Нажимая кнопку «Начать», вы подтверждаете согласие с правилами сервиса
-                </p>
+                <div className={styles.hintBox}>
+                    {files.length < 10 ? (
+                        <p className={styles.hintWarning}>⚠️ Загрузите еще {10 - files.length} фото для активации</p>
+                    ) : !selectedStyle ? (
+                        <p className={styles.hintWarning}>✨ Теперь выберите стиль выше</p>
+                    ) : (
+                        <p className={styles.hintSuccess}>✅ Все готово для запуска!</p>
+                    )}
+                </div>
                 <button 
                     className={`btn btn-primary btn-lg ${styles.submitBtn}`}
                     onClick={handleStart}

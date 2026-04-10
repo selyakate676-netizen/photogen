@@ -241,6 +241,14 @@ button {
   font-size: var(--font-size-lg);
 }
 
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.8);
+}
+
 /* ===== Glass Cards ===== */
 .glass-card {
   background: var(--bg-card-dark);
