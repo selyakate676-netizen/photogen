@@ -4,9 +4,38 @@ import { s3Client } from "@/lib/s3";
 import { createClient } from "@/utils/supabase/server";
 import AdmZip from "adm-zip";
 import Replicate from "replicate";
+import fs from 'fs';
+import path from 'path';
+
+// Функция для гарантированного получения ключа напрямую из файла (обход глюков кеша VPS)
+function getReliableToken(): string | undefined {
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    console.log(`[Diagnostic] Checking for token at: ${envPath}`);
+    
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const lines = content.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('REPLICATE_API_TOKEN=')) {
+          const token = line.split('=')[1]?.trim();
+          if (token) {
+            console.log(`[Diagnostic] Token loaded DIRECTLY from file. Prefix: ${token.substring(0, 4)}`);
+            return token;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Diagnostic] Error reading .env.local manually:', err);
+  }
+  
+  console.log('[Diagnostic] Falling back to process.env.REPLICATE_API_TOKEN');
+  return process.env.REPLICATE_API_TOKEN;
+}
 
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
+  auth: getReliableToken(),
 });
 
 async function streamToBuffer(stream: any): Promise<Buffer> {
@@ -87,8 +116,8 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   const host = process.env.NEXT_PUBLIC_SITE_URL || "https://photogenlab.ru";
   const webhookUrl = `${host}/api/webhooks/replicate/training?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshoot.id}`;
 
-  const token = process.env.REPLICATE_API_TOKEN;
-  console.log(`[Diagnostic] Token status: ${token ? 'PRESENT (starts with ' + token.substring(0, 4) + ')' : 'MISSING'}`);
+  const token = getReliableToken();
+  // В логе уже будет выведено подтверждение из функции getReliableToken
 
   try {
     const replicateResponse = await fetch(
