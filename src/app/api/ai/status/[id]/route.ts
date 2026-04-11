@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import Replicate from "replicate";
+import fs from 'fs';
+import path from 'path';
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
+// Функция для гарантированного получения ключа напрямую из файла (обход глюков кеша VPS)
+function getReliableToken(): string | undefined {
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const lines = content.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('REPLICATE_API_TOKEN=')) {
+          return line.split('=')[1]?.trim();
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Diagnostic] Error reading .env.local manually:', err);
+  }
+  return process.env.REPLICATE_API_TOKEN;
+}
 
 export async function GET(
   request: Request,
@@ -13,6 +30,10 @@ export async function GET(
   try {
     const photoshootId = params.id;
     const supabase = await createClient();
+    
+    const replicate = new Replicate({
+      auth: getReliableToken(),
+    });
 
     // 1. Получаем запись из базы
     const { data: photoshoot, error: dbError } = await supabase

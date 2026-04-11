@@ -9,6 +9,7 @@ import StylesGrid from './StylesGrid';
 import PhotoUpload from './PhotoUpload';
 import styles from './NewPhotoshoot.module.css';
 import { createPhotoshoot } from './actions';
+import { reachMetricaGoal } from '@/components/YandexMetrica';
 
 export default function NewPhotoshootPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -27,6 +28,7 @@ export default function NewPhotoshootPage() {
       return;
     }
 
+    reachMetricaGoal('CREATE_PHOTOSHOOT');
     setIsSubmitting(true);
     try {
       const result = await createPhotoshoot({

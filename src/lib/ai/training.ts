@@ -133,7 +133,7 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
           input: {
             input_images: zipUrl,
             trigger_word: "tok",
-            steps: 1000,
+            steps: 600,
             learning_rate: 0.0004
           },
           webhook: webhookUrl,

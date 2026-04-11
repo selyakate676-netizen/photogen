@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
+import { reachMetricaGoal } from '@/components/YandexMetrica';
 import SocialAuth from '@/components/SocialAuth';
 import styles from '../login/login.module.css';
 
@@ -38,7 +39,8 @@ export default function SignupPage() {
       });
 
       if (error) throw error;
-
+      
+      reachMetricaGoal('USER_SIGNUP');
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Ошибка при регистрации');

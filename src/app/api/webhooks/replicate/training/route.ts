@@ -2,12 +2,33 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import Replicate from "replicate";
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
+import fs from 'fs';
+import path from 'path';
+
+// Функция для гарантированного получения ключа напрямую из файла (обход глюков кеша VPS)
+function getReliableToken(): string | undefined {
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const lines = content.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('REPLICATE_API_TOKEN=')) {
+          return line.split('=')[1]?.trim();
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Diagnostic] Error reading .env.local manually:', err);
+  }
+  return process.env.REPLICATE_API_TOKEN;
+}
 
 export async function POST(request: Request) {
   try {
+    const replicate = new Replicate({
+      auth: getReliableToken(),
+    });
     // 1. Проверяем секретный ключ авторизации вебхука
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");

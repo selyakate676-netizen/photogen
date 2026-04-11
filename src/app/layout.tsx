@@ -7,6 +7,9 @@ export const metadata: Metadata = {
     'Создайте реалистичные профессиональные фото с помощью AI. Это вы, только фотогеничнее. Без фотографа, камеры и студии — от 500 ₽.',
 };
 
+import { Suspense } from 'react';
+import YandexMetrica from '@/components/YandexMetrica';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,7 +23,12 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <Suspense fallback={null}>
+          <YandexMetrica />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }

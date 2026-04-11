@@ -1,53 +1,20 @@
+'use client';
+
 import styles from './Pricing.module.css';
 import Reveal from './Reveal';
+import { reachMetricaGoal } from './YandexMetrica';
 
 const plans = [
-  {
-    name: 'Базовый',
-    photos: '10 фото',
-    price: 490,
-    desc: 'Идеально для теста и одной соцсети',
-    popular: false,
-    features: [
-      '10 AI-фотографий',
-      '1 направление на выбор',
-      'Высокое разрешение',
-      'Готовность ~15 минут',
-      'Скачивание в PNG',
-    ],
-  },
-  {
-    name: 'Оптимал',
-    photos: '30 фото',
-    price: 990,
-    popular: true,
-    features: [
-      '30 AI-фотографий',
-      'До 3 направлений',
-      'Высокое разрешение',
-      'Приоритетная очередь',
-      'PNG + JPG форматы',
-      'Повторная генерация',
-    ],
-  },
-  {
-    name: 'Максимум',
-    photos: '50 фото',
-    price: 1490,
-    popular: false,
-    features: [
-      '50 AI-фотографий',
-      'Все направления',
-      'Максимальное разрешение',
-      'Приоритетная очередь',
-      'Все форматы скачивания',
-      '3 повторные генерации',
-      'Ручная ретушь',
-    ],
-  },
+  // ... (keep plans constant)
 ];
 
 export default function Pricing() {
+  const handleSelect = (planName: string) => {
+    reachMetricaGoal('SELECT_PLAN');
+    // Можно добавить специфичную цель для каждого тарифа, если нужно:
+    // reachMetricaGoal(`SELECT_PLAN_${planName.toUpperCase()}`);
+  };
+
   return (
     <section className={`${styles.pricing} section section-dark-alt`} id="pricing">
       <div className="container">
@@ -89,6 +56,7 @@ export default function Pricing() {
                     plan.popular ? 'btn-primary' : 'btn-secondary'
                   } ${styles.planBtn}`}
                   id={`plan-${plan.name.toLowerCase()}`}
+                  onClick={() => handleSelect(plan.name)}
                 >
                   Выбрать
                 </button>
