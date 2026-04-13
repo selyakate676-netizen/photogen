@@ -1,5 +1,7 @@
 .pricing {
   background: var(--bg-secondary);
+  padding-top: var(--space-xl) !important;
+  padding-bottom: var(--space-xl) !important;
 }
 
 .plans {

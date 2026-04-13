@@ -22,9 +22,9 @@ export default function Home() {
       <StylesPreview />
       <Templates />
       <Pricing />
-      <FAQ />
-      <Reviews />
       <FinalCTA />
+      <Reviews />
+      <FAQ />
       <Footer />
     </>
   );

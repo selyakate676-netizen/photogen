@@ -5,7 +5,39 @@ import Reveal from './Reveal';
 import { reachMetricaGoal } from './YandexMetrica';
 
 const plans = [
-  // ... (keep plans constant)
+  {
+    name: 'Solo',
+    price: 490,
+    photos: '20 фото',
+    features: [
+      '1 образ для обучения',
+      'Базовая генерация',
+      'Доступ 24/7',
+    ],
+  },
+  {
+    name: 'Pro',
+    price: 1490,
+    photos: '60 фото',
+    popular: true,
+    features: [
+      '3 разных образа',
+      'Приоритетный рендеринг',
+      'Улучшенная детализация',
+      'Все стили доступны',
+    ],
+  },
+  {
+    name: 'Max',
+    price: 2990,
+    photos: '150 фото',
+    features: [
+      '10 образов для обучения',
+      'Максимальное качество',
+      'VIP поддержка',
+      'Генерация без очереди',
+    ],
+  },
 ];
 
 export default function Pricing() {
