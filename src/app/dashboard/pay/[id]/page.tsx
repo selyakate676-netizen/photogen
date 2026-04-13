@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { mockPayment } from './actions';
-import dashboardStyles from '../../Dashboard.module.css';
+import dashboardStyles from '../../dashboard.module.css';
 
 export default async function MockPaymentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

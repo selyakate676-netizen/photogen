@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import styles from './Dashboard.module.css';
+import styles from './dashboard.module.css';
 import TrainingProgress from './TrainingProgress';
 import { retryTraining } from './actions';
 
