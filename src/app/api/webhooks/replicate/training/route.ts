@@ -86,12 +86,12 @@ export async function POST(request: Request) {
       
       // Словарь промптов (Синхронизировано со StylesGrid.tsx)
       const prompts: Record<string, string> = {
-        "career": "A professional high-end cinematic business portrait of a beautiful tok woman wearing a tailored business suit, modern office background, soft studio lighting, ultra-realistic photography, 8k, detailed skin texture.",
-        "dating": "A stunning, attractive lifestyle portrait of a beautiful tok woman for a dating profile, natural sunny outdoor lighting, charismatic look, 35mm photography, soft bokeh, high quality.",
-        "social": "A trendy lifestyle shot of a beautiful tok woman in a modern urban cafe setting, cinematic lighting, high-end casual clothing, photorealistic, depth of field, 8k.",
-        "studio": "A minimal professional studio portrait of a beautiful tok woman, clean grey background, dramatic professional lighting, minimalist aesthetic, sharp focus, fashion photography.",
-        "neon": "A creative artistic portrait of a beautiful tok woman with vibrant neon lighting, cyberpunk style, glowing accents, cinematic atmosphere, 8k resolution, highly detailed.",
-        "bw": "A classic timeless black and white fine art portrait of a beautiful tok woman, dramatic shadows, deep contrast, elegant aesthetic, high-grain film look, professional photography."
+        "career": "Medium shot from the waist up of a beautiful tok woman wearing a tailored business suit, modern office background. Perfectly natural and realistic body proportions, highly detailed face texture, sharp focus, 85mm portrait, cinematic lighting, 8k resolution, raw photo.",
+        "dating": "Medium shot from the chest up of a beautiful tok woman for a dating profile, natural sunny outdoor lighting. Flawless realistic anatomy and proportions, charismatic look, 35mm lens, sharp details, soft bokeh.",
+        "social": "Medium full body shot of a beautiful tok woman in a modern urban cafe setting. Correct body proportions, natural anatomy, high-end casual clothing, sharp cinematic lighting, depth of field, 8k raw photo.",
+        "studio": "Medium shot of a beautiful tok woman in a professional studio setting. Symmetrical and realistic body proportions, clean grey background, sharp focus, dramatic professional lighting, minimalist aesthetic, fashion magazine cover.",
+        "neon": "Medium shot of a beautiful tok woman with vibrant neon lighting, cyberpunk style. Perfect natural anatomy, glowing accents, cinematic atmosphere, 8k resolution, highly detailed skin and eyes.",
+        "bw": "Medium shot black and white fine art portrait of a beautiful tok woman. Elegant realistic body proportions, dramatic shadows, deep contrast, high-grain film look, professional photography, highly detailed."
       };
       
       // Формирование промпта
@@ -122,8 +122,9 @@ export async function POST(request: Request) {
            num_outputs: 4,
            aspect_ratio: "3:4",
            output_format: "jpg",
-           guidance: 3.5, // оригинальный параметр FLUX
-           output_quality: 90
+           guidance: 3.0, // немного снизим, чтобы Flux давал больше мягкости
+           lora_scale: 0.85, // снижаем силу ЛоРы, чтобы она не ломала пропорции (убирает эффект "большой головы")
+           output_quality: 100
       };
 
       console.log(`Final prediction run directly on your model version: ${versionId || targetModelId} for photoshoot:`, photoshootId);
