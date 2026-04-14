@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +20,12 @@ export async function POST(request: Request) {
     const payload = await request.json();
     console.log(`Replicate Generation Webhook received for photoshoot: ${photoshootId}. Status: ${payload.status}`);
 
-    const supabase = await createClient();
+    // Важно: ИСПОЛЬЗУЕМ SERVICE ROLE KEY для обхода RLS
+    // Иначе анонимный вебхук не сможет обновить вашу базу данных!
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Если генерация завершилась с ошибкой
     if (payload.status === "failed" || payload.status === "canceled") {

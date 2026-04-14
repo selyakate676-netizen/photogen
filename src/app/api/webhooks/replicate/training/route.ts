@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import Replicate from "replicate";
 
 import fs from 'fs';
@@ -47,7 +47,10 @@ export async function POST(request: Request) {
     const payload = await request.json();
     console.log(`Replicate Training Webhook received for photoshoot: ${photoshootId}. Status: ${payload.status}`);
 
-    const supabase = await createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Если тренировка завершилась с ошибкой или была отменена
     if (payload.status === "failed" || payload.status === "canceled") {
