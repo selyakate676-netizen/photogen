@@ -98,27 +98,36 @@ export async function POST(request: Request) {
       const genWebhookUrl = `${host}/api/webhooks/replicate/generation?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshootId}`;
 
       // 2. Вызываем генерацию
-      // Если обучение вернуло модель и версию, запускаем напрямую на ней!
-      let targetModel = "black-forest-labs/flux-dev";
+      // Важно: ostris-trainer возвращает в payload.model свое имя тренера, а не имя созданной модели!
+      // Поэтому мы 100% используем лончер lucataco, передавая ему прямую ссылку на скачивание весов.
+      let targetModel = "lucataco/flux-dev-lora";
       let inputParams: any = {
            prompt: basePrompt,
            num_outputs: 4,
            aspect_ratio: "3:4",
            output_format: "jpg",
-           guidance: 3.5,
+           guidance_scale: 3.5, // lucataco использует guidance_scale
            output_quality: 90
       };
 
-      if (payload.model && payload.version) {
-          targetModel = `${payload.model}:${payload.version}`;
-          console.log(`Triggering specific fine-tuned model: ${targetModel}`);
-      } else if (typeof loraUrl === 'string') {
-          // Если версии почему-то нет, но есть url на веса, юзаем лончер lucataco
-          targetModel = "lucataco/flux-dev-lora";
+      if (typeof loraUrl === 'string' && loraUrl.startsWith('http')) {
           inputParams.hf_lora = loraUrl;
           inputParams.lora_scale = 1.0;
-          inputParams.guidance_scale = 3.5;
-          console.log("Triggering fallback lucataco with loraUrl");
+          console.log("Triggering lucataco with loraUrl:", loraUrl);
+      } else {
+          // Если URL почему-то нет, пробуем использовать зашитую по умолчанию вашу модель
+          // (которую мы хардкодили в training.ts для destination)
+          targetModel = "selyakate676-netizen/photogen_models";
+          // Убираем hf_lora так как мы стучимся в напрямую обученную модель
+          inputParams = {
+              prompt: basePrompt,
+              num_outputs: 4,
+              aspect_ratio: "3:4",
+              output_format: "jpg",
+              guidance: 3.5, // оригинальный flux-dev использует guidance
+              output_quality: 90
+          };
+          console.log(`Fallback to destination model: ${targetModel} (No loraUrl found)`);
       }
 
       console.log(`Final prediction run on ${targetModel} for photoshoot:`, photoshootId);
