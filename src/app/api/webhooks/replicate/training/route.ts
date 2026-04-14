@@ -101,7 +101,19 @@ export async function POST(request: Request) {
       // ostris-trainer обучает модель и складывает ее в destination, который мы указали в training.ts
       // Это 'selyakate676-netizen/photogen_models'. Мы можем обращаться к ней напрямую без hf_lora!
       
-      const targetModel = "selyakate676-netizen/photogen_models";
+      let targetModel = "selyakate676-netizen/photogen_models";
+      
+      try {
+          // Replicate требует указывать точную версию (хэш) для пользовательских моделей.
+          // Поэтому мы запрашиваем вашу модель, чтобы получить ее последнюю версию (только что обученную).
+          const modelInfo = await replicate.models.get("selyakate676-netizen", "photogen_models");
+          if (modelInfo && modelInfo.latest_version && modelInfo.latest_version.id) {
+              targetModel = `${targetModel}:${modelInfo.latest_version.id}`;
+          }
+      } catch (err) {
+          console.error("Не удалось получить версию модели, пробуем без нее:", err);
+      }
+
       const inputParams = {
            prompt: basePrompt,
            num_outputs: 4,
