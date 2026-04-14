@@ -83,12 +83,12 @@ export async function POST(request: Request) {
       
       // Словарь промптов (Синхронизировано со StylesGrid.tsx)
       const prompts: Record<string, string> = {
-        "career": "A professional high-end cinematic business portrait of a tok person wearing a tailored business suit, modern office background, soft studio lighting, ultra-realistic photography, 8k, detailed skin texture.",
-        "dating": "A stunning, attractive lifestyle portrait of a tok person for a dating profile, natural sunny outdoor lighting, charismatic look, 35mm photography, soft bokeh, high quality.",
-        "social": "A trendy lifestyle shot of a tok person in a modern urban cafe setting, cinematic lighting, high-end casual clothing, photorealistic, depth of field, 8k.",
-        "studio": "A minimal professional studio portrait of a tok person, clean grey background, dramatic professional lighting, minimalist aesthetic, sharp focus, fashion photography.",
-        "neon": "A creative artistic portrait of a tok person with vibrant neon lighting, cyberpunk style, glowing accents, cinematic atmosphere, 8k resolution, highly detailed.",
-        "bw": "A classic timeless black and white fine art portrait of a tok person, dramatic shadows, deep contrast, elegant aesthetic, high-grain film look, professional photography."
+        "career": "A professional high-end cinematic business portrait of a beautiful tok woman wearing a tailored business suit, modern office background, soft studio lighting, ultra-realistic photography, 8k, detailed skin texture.",
+        "dating": "A stunning, attractive lifestyle portrait of a beautiful tok woman for a dating profile, natural sunny outdoor lighting, charismatic look, 35mm photography, soft bokeh, high quality.",
+        "social": "A trendy lifestyle shot of a beautiful tok woman in a modern urban cafe setting, cinematic lighting, high-end casual clothing, photorealistic, depth of field, 8k.",
+        "studio": "A minimal professional studio portrait of a beautiful tok woman, clean grey background, dramatic professional lighting, minimalist aesthetic, sharp focus, fashion photography.",
+        "neon": "A creative artistic portrait of a beautiful tok woman with vibrant neon lighting, cyberpunk style, glowing accents, cinematic atmosphere, 8k resolution, highly detailed.",
+        "bw": "A classic timeless black and white fine art portrait of a beautiful tok woman, dramatic shadows, deep contrast, elegant aesthetic, high-grain film look, professional photography."
       };
       
       // Формирование промпта
