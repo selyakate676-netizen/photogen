@@ -18,7 +18,8 @@ function getReliableToken(): string | undefined {
       const lines = content.split('\n');
       for (const line of lines) {
         if (line.startsWith('REPLICATE_API_TOKEN=')) {
-          const token = line.split('=')[1]?.trim();
+          const rawToken = line.split('=')[1]?.trim();
+          const token = rawToken ? rawToken.replace(/^["']|["']$/g, '') : undefined;
           if (token) {
             console.log(`[Diagnostic] Token loaded DIRECTLY from file. Prefix: ${token.substring(0, 4)}`);
             return token;
