@@ -101,14 +101,14 @@ export async function POST(request: Request) {
       // ostris-trainer обучает модель и складывает ее в destination, который мы указали в training.ts
       // Это 'selyakate676-netizen/photogen_models'. Мы можем обращаться к ней напрямую без hf_lora!
       
-      let targetModel = "selyakate676-netizen/photogen_models";
+      let targetModelId = "selyakate676-netizen/photogen_models";
+      let versionId = null;
       
       try {
-          // Replicate требует указывать точную версию (хэш) для пользовательских моделей.
-          // Поэтому мы запрашиваем вашу модель, чтобы получить ее последнюю версию (только что обученную).
+          // Запрашиваем вашу модель, чтобы получить ее последнюю версию (только что обученную).
           const modelInfo = await replicate.models.get("selyakate676-netizen", "photogen_models");
           if (modelInfo && modelInfo.latest_version && modelInfo.latest_version.id) {
-              targetModel = `${targetModel}:${modelInfo.latest_version.id}`;
+              versionId = modelInfo.latest_version.id;
           }
       } catch (err) {
           console.error("Не удалось получить версию модели, пробуем без нее:", err);
@@ -123,15 +123,23 @@ export async function POST(request: Request) {
            output_quality: 90
       };
 
-      console.log(`Final prediction run directly on your model: ${targetModel} for photoshoot:`, photoshootId);
+      console.log(`Final prediction run directly on your model version: ${versionId || targetModelId} for photoshoot:`, photoshootId);
       
-      // @ts-ignore
-      const prediction = await replicate.predictions.create({
-        model: targetModel,
+      // Формируем payload для Replicate API
+      const predictionPayload: any = {
         input: inputParams,
         webhook: genWebhookUrl,
         webhook_events_filter: ["completed"]
-      });
+      };
+
+      if (versionId) {
+          predictionPayload.version = versionId;
+      } else {
+          predictionPayload.model = targetModelId;
+      }
+
+      // @ts-ignore
+      const prediction = await replicate.predictions.create(predictionPayload);
 
       // Сохраняем generation_id
       await supabase
