@@ -97,40 +97,21 @@ export async function POST(request: Request) {
       const host = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get("origin") || request.headers.get("host");
       const genWebhookUrl = `${host}/api/webhooks/replicate/generation?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshootId}`;
 
-      // 2. Вызываем генерацию
-      // Важно: ostris-trainer возвращает в payload.model свое имя тренера, а не имя созданной модели!
-      // Поэтому мы 100% используем лончер lucataco, передавая ему прямую ссылку на скачивание весов.
-      let targetModel = "lucataco/flux-dev-lora";
-      let inputParams: any = {
+      // 2. Вызываем генерацию напрямую на ВАШЕЙ обученной модели!
+      // ostris-trainer обучает модель и складывает ее в destination, который мы указали в training.ts
+      // Это 'selyakate676-netizen/photogen_models'. Мы можем обращаться к ней напрямую без hf_lora!
+      
+      const targetModel = "selyakate676-netizen/photogen_models";
+      const inputParams = {
            prompt: basePrompt,
            num_outputs: 4,
            aspect_ratio: "3:4",
            output_format: "jpg",
-           guidance_scale: 3.5, // lucataco использует guidance_scale
+           guidance: 3.5, // оригинальный параметр FLUX
            output_quality: 90
       };
 
-      if (typeof loraUrl === 'string' && loraUrl.startsWith('http')) {
-          inputParams.hf_lora = loraUrl;
-          inputParams.lora_scale = 1.0;
-          console.log("Triggering lucataco with loraUrl:", loraUrl);
-      } else {
-          // Если URL почему-то нет, пробуем использовать зашитую по умолчанию вашу модель
-          // (которую мы хардкодили в training.ts для destination)
-          targetModel = "selyakate676-netizen/photogen_models";
-          // Убираем hf_lora так как мы стучимся в напрямую обученную модель
-          inputParams = {
-              prompt: basePrompt,
-              num_outputs: 4,
-              aspect_ratio: "3:4",
-              output_format: "jpg",
-              guidance: 3.5, // оригинальный flux-dev использует guidance
-              output_quality: 90
-          };
-          console.log(`Fallback to destination model: ${targetModel} (No loraUrl found)`);
-      }
-
-      console.log(`Final prediction run on ${targetModel} for photoshoot:`, photoshootId);
+      console.log(`Final prediction run directly on your model: ${targetModel} for photoshoot:`, photoshootId);
       
       // @ts-ignore
       const prediction = await replicate.predictions.create({
