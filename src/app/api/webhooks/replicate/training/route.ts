@@ -82,12 +82,12 @@ export async function POST(request: Request) {
       
       // Словарь промптов (Синхронизировано со StylesGrid.tsx)
       const prompts: Record<string, string> = {
-        "career": "A professional high-end cinematic business portrait of a person TOK wearing a tailored business suit, modern office background, soft studio lighting, ultra-realistic photography, 8k, detailed skin texture.",
-        "dating": "A stunning, attractive lifestyle portrait of a person TOK for a dating profile, natural sunny outdoor lighting, charismatic look, 35mm photography, soft bokeh, high quality.",
-        "social": "A trendy lifestyle shot of a person TOK in a modern urban cafe setting, cinematic lighting, high-end casual clothing, photorealistic, depth of field, 8k.",
-        "studio": "A minimal professional studio portrait of a person TOK, clean grey background, dramatic professional lighting, minimalist aesthetic, sharp focus, fashion photography.",
-        "neon": "A creative artistic portrait of a person TOK with vibrant neon lighting, cyberpunk style, glowing accents, cinematic atmosphere, 8k resolution, highly detailed.",
-        "bw": "A classic timeless black and white fine art portrait of a person TOK, dramatic shadows, deep contrast, elegant aesthetic, high-grain film look, professional photography."
+        "career": "A professional high-end cinematic business portrait of a tok person wearing a tailored business suit, modern office background, soft studio lighting, ultra-realistic photography, 8k, detailed skin texture.",
+        "dating": "A stunning, attractive lifestyle portrait of a tok person for a dating profile, natural sunny outdoor lighting, charismatic look, 35mm photography, soft bokeh, high quality.",
+        "social": "A trendy lifestyle shot of a tok person in a modern urban cafe setting, cinematic lighting, high-end casual clothing, photorealistic, depth of field, 8k.",
+        "studio": "A minimal professional studio portrait of a tok person, clean grey background, dramatic professional lighting, minimalist aesthetic, sharp focus, fashion photography.",
+        "neon": "A creative artistic portrait of a tok person with vibrant neon lighting, cyberpunk style, glowing accents, cinematic atmosphere, 8k resolution, highly detailed.",
+        "bw": "A classic timeless black and white fine art portrait of a tok person, dramatic shadows, deep contrast, elegant aesthetic, high-grain film look, professional photography."
       };
       
       // Формирование промпта
@@ -96,20 +96,36 @@ export async function POST(request: Request) {
       const host = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get("origin") || request.headers.get("host");
       const genWebhookUrl = `${host}/api/webhooks/replicate/generation?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshootId}`;
 
-      // 2. Вызываем генерацию (Используем официальный flux-dev)
-      console.log("Triggering generation for photoshoot:", photoshootId);
-      
-      const prediction = await replicate.predictions.create({
-        model: "black-forest-labs/flux-dev",
-        input: {
+      // 2. Вызываем генерацию
+      // Если обучение вернуло модель и версию, запускаем напрямую на ней!
+      let targetModel = "black-forest-labs/flux-dev";
+      let inputParams: any = {
            prompt: basePrompt,
-           extra_lora_url: typeof loraUrl === 'string' ? loraUrl : "", 
            num_outputs: 4,
            aspect_ratio: "3:4",
            output_format: "jpg",
            guidance: 3.5,
            output_quality: 90
-        },
+      };
+
+      if (payload.model && payload.version) {
+          targetModel = `${payload.model}:${payload.version}`;
+          console.log(`Triggering specific fine-tuned model: ${targetModel}`);
+      } else if (typeof loraUrl === 'string') {
+          // Если версии почему-то нет, но есть url на веса, юзаем лончер lucataco
+          targetModel = "lucataco/flux-dev-lora";
+          inputParams.hf_lora = loraUrl;
+          inputParams.lora_scale = 1.0;
+          inputParams.guidance_scale = 3.5;
+          console.log("Triggering fallback lucataco with loraUrl");
+      }
+
+      console.log(`Final prediction run on ${targetModel} for photoshoot:`, photoshootId);
+      
+      // @ts-ignore
+      const prediction = await replicate.predictions.create({
+        model: targetModel,
+        input: inputParams,
         webhook: genWebhookUrl,
         webhook_events_filter: ["completed"]
       });

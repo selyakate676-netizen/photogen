@@ -61,11 +61,19 @@ export async function GET(
     if (training.status === 'starting') {
         progress = 10;
     } else if (training.status === 'processing') {
-        progress = 45; // В среднем обучение — это середина процесса
         currentStatus = 'training';
+        progress = 45; // Fallback
+        
+        // Псевдо-прогресс: обучение обычно идет 15-20 минут
+        const startTime = training.started_at ? new Date(training.started_at).getTime() : Date.now();
+        const elapsedMinutes = (Date.now() - startTime) / 60000;
+        
+        // Маппим 15 минут на прогресс от 10% до 90%
+        const calculatedProgress = 10 + Math.floor((elapsedMinutes / 15) * 80);
+        progress = Math.min(95, Math.max(10, calculatedProgress)); 
     } else if (training.status === 'succeeded') {
         progress = 100;
-        currentStatus = 'completed';
+        currentStatus = 'generating'; // Генерация запускается сразу после тренировки на вебхуке
     } else if (training.status === 'failed' || training.status === 'canceled') {
         currentStatus = 'error';
     }
