@@ -114,10 +114,10 @@ export async function POST(request: Request) {
       
       // Специальный набор из 4 промптов для студийной сессии
       const studioPrompts = [
-         "Medium close-up portrait of a tok person looking directly at the camera with a beautiful warm, genuine smile showing teeth. Wearing a sharp tailored black evening tuxedo suit over a white silk blouse. Hair styled in loose elegant glossy waves falling gracefully over the shoulders. High-end makeup featuring flawless glowing skin, natural nude lips, and subtle smokey eyes. Studio photography, dark grey seamless background. Rembrandt lighting, Phase One XF IQ4, 85mm f/1.4 lens, ultra-realistic crisp focus, 8k raw.",
-         "Waist-up shot of a tok person looking elegantly slightly off-camera in thought, alluring relaxed expression without a smile. Hands elegantly adjusting the lapel of a sharp black tuxedo suit jacket. Hair parted elegantly with loose glossy waves over one shoulder. Flawless glowing makeup, contoured cheekbones, bold mascara. High-end studio photography, dark grey background. Soft diffused octabox lighting, 50mm f/2.0 lens, highly detailed fabric texture, photorealistic magazine editorial.",
-         "Dynamic editorial 3/4 full body shot of a tok person shifting weight onto one leg, capturing an effortless natural movement. Face displays a radiant natural smile showing teeth. Wearing a tailored sharp black tuxedo suit and a crisp white silk blouse. Hair styled in loose elegant waves with a sense of slight movement in the air. High fashion makeup, glowing flawless skin. Studio photography, dark grey seamless background. High-contrast side lighting, cinematic deep shadows, 35mm lens, perfect authentic body proportions.",
-         "Extreme close-up beauty portrait of a tok person's face, head slightly tilted. Looking into the camera with an intense, alluring gaze, lips slightly parted in a neutral expression, no smile. Collar of a sharp black tuxedo suit is visible. Hair styled in perfectly groomed elegant glossy waves. Flawless glowing makeup, glossy nude lips, subtle eyeshadow. Dark grey seamless background. Razor-sharp focus on the eyelashes and eyes, dramatic rim light on the hair, Macro 100mm portrait lens, lifelike unparalleled skin details."
+         "Medium close-up portrait of a tok person looking directly at the camera with a beautiful warm, genuine smile showing teeth. Wearing a sharp tailored black evening tuxedo suit over a white silk blouse. Hair styled in loose elegant glossy waves. Flawless glowing makeup, natural nude lips, subtle smokey eyes. Studio photography, dark grey seamless background. Soft Rembrandt lighting, Phase One XF IQ4, 85mm f/1.4 lens, ultra-realistic, beautifully smooth skin, 8k raw.",
+         "Elegant waist-up editorial portrait of a tok person looking slightly past the camera with a sophisticated calm expression. Wearing a sharp tailored black suit jacket over a white blouse. Glossy waves over one shoulder. Flawless glowing skin, contoured cheekbones. Studio photography, dark grey seamless background. Soft octabox lighting, 85mm f/1.4 lens, beauty retouching, premium magazine editorial quality, ultra-realistic.",
+         "3/4 upper body editorial portrait of a tok person with a confident radiant smile. Wearing a tailored sharp black suit jacket over a crisp white silk blouse. Hair in elegant loose waves. Studio photography, dark grey seamless background. Dramatic side lighting with soft fill, 50mm lens, high-fashion style, beautifully smooth skin, ultra-realistic.",
+         "Intimate glamour close-up portrait of a tok person, head gently tilted, looking directly into the camera with a magnetic alluring gaze and softly parted lips. Collar of a sleek black suit jacket visible. Hair in perfectly groomed elegant glossy waves. Beautifully smooth glowing skin, subtle highlighter, glossy nude lips. Studio photography, dark grey seamless background. Soft diffused butterfly lighting, 85mm f/1.4 lens, ultra-glamorous beauty photography, skin-smoothing retouching."
       ];
       
       let promptsToRun: string[] = [];
@@ -160,7 +160,7 @@ export async function POST(request: Request) {
                num_outputs: 1, // 1 картинка на 1 промпт
                aspect_ratio: "3:4",
                output_format: "jpg",
-               guidance: 2.5,
+               guidance: 3.5,
                output_quality: 100
             },
             webhook: genWebhookUrl,
