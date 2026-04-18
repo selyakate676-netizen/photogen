@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { startGenerationForPhotoshoot } from '@/lib/ai/generation';
+import { startTrainingForPhotoshoot } from '@/lib/ai/training';
 
 export async function retryTraining(formData: FormData) {
   const photoshootId = formData.get('photoshootId') as string;
@@ -15,17 +15,17 @@ export async function retryTraining(formData: FormData) {
     return;
   }
 
-  // Обновляем статус на generating, если он завис
+  // Обновляем статус на training для повторного запуска
   await supabase
     .from('photoshoots')
-    .update({ status: 'generating' })
+    .update({ status: 'training' })
     .eq('id', photoshootId)
     .eq('user_id', user.id);
 
   // Пытаемся запустить заново
   try {
-    console.log(`[Retry Action] Manually restarting generation for ${photoshootId}`);
-    await startGenerationForPhotoshoot(photoshootId);
+    console.log(`[Retry Action] Manually restarting training for ${photoshootId}`);
+    await startTrainingForPhotoshoot(photoshootId);
   } catch (err) {
     console.error('Error in retry action:', err);
   }

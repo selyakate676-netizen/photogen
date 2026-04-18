@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { startGenerationForPhotoshoot } from '@/lib/ai/generation';
+import { startTrainingForPhotoshoot } from '@/lib/ai/training';
 
 export async function mockPayment(formData: FormData) {
   const photoshootId = formData.get('photoshootId') as string;
@@ -17,10 +17,10 @@ export async function mockPayment(formData: FormData) {
     redirect('/login');
   }
 
-  // Меняем статус на 'generating', эмулируя успешную оплату (временно используем 'training' если UI завязан)
+  // Меняем статус на 'training' после успешной оплаты
   const { error } = await supabase
     .from('photoshoots')
-    .update({ status: 'generating' })
+    .update({ status: 'training' })
     .eq('id', photoshootId)
     .eq('user_id', user.id);
 
@@ -29,11 +29,11 @@ export async function mockPayment(formData: FormData) {
     throw new Error('Failed to update status');
   }
 
-  // Запускаем процесс генерации InstantID (занимает ~15 секунд в бэграунде API)
+  // Запускаем обучение LoRA
   try {
-    await startGenerationForPhotoshoot(photoshootId);
+    await startTrainingForPhotoshoot(photoshootId);
   } catch (err) {
-    console.error('Error starting generation directly:', err);
+    console.error('Error starting training:', err);
   }
 
   // Обновляем страницу дашборда и возвращаем пользователя туда
