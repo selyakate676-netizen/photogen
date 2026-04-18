@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { startGenerationForPhotoshoot } from "@/lib/ai/generation";
+import { startTrainingForPhotoshoot } from "@/lib/ai/training";
 
 export const maxDuration = 60;
 
@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Необходим photoshootId" }, { status: 400 });
     }
 
-    const result = await startGenerationForPhotoshoot(photoshootId);
+    const result = await startTrainingForPhotoshoot(photoshootId);
     
     return NextResponse.json(result);
 
