@@ -112,6 +112,14 @@ export async function POST(request: Request) {
         "bw": "Striking fine art black and white portrait of a tok person. High-contrast monochromatic photography, Tri-X 400 film stock, dramatic natural light and deep shadows, emphasizing facial structure and raw emotion, highly detailed, realistic."
       };
       
+      // Специальный набор из 4 промптов для черно-белой сессии
+      const bwPrompts = [
+         "Striking black and white medium close-up portrait of a tok person, head gently tilted to the side, chin resting softly on one raised hand with delicate fingers. Wearing an open-collar white shirt. Wavy dark hair falling loose around the face. Looking directly into the camera with a calm magnetic gaze. Accurate facial features and face resemblance. Beautifully smooth glowing skin. High-contrast monochromatic studio photography, soft directional side lighting, deep rich blacks and luminous whites, 85mm f/1.4 lens, photorealistic fine art portrait.",
+         "Intimate black and white beauty close-up of a tok person in a reclining pose, cheek resting gently on a forearm stretched on a white surface. Face fills most of the frame. Wearing a white open-collar shirt. Hair tousled and slightly dishevelled with a natural dewy look, loose strands framing the face. Lips softly parted, upward gaze through the lashes. Highly accurate facial features and face resemblance. High-contrast B&W studio photography, dramatic side lighting with soft fill, 85mm lens, ultra-detailed fine art beauty photography.",
+         "Elegant black and white 3/4 upper body portrait of a tok person looking thoughtfully off to the side with a serene refined expression. Wearing a loose open-collar white shirt. Long flowing wavy hair cascading naturally over the shoulders. Highly accurate facial features and face resemblance. Smooth glowing skin, natural beauty. Moody B&W studio photography, soft diffused side lighting, light grey seamless background, 50mm lens, premium fashion editorial quality.",
+         "Artistic black and white close-up beauty portrait of a tok person, head slightly turned for a subtle three-quarter profile. One hand delicately raised near the cheek. Wearing a white shirt open at the collar, one shoulder softly exposed. Wavy hair with natural movement, soft strands across the cheek. Intense soft gaze, lips slightly parted. Highly accurate facial features and face resemblance. Smooth retouched skin. High-contrast fine art B&W photography, dramatic rim lighting from the side, deep cinematic shadows, 85mm f/1.4 lens, ultra-realistic."
+      ];
+      
       // Специальный набор из 4 промптов для студийной сессии
       const studioPrompts = [
          "Medium close-up portrait of a tok person looking directly at the camera with a beautiful warm, genuine smile showing teeth. Wearing a sharp tailored black evening tuxedo suit over a white silk blouse. Hair styled in loose elegant glossy waves. Flawless glowing makeup, natural nude lips, subtle smokey eyes. Studio photography, dark grey seamless background. Soft Rembrandt lighting, Phase One XF IQ4, 85mm f/1.4 lens, ultra-realistic, beautifully smooth skin, 8k raw.",
@@ -123,6 +131,8 @@ export async function POST(request: Request) {
       let promptsToRun: string[] = [];
       if (styleId.toLowerCase() === "studio") {
           promptsToRun = studioPrompts;
+      } else if (styleId.toLowerCase() === "bw") {
+          promptsToRun = bwPrompts;
       } else {
           const fallback = basePrompts[styleId.toLowerCase()] || basePrompts["social"];
           // Для других стилей просто вызываем один промпт 4 раза
