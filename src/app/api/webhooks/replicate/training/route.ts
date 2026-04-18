@@ -80,35 +80,63 @@ export async function POST(request: Request) {
 
       // --- ЗАПУСК ГЕНЕРАЦИИ (FLUX) ---
       
-      // Здесь мы достаем заказанный стиль (из базы)
-      const { data: photoshoot } = await supabase.from('photoshoots').select('style_id').eq('id', photoshootId).single();
+      // Здесь мы достаем заказанный стиль и особенности внешности (из базы)
+      const { data: photoshoot } = await supabase
+          .from('photoshoots')
+          .select('style_id, body_type, eye_color, hair_color')
+          .eq('id', photoshootId)
+          .single();
+          
       const styleId = photoshoot?.style_id || "business";
       
-      // Словарь промптов (Синхронизировано со StylesGrid.tsx)
-      const prompts: Record<string, string> = {
-        "career": "Medium shot from the waist up of a beautiful tok woman wearing a tailored business suit, modern office background. Perfectly natural and realistic body proportions, highly detailed face texture, sharp focus, 85mm portrait, cinematic lighting, 8k resolution, raw photo.",
-        "dating": "Medium shot from the chest up of a beautiful tok woman for a dating profile, natural sunny outdoor lighting. Flawless realistic anatomy and proportions, charismatic look, 35mm lens, sharp details, soft bokeh.",
-        "social": "Medium full body shot of a beautiful tok woman in a modern urban cafe setting. Correct body proportions, natural anatomy, high-end casual clothing, sharp cinematic lighting, depth of field, 8k raw photo.",
-        "studio": "Medium shot of a beautiful tok woman in a professional studio setting. Symmetrical and realistic body proportions, clean grey background, sharp focus, dramatic professional lighting, minimalist aesthetic, fashion magazine cover.",
-        "neon": "Medium shot of a beautiful tok woman with vibrant neon lighting, cyberpunk style. Perfect natural anatomy, glowing accents, cinematic atmosphere, 8k resolution, highly detailed skin and eyes.",
-        "bw": "Medium shot black and white fine art portrait of a beautiful tok woman. Elegant realistic body proportions, dramatic shadows, deep contrast, high-grain film look, professional photography, highly detailed."
+      const bodyDesc = photoshoot?.body_type === 'slim' ? 'slim and thin' :
+                       photoshoot?.body_type === 'athletic' ? 'toned and athletic' :
+                       photoshoot?.body_type === 'curvy' ? 'curvy and voluptuous feminine' : 'average';
+                       
+      const eyeDesc = photoshoot?.eye_color === 'blue' ? 'blue' :
+                      photoshoot?.eye_color === 'green' ? 'green' :
+                      photoshoot?.eye_color === 'grey' ? 'grey' : 'brown';
+                      
+      const hairDesc = photoshoot?.hair_color === 'blonde' ? 'blonde' :
+                       photoshoot?.hair_color === 'brown' ? 'brown' :
+                       photoshoot?.hair_color === 'red' ? 'red' : 'dark';
+
+      const subjectDescription = `tok person with ${bodyDesc} body shape, ${eyeDesc} eyes, and ${hairDesc} hair`;
+      
+      // Словарь базовых промптов (для остальных стилей)
+      const basePrompts: Record<string, string> = {
+        "career": "Professional editorial portrait of a tok person wearing high-end tailored business attire, modern corporate office background. High-resolution medium shot, Phase One XF IQ4, 85mm f/1.4 lens, beautifully balanced Rembrandt lighting, extremely sharp focus, ultra-realistic skin texture, pores, candid and natural facial proportions, unedited photography, 8k.",
+        "dating": "Natural unedited candid photo of a tok person for a dating profile, casual but stylish clothing, bright sunny outdoor environment. 50mm lens f/2.0, soft natural sunlight, shallow depth of field, real skin textures with slight imperfections, effortless charisma, highly photorealistic, taken on Fujifilm XT4.",
+        "social": "Medium shot of a tok person sitting at a high-end minimalist cafe. Wearing stylish casual fashionable clothes. Lifestyle photography, taken on Sony A7R iv, 35mm f/1.8, cinematic depth of field, natural soft window lighting, highly detailed unedited face, authentic proportions, hyper-realistic.",
+        "neon": "Cinematic portrait of a tok person in a dark cyberpunk city alley. Vibrant neon rim-lighting illuminating the face, deep moody shadows. Shot on Arri Alexa 65, anamorphic lens, beautiful cinematic grain, highly realistic skin reflection, 8k raw.",
+        "bw": "Striking fine art black and white portrait of a tok person. High-contrast monochromatic photography, Tri-X 400 film stock, dramatic natural light and deep shadows, emphasizing facial structure and raw emotion, highly detailed, realistic."
       };
       
-      // Формирование промпта
-      const basePrompt = prompts[styleId.toLowerCase()] || prompts["social"];
+      // Специальный набор из 4 промптов для студийной сессии
+      const studioPrompts = [
+         "Medium close-up portrait of a tok person looking directly at the camera with a beautiful warm, genuine smile showing teeth. Wearing a sharp tailored black evening tuxedo suit over a white silk blouse. Hair styled in loose elegant glossy waves falling gracefully over the shoulders. High-end makeup featuring flawless glowing skin, natural nude lips, and subtle smokey eyes. Studio photography, dark grey seamless background. Rembrandt lighting, Phase One XF IQ4, 85mm f/1.4 lens, ultra-realistic crisp focus, 8k raw.",
+         "Waist-up shot of a tok person looking elegantly slightly off-camera in thought, alluring relaxed expression without a smile. Hands elegantly adjusting the lapel of a sharp black tuxedo suit jacket. Hair parted elegantly with loose glossy waves over one shoulder. Flawless glowing makeup, contoured cheekbones, bold mascara. High-end studio photography, dark grey background. Soft diffused octabox lighting, 50mm f/2.0 lens, highly detailed fabric texture, photorealistic magazine editorial.",
+         "Dynamic editorial 3/4 full body shot of a tok person shifting weight onto one leg, capturing an effortless natural movement. Face displays a radiant natural smile showing teeth. Wearing a tailored sharp black tuxedo suit and a crisp white silk blouse. Hair styled in loose elegant waves with a sense of slight movement in the air. High fashion makeup, glowing flawless skin. Studio photography, dark grey seamless background. High-contrast side lighting, cinematic deep shadows, 35mm lens, perfect authentic body proportions.",
+         "Extreme close-up beauty portrait of a tok person's face, head slightly tilted. Looking into the camera with an intense, alluring gaze, lips slightly parted in a neutral expression, no smile. Collar of a sharp black tuxedo suit is visible. Hair styled in perfectly groomed elegant glossy waves. Flawless glowing makeup, glossy nude lips, subtle eyeshadow. Dark grey seamless background. Razor-sharp focus on the eyelashes and eyes, dramatic rim light on the hair, Macro 100mm portrait lens, lifelike unparalleled skin details."
+      ];
+      
+      let promptsToRun: string[] = [];
+      if (styleId.toLowerCase() === "studio") {
+          promptsToRun = studioPrompts;
+      } else {
+          const fallback = basePrompts[styleId.toLowerCase()] || basePrompts["social"];
+          // Для других стилей просто вызываем один промпт 4 раза
+          promptsToRun = [fallback, fallback, fallback, fallback];
+      }
 
       const host = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get("origin") || request.headers.get("host");
       const genWebhookUrl = `${host}/api/webhooks/replicate/generation?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshootId}`;
 
-      // 2. Вызываем генерацию напрямую на ВАШЕЙ обученной модели!
-      // ostris-trainer обучает модель и складывает ее в destination, который мы указали в training.ts
-      // Это 'selyakate676-netizen/photogen_models'. Мы можем обращаться к ней напрямую без hf_lora!
-      
+      // Запрашиваем модель
       let targetModelId = "selyakate676-netizen/photogen_models";
       let versionId = null;
       
       try {
-          // Запрашиваем вашу модель, чтобы получить ее последнюю версию (только что обученную).
           const modelInfo = await replicate.models.get("selyakate676-netizen", "photogen_models");
           if (modelInfo && modelInfo.latest_version && modelInfo.latest_version.id) {
               versionId = modelInfo.latest_version.id;
@@ -117,38 +145,43 @@ export async function POST(request: Request) {
           console.error("Не удалось получить версию модели, пробуем без нее:", err);
       }
 
-      const inputParams = {
-           prompt: basePrompt,
-           num_outputs: 4,
-           aspect_ratio: "3:4",
-           output_format: "jpg",
-           guidance: 3.0, // немного снизим, чтобы Flux давал больше мягкости
-           lora_scale: 0.85, // снижаем силу ЛоРы, чтобы она не ломала пропорции (убирает эффект "большой головы")
-           output_quality: 100
-      };
-
-      console.log(`Final prediction run directly on your model version: ${versionId || targetModelId} for photoshoot:`, photoshootId);
+      console.log(`Final prediction run directly on your model. Starting 4 jobs...`);
       
-      // Формируем payload для Replicate API
-      const predictionPayload: any = {
-        input: inputParams,
-        webhook: genWebhookUrl,
-        webhook_events_filter: ["completed"]
-      };
+      const predictionIds: string[] = [];
 
-      if (versionId) {
-          predictionPayload.version = versionId;
-      } else {
-          predictionPayload.model = targetModelId;
+      // Запускаем 4 параллельных запроса генерации с разными промптами
+      for (const p of promptsToRun) {
+          // Интегрируем физические особенности пользователя прямо в промпт
+          const personalizedPrompt = p.replace(/tok person/gi, subjectDescription);
+          
+          const predictionPayload: any = {
+            input: {
+               prompt: personalizedPrompt,
+               num_outputs: 1, // 1 картинка на 1 промпт
+               aspect_ratio: "3:4",
+               output_format: "jpg",
+               guidance: 2.5,
+               output_quality: 100
+            },
+            webhook: genWebhookUrl,
+            webhook_events_filter: ["completed"]
+          };
+
+          if (versionId) {
+              predictionPayload.version = versionId;
+          } else {
+              predictionPayload.model = targetModelId;
+          }
+
+          // @ts-ignore
+          const prediction = await replicate.predictions.create(predictionPayload);
+          predictionIds.push(prediction.id);
       }
 
-      // @ts-ignore
-      const prediction = await replicate.predictions.create(predictionPayload);
-
-      // Сохраняем generation_id
+      // Сохраняем все 4 ID через запятую (хоть это и не строго обязательно для логики)
       await supabase
         .from('photoshoots')
-        .update({ generation_id: prediction.id })
+        .update({ generation_id: predictionIds.join(',') })
         .eq('id', photoshootId);
 
       return NextResponse.json({ message: "Training successful, generation started." });

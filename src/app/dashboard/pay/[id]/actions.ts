@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { startTrainingForPhotoshoot } from '@/lib/ai/training';
+import { startGenerationForPhotoshoot } from '@/lib/ai/generation';
 
 export async function mockPayment(formData: FormData) {
   const photoshootId = formData.get('photoshootId') as string;
@@ -17,10 +17,10 @@ export async function mockPayment(formData: FormData) {
     redirect('/login');
   }
 
-  // Меняем статус на 'training', эмулируя успешную оплату
+  // Меняем статус на 'generating', эмулируя успешную оплату (временно используем 'training' если UI завязан)
   const { error } = await supabase
     .from('photoshoots')
-    .update({ status: 'training' })
+    .update({ status: 'generating' })
     .eq('id', photoshootId)
     .eq('user_id', user.id);
 
@@ -29,15 +29,15 @@ export async function mockPayment(formData: FormData) {
     throw new Error('Failed to update status');
   }
 
-  // Запускаем процесс упаковки и тренировки напрямую, без посредников-fetch.
-  // Теперь мы ДОЖИДАЕМСЯ начала процесса, чтобы гарантировать запуск (обычно это занимает 3-10 секунд).
+  // Запускаем процесс генерации InstantID (занимает ~15 секунд в бэграунде API)
   try {
-    await startTrainingForPhotoshoot(photoshootId);
+    await startGenerationForPhotoshoot(photoshootId);
   } catch (err) {
-    console.error('Error starting training directly:', err);
+    console.error('Error starting generation directly:', err);
   }
 
   // Обновляем страницу дашборда и возвращаем пользователя туда
   revalidatePath('/dashboard');
   redirect('/dashboard');
 }
+

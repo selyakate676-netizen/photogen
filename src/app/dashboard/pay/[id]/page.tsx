@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { mockPayment } from './actions';
 import dashboardStyles from '../../dashboard.module.css';
+import SubmitPayButton from './SubmitPayButton';
 
 export default async function MockPaymentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -73,9 +74,7 @@ export default async function MockPaymentPage({ params }: { params: Promise<{ id
 
              <form action={mockPayment}>
                 <input type="hidden" name="photoshootId" value={photoshoot.id} />
-                <button type="submit" className="btn btn-primary btn-lg" style={{ minWidth: '250px' }}>
-                    Оплатить (Эмуляция)
-                </button>
+                <SubmitPayButton />
              </form>
           </div>
         </div>

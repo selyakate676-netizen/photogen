@@ -52,7 +52,7 @@ export default function StylesGrid({ selected, onSelect }: StylesGridProps) {
   return (
     <div className={styles.container}>
       <div className={styles.gridHeader}>
-        <span className={styles.stepNumber}>Шаг 2 из 2</span>
+        <span className={styles.stepNumber}>Шаг 3 из 3</span>
         <h2>Выберите направление</h2>
         <p>В каком стиле вы хотите получить фотографии?</p>
       </div>

@@ -6,6 +6,9 @@ CREATE TABLE photoshoots (
   status TEXT NOT NULL DEFAULT 'pending', -- pending, training, generating, ready, error
   images TEXT[] NOT NULL, -- Пути к исходным фото в S3
   result_images TEXT[] DEFAULT '{}', -- Готовые нейро-фото
+  body_type TEXT DEFAULT 'average', -- Фигура
+  eye_color TEXT DEFAULT 'brown', -- Цвет глаз
+  hair_color TEXT DEFAULT 'dark', -- Цвет волос
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

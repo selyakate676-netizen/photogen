@@ -59,7 +59,9 @@ export async function POST(request: Request) {
            }
            
            const buffer = Buffer.from(await response.arrayBuffer());
-           const s3Key = `photoshoots/generations/${photoshootId}/result_${i + 1}.jpg`;
+           // Добавляем timestamp, чтобы ключи были уникальными для параллельных вебхуков
+           const uniqueSuffix = Date.now().toString() + Math.floor(Math.random() * 1000).toString();
+           const s3Key = `photoshoots/generations/${photoshootId}/result_${uniqueSuffix}.jpg`;
            
            await s3Client.send(new PutObjectCommand({
              Bucket: process.env.S3_BUCKET_NAME,
@@ -74,16 +76,34 @@ export async function POST(request: Request) {
         }
       }
 
-      // Сохраняем ключи нашего S3
+      // Т.к. теперь вебхук может вызываться 4 раза параллельно (из-за 4 разных промптов),
+      // нам нужно аккуратно добавить ключи к уже существующим
+      
+      // Небольшая случайная задержка для минимизации race conditions при параллельных апдейтах
+      await new Promise(r => setTimeout(r, Math.random() * 1500));
+      
+      const { data: currentShoot } = await supabase
+          .from('photoshoots')
+          .select('result_images, status')
+          .eq('id', photoshootId)
+          .single();
+          
+      const existingImages = currentShoot?.result_images || [];
+      const newImages = [...existingImages, ...savedS3Keys];
+      
+      // Считаем, что фотосессия завершена, если у нас собралось 4 картинки (т.к. 4 промпта по 1 картинке или 1 на 4)
+      const isCompleted = newImages.length >= 4;
+
       await supabase
         .from('photoshoots')
         .update({ 
-          status: 'completed',
-          result_images: savedS3Keys.length > 0 ? savedS3Keys : images // Фолбэк на оригинальные ссылки, если S3 упал
+          status: isCompleted ? 'completed' : 'generating',
+          result_images: newImages
         })
         .eq('id', photoshootId);
 
-      return NextResponse.json({ message: "Generation successful, status updated to completed." });
+      return NextResponse.json({ message: `Image added. Status updated to ${isCompleted ? 'completed' : 'generating'}. Total: ${newImages.length}` });
+
     }
 
     return NextResponse.json({ message: "Status received but no action required." });
