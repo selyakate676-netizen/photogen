@@ -101,7 +101,10 @@ export async function POST(request: Request) {
                        photoshoot?.hair_color === 'brown' ? 'brown' :
                        photoshoot?.hair_color === 'red' ? 'red' : 'dark';
 
-      const subjectDescription = `tok person with ${bodyDesc} body shape, ${eyeDesc} eyes, and ${hairDesc} hair`;
+      // Для черно-белого стиля убираем цвета из описания, чтобы Flux не пытался рисовать "карие глаза" в ЧБ
+      const subjectDescription = styleId.toLowerCase() === 'bw' 
+        ? `tok person with ${bodyDesc} body shape`
+        : `tok person with ${bodyDesc} body shape, ${eyeDesc} eyes, and ${hairDesc} hair`;
       
       // Словарь базовых промптов (для остальных стилей)
       const basePrompts: Record<string, string> = {
@@ -109,23 +112,37 @@ export async function POST(request: Request) {
         "dating": "Natural unedited candid photo of a tok person for a dating profile, casual but stylish clothing, bright sunny outdoor environment. 50mm lens f/2.0, soft natural sunlight, shallow depth of field, real skin textures with slight imperfections, effortless charisma, highly photorealistic, taken on Fujifilm XT4.",
         "social": "Medium shot of a tok person sitting at a high-end minimalist cafe. Wearing stylish casual fashionable clothes. Lifestyle photography, taken on Sony A7R iv, 35mm f/1.8, cinematic depth of field, natural soft window lighting, highly detailed unedited face, authentic proportions, hyper-realistic.",
         "neon": "Cinematic portrait of a tok person in a dark cyberpunk city alley. Vibrant neon rim-lighting illuminating the face, deep moody shadows. Shot on Arri Alexa 65, anamorphic lens, beautiful cinematic grain, highly realistic skin reflection, 8k raw.",
-        "bw": "Striking fine art black and white portrait of a tok person. High-contrast monochromatic photography, Tri-X 400 film stock, dramatic natural light and deep shadows, emphasizing facial structure and raw emotion, highly detailed, realistic."
+        "bw": "Striking fine art pure black and white portrait of a tok person. High-contrast monochromatic photography, strictly greyscale, no colors, Tri-X 400 film stock, dramatic natural light and deep shadows, emphasizing symmetrical beautiful facial structure, flawless skin, highly detailed, realistic."
       };
       
-      // Специальный набор из 4 промптов для черно-белой сессии
+      // Специальный набор из 4 промптов для черно-белой сессии (баланс естественности и бьюти, детальное описание)
       const bwPrompts = [
-         "Striking black and white medium close-up portrait of a tok person, head gently tilted to the side, chin resting softly on one raised hand with delicate fingers. Wearing an open-collar white shirt. Wavy dark hair falling loose around the face. Looking directly into the camera with a calm magnetic gaze. Accurate facial features and face resemblance. Beautifully smooth glowing skin. High-contrast monochromatic studio photography, soft directional side lighting, deep rich blacks and luminous whites, 85mm f/1.4 lens, photorealistic fine art portrait.",
-         "Intimate black and white beauty close-up of a tok person in a reclining pose, cheek resting gently on a forearm stretched on a white surface. Face fills most of the frame. Wearing a white open-collar shirt. Hair tousled and slightly dishevelled with a natural dewy look, loose strands framing the face. Lips softly parted, upward gaze through the lashes. Highly accurate facial features and face resemblance. High-contrast B&W studio photography, dramatic side lighting with soft fill, 85mm lens, ultra-detailed fine art beauty photography.",
-         "Elegant black and white 3/4 upper body portrait of a tok person looking thoughtfully off to the side with a serene refined expression. Wearing a loose open-collar white shirt. Long flowing wavy hair cascading naturally over the shoulders. Highly accurate facial features and face resemblance. Smooth glowing skin, natural beauty. Moody B&W studio photography, soft diffused side lighting, light grey seamless background, 50mm lens, premium fashion editorial quality.",
-         "Artistic black and white close-up beauty portrait of a tok person, head slightly turned for a subtle three-quarter profile. One hand delicately raised near the cheek. Wearing a white shirt open at the collar, one shoulder softly exposed. Wavy hair with natural movement, soft strands across the cheek. Intense soft gaze, lips slightly parted. Highly accurate facial features and face resemblance. Smooth retouched skin. High-contrast fine art B&W photography, dramatic rim lighting from the side, deep cinematic shadows, 85mm f/1.4 lens, ultra-realistic."
+         // 1. Крупный портрет
+         "Ultra realistic professional close-up beauty portrait of a tok person. Long hair below the shoulders with soft natural waves and styling. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, well-groomed appearance. Extremely flattering angle, looking directly into the camera with a calm, confident gaze. Wearing an elegant top. High-contrast monochromatic photography, strictly greyscale, no colors, natural soft daylight, 85mm f/1.4 lens, high detail, DSLR photo, beautifully balanced soft shadows, perfectly preserving natural identity.",
+         
+         // 2. Как будто прилег, голова на руках боком
+         "Ultra realistic professional artistic portrait of a tok person resting their head sideways on their gracefully folded arms on a surface, as if reclining. Long hair below the shoulders with soft natural waves cascading beautifully. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, well-groomed appearance. Serene and relaxed expression, looking softly at the camera. High-contrast B&W studio photography, strictly greyscale, no colors, dramatic moody lighting, deep rich blacks, 50mm lens, high detail, DSLR photo, soft shadows, perfectly preserving natural identity.",
+         
+         // 3. По пояс, руки скрещены, легкая смеющаяся улыбка
+         "Ultra realistic professional waist-up portrait of a tok person standing confidently with arms crossed. Long hair below the shoulders flowing with soft natural waves. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, well-groomed appearance. Showing a natural, pleasant, soft laughing smile. Wearing an elegant white pantsuit. High-contrast B&W photography, strictly greyscale, no colors, soft diffused daylight from a window, 50mm lens, high detail, DSLR photo, soft shadows, joyful atmosphere, perfectly preserving natural identity.",
+         
+         // 4. 3/4 тела, сидя на стуле
+         "Ultra realistic professional 3/4 body shot of a tok person sitting gracefully on a minimalist studio chair. Long hair below the shoulders styled in soft natural waves. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, well-groomed appearance. Relaxed, confident posture, elegant clothing. High-contrast B&W studio photography, strictly greyscale, no colors, soft rim lighting, sharp focus, 50mm lens, high detail, DSLR photo, soft shadows, magazine editorial style, perfectly preserving natural identity."
       ];
       
-      // Специальный набор из 4 промптов для студийной сессии
+      // Специальный набор из 4 промптов для студийной сессии (цветные, высокодетализированные)
       const studioPrompts = [
-         "Medium close-up portrait of a tok person looking directly at the camera with a beautiful warm, genuine smile showing teeth. Wearing a sharp tailored black evening tuxedo suit over a white silk blouse. Hair styled in loose elegant glossy waves. Flawless glowing makeup, natural nude lips, subtle smokey eyes. Studio photography, dark grey seamless background. Soft Rembrandt lighting, Phase One XF IQ4, 85mm f/1.4 lens, ultra-realistic, beautifully smooth skin, 8k raw.",
-         "Elegant waist-up editorial portrait of a tok person looking slightly past the camera with a sophisticated calm expression. Wearing a sharp tailored black suit jacket over a white blouse. Glossy waves over one shoulder. Flawless glowing skin, contoured cheekbones. Studio photography, dark grey seamless background. Soft octabox lighting, 85mm f/1.4 lens, beauty retouching, premium magazine editorial quality, ultra-realistic.",
-         "3/4 upper body editorial portrait of a tok person with a confident radiant smile. Wearing a tailored sharp black suit jacket over a crisp white silk blouse. Hair in elegant loose waves. Studio photography, dark grey seamless background. Dramatic side lighting with soft fill, 50mm lens, high-fashion style, beautifully smooth skin, ultra-realistic.",
-         "Intimate glamour close-up portrait of a tok person, head gently tilted, looking directly into the camera with a magnetic alluring gaze and softly parted lips. Collar of a sleek black suit jacket visible. Hair in perfectly groomed elegant glossy waves. Beautifully smooth glowing skin, subtle highlighter, glossy nude lips. Studio photography, dark grey seamless background. Soft diffused butterfly lighting, 85mm f/1.4 lens, ultra-glamorous beauty photography, skin-smoothing retouching."
+         // 1. Крупный портрет
+         "Ultra realistic professional close-up beauty portrait of a tok person. Long hair below the shoulders with soft natural waves and styling. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, healthy skin tone, well-groomed appearance. Extremely flattering angle, looking directly into the camera with a calm, confident gaze. Wearing a sharp tailored black suit over a white silk blouse. Dark grey seamless background. Soft Rembrandt lighting, 85mm f/1.4 lens, high detail, DSLR photo, beautifully balanced soft shadows, perfectly preserving natural identity.",
+         
+         // 2. Как будто прилег, голова на руках боком
+         "Ultra realistic professional artistic color portrait of a tok person resting their head sideways on their gracefully folded arms on a surface, as if reclining. Long hair below the shoulders with soft natural waves cascading beautifully. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, healthy skin tone, well-groomed appearance. Serene and relaxed expression, looking softly at the camera. Studio photography, dark grey seamless background, dramatic moody lighting, rich cinematic colors, 50mm lens, high detail, DSLR photo, soft shadows, perfectly preserving natural identity.",
+         
+         // 3. По пояс, руки скрещены, легкая смеющаяся улыбка
+         "Ultra realistic professional color waist-up portrait of a tok person standing confidently with arms crossed. Long hair below the shoulders flowing with soft natural waves. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, healthy skin tone, well-groomed appearance. Showing a natural, pleasant, soft laughing smile. Wearing an elegant white pantsuit. Studio photography, dark grey background, soft diffused studio light, 50mm lens, high detail, DSLR photo, soft shadows, joyful atmosphere, perfectly preserving natural identity.",
+         
+         // 4. 3/4 тела, сидя на стуле
+         "Ultra realistic professional dynamic color 3/4 body shot of a tok person sitting gracefully on a minimalist studio chair. Long hair below the shoulders styled in soft natural waves. Authentic natural face proportions, defined jawline, balanced facial features, clear smooth skin, healthy skin tone, well-groomed appearance. Relaxed, confident posture, sharp elegant clothing. Studio photography, dark grey seamless background, soft rim lighting, sharp focus, 50mm lens, high detail, DSLR photo, soft shadows, magazine editorial style, perfectly preserving natural identity."
       ];
       
       let promptsToRun: string[] = [];
@@ -135,7 +152,6 @@ export async function POST(request: Request) {
           promptsToRun = bwPrompts;
       } else {
           const fallback = basePrompts[styleId.toLowerCase()] || basePrompts["social"];
-          // Для других стилей просто вызываем один промпт 4 раза
           promptsToRun = [fallback, fallback, fallback, fallback];
       }
 
@@ -158,15 +174,23 @@ export async function POST(request: Request) {
       console.log(`Final prediction run directly on your model. Starting 4 jobs...`);
       
       const predictionIds: string[] = [];
+      
+      // Общий негативный промпт для всех генераций
+      const baseNegativePrompt = "acne, pimples, skin blemishes, spots, fat face, chubby cheeks, overweight, double chin, bloated face, distorted face, cartoon, cgi, deformed anatomy, extra fingers, mutated hands, bad proportions";
 
-      // Запускаем 4 параллельных запроса генерации с разными промптами
-      for (const p of promptsToRun) {
+      // Helper function for delay
+      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+      // Запускаем 4 последовательных запроса генерации с задержкой, чтобы избежать Rate Limit (429)
+      for (let i = 0; i < promptsToRun.length; i++) {
+          const p = promptsToRun[i];
           // Интегрируем физические особенности пользователя прямо в промпт
           const personalizedPrompt = p.replace(/tok person/gi, subjectDescription);
           
           const predictionPayload: any = {
             input: {
                prompt: personalizedPrompt,
+               negative_prompt: baseNegativePrompt,
                num_outputs: 1, // 1 картинка на 1 промпт
                aspect_ratio: "3:4",
                output_format: "jpg",
@@ -186,6 +210,12 @@ export async function POST(request: Request) {
           // @ts-ignore
           const prediction = await replicate.predictions.create(predictionPayload);
           predictionIds.push(prediction.id);
+
+          // Задержка 10 секунд между запросами, кроме последнего
+          if (i < promptsToRun.length - 1) {
+              console.log(`Waiting 10s to avoid rate limits before next prediction...`);
+              await delay(10000);
+          }
       }
 
       // Сохраняем все 4 ID через запятую (хоть это и не строго обязательно для логики)
