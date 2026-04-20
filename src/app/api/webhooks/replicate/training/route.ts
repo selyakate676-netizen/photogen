@@ -115,34 +115,34 @@ export async function POST(request: Request) {
         "bw": "Striking fine art pure black and white portrait of a tok person. High-contrast monochromatic photography, strictly greyscale, no colors, Tri-X 400 film stock, dramatic natural light and deep shadows, emphasizing symmetrical beautiful facial structure, flawless skin, highly detailed, realistic."
       };
       
-      // Специальный набор из 4 промптов для черно-белой сессии (без изменения черт лица, чтобы сохранить 100% сходство)
+      // Специальный набор из 4 промптов для черно-белой сессии (максимально безопасные позы для избежания мутаций)
       const bwPrompts = [
-         // 1. Крупный портрет
-         "Ultra realistic professional close-up beauty portrait of a tok person. Long hair below the shoulders with soft natural waves. Extremely flattering angle, looking directly into the camera with a calm, confident gaze. Wearing an elegant top. High-contrast monochromatic photography, strictly greyscale, no colors, natural soft daylight, 85mm f/1.4 lens, extremely high detail, DSLR photo, beautifully balanced soft shadows, professional magazine retouching, clear glowing skin.",
+         // 1. Крупный портрет (самый безопасный)
+         "A tok person. Pure black and white professional studio portrait, close up face shot. Looking directly at the camera. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, magazine cover aesthetic. High-contrast monochromatic photography, no colors, soft directional lighting, 85mm lens.",
          
-         // 2. Как будто прилег, голова на руках боком
-         "Ultra realistic professional artistic portrait of a tok person resting their head sideways on their gracefully folded arms on a surface, as if reclining. Long hair below the shoulders with soft natural waves cascading beautifully. Serene and relaxed expression, looking softly at the camera. High-contrast B&W studio photography, strictly greyscale, no colors, dramatic moody lighting, deep rich blacks, 50mm lens, extremely high detail, DSLR photo, soft shadows, professional retouching.",
+         // 2. Портрет по грудь, взгляд в сторону
+         "A tok person. Pure black and white professional studio portrait, chest up shot. Looking slightly away thoughtfully. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, glamorous fashion editorial. High-contrast monochromatic photography, no colors, soft moody lighting, 50mm lens.",
          
-         // 3. По пояс, руки скрещены, легкая смеющаяся улыбка
-         "Ultra realistic professional waist-up portrait of a tok person standing confidently with arms crossed. Long hair below the shoulders flowing with soft natural waves. Showing a natural, pleasant, soft laughing smile. Wearing an elegant white pantsuit. High-contrast B&W photography, strictly greyscale, no colors, soft diffused daylight from a window, 50mm lens, extremely high detail, DSLR photo, soft shadows, joyful atmosphere, clear smooth skin.",
+         // 3. Портрет по пояс, расслабленная поза
+         "A tok person. Pure black and white professional studio portrait, waist up shot. Standing relaxed. Long hair styled in soft waves below shoulders. Slight natural smile. Flawless smooth retouched skin. High-contrast monochromatic photography, no colors, soft diffused lighting, 50mm lens.",
          
-         // 4. 3/4 тела, сидя на стуле
-         "Ultra realistic professional 3/4 body shot of a tok person sitting gracefully on a minimalist studio chair. Long hair below the shoulders styled in soft natural waves. Relaxed, confident posture, elegant clothing. High-contrast B&W studio photography, strictly greyscale, no colors, soft rim lighting, sharp focus, 50mm lens, extremely high detail, DSLR photo, soft shadows, magazine editorial style, flawless skin."
+         // 4. Сидя на стуле, 3/4 тела
+         "A tok person. Pure black and white professional studio portrait, 3/4 body shot. Sitting gracefully on a minimalist stool. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, elegant outfit. High-contrast monochromatic photography, no colors, rim lighting, 50mm lens."
       ];
       
-      // Специальный набор из 4 промптов для студийной сессии (цветные, сохраняющие сходство)
+      // Специальный набор из 4 промптов для студийной сессии (цветные, максимально безопасные позы)
       const studioPrompts = [
          // 1. Крупный портрет
-         "Ultra realistic professional close-up beauty portrait of a tok person. Long hair below the shoulders with soft natural waves. Extremely flattering angle, looking directly into the camera with a calm, confident gaze. Wearing a sharp tailored black suit over a white silk blouse. Dark grey seamless background. Soft Rembrandt lighting, 85mm f/1.4 lens, extremely high detail, DSLR photo, beautifully balanced soft shadows, healthy glowing skin tone, professional retouching.",
+         "A tok person. Professional color studio portrait, close up face shot. Looking directly at the camera. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, magazine cover aesthetic, healthy glowing skin. Dark grey seamless background. Rembrandt lighting, 85mm lens.",
          
-         // 2. Как будто прилег, голова на руках боком
-         "Ultra realistic professional artistic color portrait of a tok person resting their head sideways on their gracefully folded arms on a surface, as if reclining. Long hair below the shoulders with soft natural waves cascading beautifully. Serene and relaxed expression, looking softly at the camera. Studio photography, dark grey seamless background, dramatic moody lighting, rich cinematic colors, 50mm lens, extremely high detail, DSLR photo, soft shadows, clear skin.",
+         // 2. Портрет по грудь, взгляд в сторону
+         "A tok person. Professional color studio portrait, chest up shot. Looking slightly away thoughtfully. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, glamorous fashion editorial, rich cinematic colors. Dark grey seamless background. Soft moody lighting, 50mm lens.",
          
-         // 3. По пояс, руки скрещены, легкая смеющаяся улыбка
-         "Ultra realistic professional color waist-up portrait of a tok person standing confidently with arms crossed. Long hair below the shoulders flowing with soft natural waves. Showing a natural, pleasant, soft laughing smile. Wearing an elegant white pantsuit. Studio photography, dark grey background, soft diffused studio light, 50mm lens, extremely high detail, DSLR photo, soft shadows, joyful atmosphere, healthy radiant skin.",
+         // 3. Портрет по пояс, расслабленная поза
+         "A tok person. Professional color studio portrait, waist up shot. Standing relaxed. Long hair styled in soft waves below shoulders. Slight natural smile. Flawless smooth retouched skin. Dark grey seamless background. Soft diffused lighting, 50mm lens.",
          
-         // 4. 3/4 тела, сидя на стуле
-         "Ultra realistic professional dynamic color 3/4 body shot of a tok person sitting gracefully on a minimalist studio chair. Long hair below the shoulders styled in soft natural waves. Relaxed, confident posture, sharp elegant clothing. Studio photography, dark grey seamless background, soft rim lighting, sharp focus, 50mm lens, extremely high detail, DSLR photo, soft shadows, magazine editorial style, clear smooth skin."
+         // 4. Сидя на стуле, 3/4 тела
+         "A tok person. Professional color studio portrait, 3/4 body shot. Sitting gracefully on a minimalist stool. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, elegant outfit. Dark grey seamless background. Rim lighting, 50mm lens."
       ];
       
       let promptsToRun: string[] = [];
