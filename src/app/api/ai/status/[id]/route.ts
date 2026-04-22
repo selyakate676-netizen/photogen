@@ -47,6 +47,16 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Если уже готово — возвращаем сразу, не опрашиваем Replicate
+    if (photoshoot.status === 'completed') {
+      return NextResponse.json({ status: 'completed', progress: 100 });
+    }
+
+    // Если ошибка — возвращаем сразу
+    if (photoshoot.status === 'error') {
+      return NextResponse.json({ status: 'error', progress: 0 });
+    }
+
     // Если обучение еще не привязано, возвращаем текущий статус из базы
     if (!photoshoot.training_id) {
        return NextResponse.json({ status: photoshoot.status, progress: 0 });
