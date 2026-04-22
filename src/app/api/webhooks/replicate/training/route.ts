@@ -83,11 +83,12 @@ export async function POST(request: Request) {
       // Здесь мы достаем заказанный стиль и особенности внешности (из базы)
       const { data: photoshoot } = await supabase
           .from('photoshoots')
-          .select('style_id, body_type, eye_color, hair_color')
+          .select('style_id, body_type, eye_color, hair_color, gender')
           .eq('id', photoshootId)
           .single();
           
       const styleId = photoshoot?.style_id || "business";
+      const genderWord = photoshoot?.gender === 'man' ? 'man' : 'woman';
       
       const bodyDesc = photoshoot?.body_type === 'slim' ? 'slim and thin' :
                        photoshoot?.body_type === 'athletic' ? 'toned and athletic' :
@@ -101,10 +102,10 @@ export async function POST(request: Request) {
                        photoshoot?.hair_color === 'brown' ? 'brown' :
                        photoshoot?.hair_color === 'red' ? 'red' : 'dark';
 
-      // Для черно-белого стиля убираем цвета из описания, чтобы Flux не пытался рисовать "карие глаза" в ЧБ
+      // Для черно-белого стиля убираем цвета
       const subjectDescription = styleId.toLowerCase() === 'bw' 
-        ? `tok person with ${bodyDesc} body shape`
-        : `tok person with ${bodyDesc} body shape, ${eyeDesc} eyes, and ${hairDesc} hair`;
+        ? `tok ${genderWord} with ${bodyDesc} body shape`
+        : `tok ${genderWord} with ${bodyDesc} body shape, ${eyeDesc} eyes, and ${hairDesc} hair`;
       
       // Словарь базовых промптов (для остальных стилей)
       const basePrompts: Record<string, string> = {
@@ -115,19 +116,12 @@ export async function POST(request: Request) {
         "bw": "Striking fine art pure black and white portrait of a tok person. High-contrast monochromatic photography, strictly greyscale, no colors, Tri-X 400 film stock, dramatic natural light and deep shadows, emphasizing symmetrical beautiful facial structure, flawless skin, highly detailed, realistic."
       };
       
-      // Специальный набор из 4 промптов для черно-белой сессии (максимально безопасные позы для избежания мутаций)
+      // BW: новые glamour editorial промты (дают лучшее сходство + фотогеничность)
       const bwPrompts = [
-         // 1. Крупный портрет (самый безопасный)
-         "A tok person. Pure black and white professional studio portrait, close up face shot. Looking directly at the camera. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, magazine cover aesthetic. High-contrast monochromatic photography, no colors, soft directional lighting, 85mm lens.",
-         
-         // 2. Портрет по грудь, взгляд в сторону
-         "A tok person. Pure black and white professional studio portrait, chest up shot. Looking slightly away thoughtfully. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, glamorous fashion editorial. High-contrast monochromatic photography, no colors, soft moody lighting, 50mm lens.",
-         
-         // 3. Портрет по пояс, расслабленная поза
-         "A tok person. Pure black and white professional studio portrait, waist up shot. Standing relaxed. Long hair styled in soft waves below shoulders. Slight natural smile. Flawless smooth retouched skin. High-contrast monochromatic photography, no colors, soft diffused lighting, 50mm lens.",
-         
-         // 4. Сидя на стуле, 3/4 тела
-         "A tok person. Pure black and white professional studio portrait, 3/4 body shot. Sitting gracefully on a minimalist stool. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, elegant outfit. High-contrast monochromatic photography, no colors, rim lighting, 50mm lens."
+         `Stunning glamour close-up portrait of a tok ${genderWord} looking directly into camera with a warm soft smile. Dark dramatic studio background. Beautiful Rembrandt split lighting, strong contrast, 85mm f/1.2 lens. Black and white. High fashion editorial.`,
+         `Elegant beauty portrait of a tok ${genderWord}, head turned 3/4 toward camera, sophisticated serene expression, slight smile. Beautiful chiaroscuro studio lighting, deep shadows, bright highlights on cheekbones. Black and white. 85mm f/1.4, magazine quality.`,
+         `Dramatic cinematic close-up of a tok ${genderWord} with a magnetic confident gaze and subtle smile. Strong directional key light from above creating beautiful shadows. Dark background. Black and white high contrast, 85mm lens. Ultra sharp.`,
+         `Radiant beauty shot of a tok ${genderWord} with a natural soft smile, head slightly tilted. Butterfly lighting setup, beautiful catch light in eyes. Studio background. Black and white. 85mm f/1.4, ultra flattering angle.`
       ];
       
       // Специальный набор из 4 промптов для студийной сессии (цветные, максимально безопасные позы)
@@ -195,7 +189,8 @@ export async function POST(request: Request) {
                aspect_ratio: "3:4",
                output_format: "jpg",
                guidance: 3.5,
-               output_quality: 100
+               output_quality: 100,
+               lora_scale: 1.15
             },
             webhook: genWebhookUrl,
             webhook_events_filter: ["completed"]

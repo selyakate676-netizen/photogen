@@ -17,6 +17,7 @@ export default function NewPhotoshootPage() {
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   
   // Questionnaire states
+  const [gender, setGender] = useState('woman');
   const [bodyType, setBodyType] = useState('average');
   const [eyeColor, setEyeColor] = useState('brown');
   const [hairColor, setHairColor] = useState('dark');
@@ -40,6 +41,7 @@ export default function NewPhotoshootPage() {
       const result = await createPhotoshoot({
         styleId: selectedStyle,
         imageKeys: uploadedKeys,
+        gender,
         bodyType,
         eyeColor,
         hairColor
@@ -91,6 +93,13 @@ export default function NewPhotoshootPage() {
               </div>
 
               <div className={styles.questionnaireGrid}>
+                 <div className={styles.qGroup}>
+                    <label className={styles.qLabel}>Пол</label>
+                    <select value={gender} onChange={e => setGender(e.target.value)} className={styles.qSelect}>
+                       <option value="woman">Женский</option>
+                       <option value="man">Мужской</option>
+                    </select>
+                 </div>
                  <div className={styles.qGroup}>
                     <label className={styles.qLabel}>Телосложение</label>
                     <select value={bodyType} onChange={e => setBodyType(e.target.value)} className={styles.qSelect}>

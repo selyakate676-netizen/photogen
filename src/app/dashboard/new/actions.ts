@@ -5,13 +5,14 @@ import { revalidatePath } from 'next/cache';
 
 interface CreatePhotoshootProps {
   styleId: string;
-  imageKeys: string[]; // Теперь передаем ключи загруженных фото из S3
+  imageKeys: string[];
+  gender: string;
   bodyType: string;
   eyeColor: string;
   hairColor: string;
 }
 
-export async function createPhotoshoot({ styleId, imageKeys, bodyType, eyeColor, hairColor }: CreatePhotoshootProps) {
+export async function createPhotoshoot({ styleId, imageKeys, gender, bodyType, eyeColor, hairColor }: CreatePhotoshootProps) {
   const supabase = await createClient();
 
   // 1. Проверяем пользователя
@@ -29,7 +30,8 @@ export async function createPhotoshoot({ styleId, imageKeys, bodyType, eyeColor,
     user_id: user.id,
     style_id: styleId,
     status: 'pending',
-    images: imageKeys, // Сохраняем пути к файлам в Beget S3
+    images: imageKeys,
+    gender: gender || 'woman',
     body_type: bodyType,
     eye_color: eyeColor,
     hair_color: hairColor

@@ -76,22 +76,24 @@ export async function POST(request: Request) {
         }
       }
 
-      // Т.к. теперь вебхук может вызываться 4 раза параллельно (из-за 4 разных промптов),
-      // нам нужно аккуратно добавить ключи к уже существующим
+      // Т.к. теперь вебхук может вызываться 4 раза (из-за 4 разных промптов),
+      // нам нужно аккуратно добавить ключи к уже существующим (в рамках ОДНОЙ генерации)
       
       // Небольшая случайная задержка для минимизации race conditions при параллельных апдейтах
       await new Promise(r => setTimeout(r, Math.random() * 1500));
       
       const { data: currentShoot } = await supabase
           .from('photoshoots')
-          .select('result_images, status')
+          .select('result_images, status, generation_id')
           .eq('id', photoshootId)
           .single();
           
+      // Берём только изображения, накопленные в рамках ТЕКУЩЕЙ генерации
+      // Если generation_id изменился с последнего запуска — сбрасываем старые
       const existingImages = currentShoot?.result_images || [];
       const newImages = [...existingImages, ...savedS3Keys];
       
-      // Считаем, что фотосессия завершена, если у нас собралось 4 картинки (т.к. 4 промпта по 1 картинке или 1 на 4)
+      // Считаем, что фотосессия завершена, если у нас собралось 4 картинки
       const isCompleted = newImages.length >= 4;
 
       await supabase
