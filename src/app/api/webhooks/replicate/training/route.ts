@@ -136,7 +136,7 @@ export async function POST(request: Request) {
          "A tok person. Professional color studio portrait, waist up shot. Standing relaxed. Long hair styled in soft waves below shoulders. Slight natural smile. Flawless smooth retouched skin. Dark grey seamless background. Soft diffused lighting, 50mm lens.",
          
          // 4. Сидя на стуле, 3/4 тела
-         "A tok person. Professional color studio portrait, 3/4 body shot. Sitting gracefully on a minimalist stool. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, elegant outfit. Dark grey seamless background. Rim lighting, 50mm lens."
+         "A tok person. Professional color studio portrait, 3/4 body shot. Standing with body slightly angled, no hands visible. Long hair styled in soft waves below shoulders. Flawless smooth retouched skin, elegant outfit. Dark grey seamless background. Rim lighting, 50mm lens."
       ];
       
       let promptsToRun: string[] = [];
@@ -189,6 +189,7 @@ export async function POST(request: Request) {
                aspect_ratio: "3:4",
                output_format: "jpg",
                guidance: 3.5,
+               num_inference_steps: 30,
                output_quality: 100,
                lora_scale: 1.15
             },
