@@ -117,8 +117,9 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
   
     return { success: true, generationId: result.id };
 
-  } catch (err: any) {
-    console.error(`[CRITICAL] Fatal error in generation trigger:`, err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[CRITICAL] Fatal error in generation trigger:`, message);
     throw err;
   }
 }

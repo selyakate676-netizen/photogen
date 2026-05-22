@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import styles from '../app/login/login.module.css';
 
+type SocialProvider = 'telegram' | 'google' | 'vk' | 'yandex';
+
 export default function SocialAuth() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const supabase = createClient();
 
-  const handleSocialLogin = async (provider: any) => {
+  const handleSocialLogin = async (provider: SocialProvider) => {
     setLoadingProvider(provider);
     try {
       // Автоматическое определение URL для редиректа
@@ -23,7 +25,7 @@ export default function SocialAuth() {
       };
 
       const { error } = await supabase.auth.signInWithOAuth({
-        provider,
+        provider: provider as 'google',
         options: {
           redirectTo: `${getURL()}/auth/callback`,
         },

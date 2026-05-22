@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -54,10 +55,10 @@ export default function Navbar() {
         </button>
 
         <div className={`${styles.navLinks} ${isMenuOpen ? styles.navLinksOpen : ''}`}>
-          <a href="/#examples" onClick={closeMenu}>Примеры</a>
-          <a href="/#how-it-works" onClick={closeMenu}>Как это работает</a>
-          <a href="/#styles" onClick={closeMenu}>Направления</a>
-          <a href="/#pricing" onClick={closeMenu}>Цены</a>
+          <Link href="/#examples" onClick={closeMenu}>Примеры</Link>
+          <Link href="/#how-it-works" onClick={closeMenu}>Как это работает</Link>
+          <Link href="/#styles" onClick={closeMenu}>Направления</Link>
+          <Link href="/#pricing" onClick={closeMenu}>Цены</Link>
           
           {user ? (
             <>

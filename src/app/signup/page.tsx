@@ -42,8 +42,8 @@ export default function SignupPage() {
       
       reachMetricaGoal('USER_SIGNUP');
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Ошибка при регистрации');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Ошибка при регистрации');
     } finally {
       setLoading(false);
     }

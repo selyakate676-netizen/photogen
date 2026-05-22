@@ -63,6 +63,6 @@ export function reachMetricaGoal(goalName: string) {
 // Добавляем ym в глобальный объект window для TypeScript
 declare global {
   interface Window {
-    ym: (id: string | number, action: string, ...args: any[]) => void;
+    ym: (id: string | number, action: string, ...args: unknown[]) => void;
   }
 }

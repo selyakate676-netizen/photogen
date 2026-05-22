@@ -12,7 +12,11 @@ export default function TrainingProgress({ photoshootId, initialStatus }: Traini
   const [status, setStatus] = useState(initialStatus);
   const [targetProgress, setTargetProgress] = useState(5);
   const [displayProgress, setDisplayProgress] = useState(0);
-  const startTimeRef = useRef(Date.now());
+  const startTimeRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+  }, []);
 
   // Плавная анимация: каждые 500мс подтягиваем отображение к целевому значению
   useEffect(() => {
@@ -32,7 +36,8 @@ export default function TrainingProgress({ photoshootId, initialStatus }: Traini
     if (status === 'completed' || status === 'error') return;
     
     const timeInterval = setInterval(() => {
-      const elapsed = (Date.now() - startTimeRef.current) / 1000 / 60; // минуты
+      const startedAt = startTimeRef.current ?? Date.now();
+      const elapsed = (Date.now() - startedAt) / 1000 / 60; // минуты
       if (status === 'training') {
         // ~10 мин = 500 шагов, маппим 0-10мин → 5-88%
         const calc = 5 + Math.min(83, (elapsed / 10) * 83);
@@ -57,7 +62,7 @@ export default function TrainingProgress({ photoshootId, initialStatus }: Traini
         const data = await res.json();
         
         if (data.status !== status) setStatus(data.status);
-        if (data.progress > targetProgress) setTargetProgress(data.progress);
+        setTargetProgress(prev => data.progress > prev ? data.progress : prev);
 
         if (data.status === 'completed') {
           setTargetProgress(100);

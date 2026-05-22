@@ -108,7 +108,7 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
                   <img 
                     src={URL.createObjectURL(file)} 
                     alt="Preview" 
-                    onLoad={(e) => URL.revokeObjectURL((e.target as any).src)}
+                    onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
                   />
                   <div className={styles.itemOverlay}>
                     {status === 'uploading' && <Loader2 className={styles.spin} size={20} />}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Replicate from "replicate";
+import type { WebhookEventType } from "replicate";
 
 import fs from 'fs';
 import path from 'path';
@@ -153,8 +154,8 @@ export async function POST(request: Request) {
       const genWebhookUrl = `${host}/api/webhooks/replicate/generation?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshootId}`;
 
       // Запрашиваем модель
-      let targetModelId = "selyakate676-netizen/photogen_models";
-      let versionId = null;
+      const targetModelId = "selyakate676-netizen/photogen_models";
+      let versionId: string | null = null;
       
       try {
           const modelInfo = await replicate.models.get("selyakate676-netizen", "photogen_models");
@@ -168,6 +169,7 @@ export async function POST(request: Request) {
       console.log(`Final prediction run directly on your model. Starting 4 jobs...`);
       
       const predictionIds: string[] = [];
+      const completedEvents: WebhookEventType[] = ["completed"];
       
       // Общий негативный промпт для всех генераций
       const baseNegativePrompt = "acne, pimples, skin blemishes, spots, fat face, chubby cheeks, overweight, double chin, bloated face, distorted face, cartoon, cgi, deformed anatomy, extra fingers, mutated hands, bad proportions";
@@ -181,7 +183,7 @@ export async function POST(request: Request) {
           // Интегрируем физические особенности пользователя прямо в промпт
           const personalizedPrompt = p.replace(/tok person/gi, subjectDescription);
           
-          const predictionPayload: any = {
+          const predictionBase = {
             input: {
                prompt: personalizedPrompt,
                negative_prompt: baseNegativePrompt,
@@ -194,16 +196,13 @@ export async function POST(request: Request) {
                lora_scale: 1.15
             },
             webhook: genWebhookUrl,
-            webhook_events_filter: ["completed"]
+            webhook_events_filter: completedEvents
           };
 
-          if (versionId) {
-              predictionPayload.version = versionId;
-          } else {
-              predictionPayload.model = targetModelId;
-          }
+          const predictionPayload: Parameters<typeof replicate.predictions.create>[0] = versionId
+            ? { ...predictionBase, version: versionId }
+            : { ...predictionBase, model: targetModelId };
 
-          // @ts-ignore
           const prediction = await replicate.predictions.create(predictionPayload);
           predictionIds.push(prediction.id);
 
@@ -225,7 +224,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Status received but no action required." });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Webhook processing error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

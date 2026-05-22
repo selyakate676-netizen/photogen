@@ -26,10 +26,10 @@ function getReliableToken(): string | undefined {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const photoshootId = params.id;
+    const { id: photoshootId } = await params;
     const supabase = await createClient();
     
     const replicate = new Replicate({
@@ -39,7 +39,7 @@ export async function GET(
     // 1. Получаем запись из базы
     const { data: photoshoot, error: dbError } = await supabase
       .from('photoshoots')
-      .select('status, training_id')
+      .select('status, training_id, result_images')
       .eq('id', photoshootId)
       .single();
 
@@ -55,6 +55,17 @@ export async function GET(
     // Если ошибка — возвращаем сразу
     if (photoshoot.status === 'error') {
       return NextResponse.json({ status: 'error', progress: 0 });
+    }
+
+    // Если статус 'generating' — проверяем сколько фото уже сохранено
+    if (photoshoot.status === 'generating') {
+      const savedCount = (photoshoot.result_images || []).length;
+      if (savedCount >= 3) {
+        // Вебхук вызвался но не обновил статус — доисправляем
+        await supabase.from('photoshoots').update({ status: 'completed' }).eq('id', photoshootId);
+        return NextResponse.json({ status: 'completed', progress: 100 });
+      }
+      return NextResponse.json({ status: 'generating', progress: 95 });
     }
 
     // Если обучение еще не привязано, возвращаем текущий статус из базы

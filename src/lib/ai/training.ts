@@ -21,7 +21,7 @@ function getReliableToken(): string | undefined {
           const rawToken = line.split('=')[1]?.trim();
           const token = rawToken ? rawToken.replace(/^["']|["']$/g, '') : undefined;
           if (token) {
-            console.log(`[Diagnostic] Token loaded DIRECTLY from file. Prefix: ${token.substring(0, 4)}`);
+            console.log('[Diagnostic] Token loaded directly from local env file.');
             return token;
           }
         }
@@ -39,7 +39,7 @@ const replicate = new Replicate({
   auth: getReliableToken(),
 });
 
-async function streamToBuffer(stream: any): Promise<Buffer> {
+async function streamToBuffer(stream: AsyncIterable<Buffer | Uint8Array | string>): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of stream) {
     chunks.push(Buffer.from(chunk));
@@ -80,7 +80,9 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
       
       const s3Response = await s3Client.send(getCommand);
       if (s3Response.Body) {
-        const buffer = await streamToBuffer(s3Response.Body);
+        const buffer = await streamToBuffer(
+          s3Response.Body as AsyncIterable<Buffer | Uint8Array | string>
+        );
         const ext = imageKey.split('.').pop() || 'jpg';
         zip.addFile(`image_${i + 1}.${ext}`, buffer);
       }
@@ -161,8 +163,9 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   
     return { success: true, trainingId: resultData.id };
 
-  } catch (err: any) {
-    console.error(`[CRITICAL] Fatal error in training trigger:`, err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[CRITICAL] Fatal error in training trigger:`, message);
     throw err;
   }
 }
