@@ -8,10 +8,15 @@
 - `src/app/` - страницы сайта, личный кабинет, API routes и обработчики авторизации.
 - `src/components/` - блоки интерфейса, которые используются на страницах.
 - `src/lib/` - техническая логика: AI, S3-хранилище, генерация и обучение.
+- `src/lib/env.ts` - безопасное чтение серверных env-переменных без вывода секретов.
+- `src/lib/public-env.ts` - безопасное чтение публичных `NEXT_PUBLIC_*` переменных для браузера.
+- `src/lib/photoshoots/status.ts` - helper-ы для обновления статусов, служебных полей фотосессий и правила переходов между статусами.
 - `src/utils/supabase/` - подключение к Supabase и работа с сессией пользователя.
 - `src/types/` - небольшие TypeScript-описания для библиотек без своих типов.
+- `src/types/database.ts` - TypeScript-описание текущей Supabase-схемы, чтобы код видел поля таблицы `photoshoots`.
 - `public/` - публичные картинки, которые доступны сайту.
 - `docs/` - документация проекта.
+- `docs/AI_GENERATION_PIPELINE.md` - описание текущей AI-генерации и план hybrid pipeline.
 - `scratch/` - локальные отладочные скрипты. Сами скрипты не должны попадать в Git; разрешён только `scratch/README.md` с правилами безопасности.
 - `.github/` - настройки автоматического деплоя через GitHub Actions.
 
@@ -79,6 +84,11 @@ API routes лежат в `src/app/api/`.
 - `src/proxy.ts`
 - `src/utils/supabase/*`
 - `src/lib/ai/*`
+- `src/lib/ai/prompts/` - versioned prompt presets для текущего и будущих AI pipeline.
+- `src/lib/ai/pipeline/` - сервисы запуска текущих и будущих AI pipeline.
+- `src/lib/ai/pipeline/types.ts` - общие типы AI pipeline для stages, candidates, artifacts и final results.
+- `src/lib/ai/pipeline/hybrid.ts` - безопасный каркас будущего hybrid pipeline. Сейчас не подключён к production generation.
+- `src/lib/photoshoots/*`
 - `src/lib/s3.ts`
 - SQL-файлы Supabase
 - всё в `docs/`, если это не замена на более актуальный документ

@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
+import type { PhotoshootGender } from '@/types/database';
 import { revalidatePath } from 'next/cache';
 
 interface CreatePhotoshootProps {
@@ -10,6 +11,10 @@ interface CreatePhotoshootProps {
   bodyType: string;
   eyeColor: string;
   hairColor: string;
+}
+
+function normalizeGender(value: string): PhotoshootGender {
+  return value === 'man' ? 'man' : 'woman';
 }
 
 export async function createPhotoshoot({ styleId, imageKeys, gender, bodyType, eyeColor, hairColor }: CreatePhotoshootProps) {
@@ -31,7 +36,7 @@ export async function createPhotoshoot({ styleId, imageKeys, gender, bodyType, e
     style_id: styleId,
     status: 'pending',
     images: imageKeys,
-    gender: gender || 'woman',
+    gender: normalizeGender(gender),
     body_type: bodyType,
     eye_color: eyeColor,
     hair_color: hairColor

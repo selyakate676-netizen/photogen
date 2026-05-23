@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getS3BucketName, getSupabaseServiceRoleConfig, getWebhookSecret } from "@/lib/env";
+import { updatePhotoshootGenerationStatus } from "@/lib/photoshoots/status";
+import type { Database, PhotoshootStatus } from "@/types/database";
 
 const COMPLETED_IMAGES_THRESHOLD = 3;
 
@@ -32,7 +35,7 @@ export async function POST(request: Request) {
     const secret = searchParams.get("secret");
     const photoshootId = searchParams.get("photoshootId");
 
-    if (secret !== process.env.WEBHOOK_SECRET) {
+    if (secret !== getWebhookSecret()) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -46,10 +49,8 @@ export async function POST(request: Request) {
 
     // Важно: ИСПОЛЬЗУЕМ SERVICE ROLE KEY для обхода RLS
     // Иначе анонимный вебхук не сможет обновить вашу базу данных!
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseConfig = getSupabaseServiceRoleConfig();
+    const supabase = createClient<Database>(supabaseConfig.url, supabaseConfig.serviceRoleKey);
 
     // Если генерация завершилась с ошибкой
     if (payload.status === "failed" || payload.status === "canceled") {
@@ -60,14 +61,18 @@ export async function POST(request: Request) {
         .single();
 
       const existingCount = (currentShoot?.result_images || []).length;
-      const nextStatus =
+      const nextStatus: PhotoshootStatus =
         existingCount >= COMPLETED_IMAGES_THRESHOLD
           ? 'completed'
           : existingCount > 0
             ? 'generating'
             : 'error';
 
-      await supabase.from('photoshoots').update({ status: nextStatus }).eq('id', photoshootId);
+      const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus);
+      if (!updated) {
+        return NextResponse.json({ message: `Generation failed/canceled. Status transition to ${nextStatus} was ignored.` });
+      }
+
       return NextResponse.json({ message: `Generation failed/canceled. Status updated to ${nextStatus}.` });
     }
 
@@ -76,7 +81,7 @@ export async function POST(request: Request) {
       const images = getOutputImages(payload.output);
 
       if (images.length === 0) {
-        await supabase.from('photoshoots').update({ status: 'error' }).eq('id', photoshootId);
+        await updatePhotoshootGenerationStatus(supabase, photoshootId, 'error');
         return NextResponse.json({ error: "No images generated." }, { status: 400 });
       }
 
@@ -102,7 +107,7 @@ export async function POST(request: Request) {
            const s3Key = `photoshoots/generations/${photoshootId}/result_${getStableKeyPart(stableSource)}_${i}.jpg`;
            
            await s3Client.send(new PutObjectCommand({
-             Bucket: process.env.S3_BUCKET_NAME,
+             Bucket: getS3BucketName(),
              Key: s3Key,
              Body: buffer,
              ContentType: "image/jpeg",
@@ -134,13 +139,11 @@ export async function POST(request: Request) {
       // Считаем завершённым если собралось >= 3 картинки (1 может упасть из-за ошибки Replicate)
       const isCompleted = newImages.length >= COMPLETED_IMAGES_THRESHOLD;
 
-      await supabase
-        .from('photoshoots')
-        .update({ 
-          status: isCompleted ? 'completed' : 'generating',
-          result_images: newImages
-        })
-        .eq('id', photoshootId);
+      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : 'generating';
+      const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus, newImages);
+      if (!updated) {
+        return NextResponse.json({ message: `Image saved, but status transition to ${nextStatus} was ignored. Total: ${newImages.length}` });
+      }
 
       return NextResponse.json({ message: `Image added. Status updated to ${isCompleted ? 'completed' : 'generating'}. Total: ${newImages.length}` });
 

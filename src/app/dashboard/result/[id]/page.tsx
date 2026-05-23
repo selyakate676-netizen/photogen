@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import dashboardStyles from '../../dashboard.module.css';
+import { getEnv, getOptionalEnv } from '@/lib/env';
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,8 +28,8 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   }
 
   // Конфиг домена S3 для отображения изображений
-  const s3Endpoint = process.env.S3_ENDPOINT || 'https://s3.ru1.storage.beget.cloud';
-  const bucket = process.env.S3_BUCKET_NAME || 'b22788230a30-photogen';
+  const s3Endpoint = getOptionalEnv('S3_ENDPOINT', 'https://s3.ru1.storage.beget.cloud');
+  const bucket = getEnv('S3_BUCKET_NAME');
   
   // Функция для превращения S3 ключа в публичный URL URL
   const getImageUrl = (key: string) => {

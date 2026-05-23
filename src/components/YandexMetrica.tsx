@@ -3,11 +3,12 @@
 import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
+import { getOptionalPublicEnv } from '@/lib/public-env';
 
 export default function YandexMetrica() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const counterId = process.env.NEXT_PUBLIC_YANDEX_METRICA_ID;
+  const counterId = getOptionalPublicEnv('NEXT_PUBLIC_YANDEX_METRICA_ID');
 
   useEffect(() => {
     if (counterId && typeof window.ym !== 'undefined') {
@@ -53,7 +54,7 @@ export default function YandexMetrica() {
  * @param goalName Имя цели (должно совпадать с настроенным в кабинете Метрики)
  */
 export function reachMetricaGoal(goalName: string) {
-  const counterId = process.env.NEXT_PUBLIC_YANDEX_METRICA_ID;
+  const counterId = getOptionalPublicEnv('NEXT_PUBLIC_YANDEX_METRICA_ID');
   if (counterId && typeof window.ym !== 'undefined') {
     window.ym(counterId, 'reachGoal', goalName);
     console.log(`[Metrica] Goal reached: ${goalName}`);
