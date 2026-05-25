@@ -240,6 +240,25 @@ PhotoGen — это приложение на Next.js 16 App Router для AI-ф
 - 2026-05-23: продолжен P1 #3. Добавлен безопасный feature flag `AI_PIPELINE_MODE=legacy-lora-v1|hybrid-v1`; по умолчанию остаётся `legacy-lora-v1`, production generation не переключалась.
 - 2026-05-23: продолжен P1 #3. Добавлены `src/lib/ai/prompts/nano-banana.ts` и `src/lib/ai/pipeline/hybrid.ts` как безопасный каркас Nano Banana composition stage без подключения к production flow.
 
+## Зафиксированные AI-настройки качества
+
+### LoRA close-up baseline
+
+На 2026-05-25 лучший подтверждённый путь для крупных портретов: LoRA-only, без Nano Banana и без face-swap. Использовать как ориентир качества для close-up пакета.
+
+- Обучение: Apr 19, `pdz56mxvh1rmt0cxmt0ra2543g`.
+- LoRA version: `32b20c8ddf7b1a4c8608cc0a0aaca5c2ad56b4e1c0ead0035c954151c62d01b9`.
+- Параметры генерации: `aspect_ratio=3:4`, `guidance=3.5`, `output_quality=100`, `output_format=jpg`.
+- `lora_scale` явно не задавать: дефолт дал более натуральный результат.
+- Prompt-направление: photorealistic close-up studio portrait, soft beauty lighting, low contrast, natural skin, calm/direct gaze, closed-mouth smile, no hands visible.
+- Negative prompt: deep wrinkles, emphasized pores, harsh skin texture, aged face, older looking, tired eyes, heavy nasolabial folds, rough retouching, deformed/childlike hands, bad anatomy, extra fingers, glasses, hat, open mouth, teeth, caricature, illustration, painting, plastic skin.
+- Удачные референсы:
+  - https://replicate.delivery/xezq/5FjDffzqm7lBBEclVXEaxCxN1AF92HfQTD4hKSQ4Cm2DFKRtA/out-0.jpg
+  - https://replicate.delivery/xezq/JVnuhqV8ipruMpvaAeZzgeaItYfk4F5bVuKo1HtvCuyNHKRtA/out-0.jpg
+  - https://replicate.delivery/xezq/ZiPyZxRTPb7uNtvxxeFpqFb8hMuMS02ef2Kx9jfIHnKcPUiaB/out-0.jpg
+
+Важно: для тестов face-swap использовать только нейтральный Nano Banana target без пользовательского лица. Source для swap должен быть LoRA-generated face после обучения, а не исходные загруженные фото.
+
 ## Новые найденные проблемы
 
 - PowerShell может некорректно отображать русские UTF-8 тексты, даже если сами файлы корректны.
