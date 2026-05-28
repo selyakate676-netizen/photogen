@@ -5,11 +5,11 @@ import {
   NANO_BANANA_MODEL_ID,
   getNanoBananaCompositionPrompts,
 } from "@/lib/ai/prompts/nano-banana";
+import { FINAL_PORTRAIT_ASPECT_RATIO } from "@/lib/ai/pipeline/postprocess";
 import type { AiFaceIntegrationMethod } from "@/lib/ai/pipeline/types";
 import type { Photoshoot } from "@/types/database";
 
 const FACE_SWAP_MODEL_VERSION_ID = "278a81e7ebb22db98bcba54de985d22cc1abeead2754eb1f2af717247be69b34";
-const REQUIRED_FINAL_ASPECT_RATIO = "3:4";
 
 type HybridPromptPhotoshoot = Pick<Photoshoot, "style_id" | "gender">;
 
@@ -70,7 +70,7 @@ export interface FaceIntegrationPlan {
   identityReference: LoraIdentityReference;
   loraUrl?: string;
   promptStrength?: number;
-  requiredFinalAspectRatio?: typeof REQUIRED_FINAL_ASPECT_RATIO;
+  requiredFinalAspectRatio?: typeof FINAL_PORTRAIT_ASPECT_RATIO;
   requiresPostProcessAspectRatio?: boolean;
 }
 
@@ -185,7 +185,7 @@ export function createLoraImg2ImgFaceIntegrationPlan(input: {
     identityReference: input.identityReference,
     loraUrl: input.loraUrl,
     promptStrength: input.promptStrength ?? 0.5,
-    requiredFinalAspectRatio: REQUIRED_FINAL_ASPECT_RATIO,
+    requiredFinalAspectRatio: FINAL_PORTRAIT_ASPECT_RATIO,
     requiresPostProcessAspectRatio: true,
   };
 }
