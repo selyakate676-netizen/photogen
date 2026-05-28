@@ -34,3 +34,21 @@ export function shouldPostProcessToPortrait(input: {
 
   return input.width * FINAL_PORTRAIT_HEIGHT !== input.height * FINAL_PORTRAIT_WIDTH;
 }
+
+export async function createPortraitJpegBuffer(input: {
+  image: Buffer | ArrayBuffer | Uint8Array;
+  plan?: PortraitPostProcessPlan;
+}): Promise<Buffer> {
+  const sharp = (await import("sharp")).default;
+  const plan = input.plan ?? createPortraitPostProcessPlan();
+
+  return sharp(input.image)
+    .resize({
+      width: plan.width,
+      height: plan.height,
+      fit: plan.fit,
+      position: plan.position,
+    })
+    .jpeg({ quality: plan.quality })
+    .toBuffer();
+}
