@@ -259,6 +259,18 @@ PhotoGen — это приложение на Next.js 16 App Router для AI-ф
 
 Важно: для тестов face-swap использовать только нейтральный Nano Banana target без пользовательского лица. Source для swap должен быть LoRA-generated face после обучения, а не исходные загруженные фото.
 
+### LoRA commercial color dress baseline
+
+На 2026-05-29 подтверждён удачный коммерческий цветной кадр не крупным планом: LoRA-only, без Nano Banana, без img2img и без face-swap. Использовать как ориентир для более сложных, но всё ещё контролируемых женских fashion/lifestyle кадров.
+
+- Обучение: Apr 19, `pdz56mxvh1rmt0cxmt0ra2543g`.
+- LoRA version: `32b20c8ddf7b1a4c8608cc0a0aaca5c2ad56b4e1c0ead0035c954151c62d01b9`.
+- Параметры генерации: `aspect_ratio=3:4`, `guidance=3.5`, `output_quality=100`, `output_format=jpg`.
+- `lora_scale` явно не задавать.
+- Prompt-направление: photorealistic color vertical studio fashion portrait, waist-up to mid-thigh, simple fitted satin wrap dress, deep burgundy, flattering pose, balanced natural adult body proportions, natural waist, professional soft glam makeup, subtle lipstick, softly styled voluminous hair with smooth waves, warm gray studio background, large softbox, subtle hair light, premium commercial photoshoot.
+- Negative prompt: black and white, casual snapshot, no makeup, messy hair, flat hair, bad styling, horizontal stretching, wide/distorted face, elongated torso, extra slim body, too thin, unrealistic body, awkward figure, childlike/deformed hands, bad anatomy, extra fingers, hands near face, glasses, hat, open mouth, exaggerated/fake smile, too many teeth, caricature, painting, plastic skin, old face, harsh wrinkles, glossy overretouching, full body tiny face.
+- Удачный S3 key: `photoshoots/generations/00e31f70-4388-4773-bda0-7c8d6184eeeb/lora_color_dress_styled_3x4_1780085259613.jpg`.
+
 ### Правило для Nano Banana templates
 
 Nano Banana templates не должны получать пользовательские фото как reference. Иначе NB начинает переносить лицо, очки, черты и случайные детали из исходных фото ещё до LoRA/face integration, из-за чего тесты становятся нечистыми, а результат хуже контролируется.
