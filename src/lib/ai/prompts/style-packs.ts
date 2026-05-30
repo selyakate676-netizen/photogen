@@ -39,9 +39,9 @@ export const BLACK_WHITE_EDITORIAL_PACK: LoraOnlyStylePack = {
       id: "bw_dramatic_shadow_profile_close",
       title: "Dramatic shadow close-up profile",
       prompt:
-        "Photorealistic black and white dramatic beauty close-up portrait of tok woman, low-angle intimate three-quarter face portrait, face turned slightly upward and looking just past the camera, calm serious expression, lips gently closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, soft focused spotlight falling across one eye, cheekbone, nose bridge and lips, deep surrounding shadows, black background, no stripe pattern, no hard bars of light, realistic skin texture without harsh aging, glossy natural eye catchlight, elegant fine art studio photography, 85mm lens, true 3:4 vertical composition",
+        "Photorealistic black and white fine art close-up portrait of tok woman, tight three-quarter side portrait, face fills most of the frame, eyes looking to the side away from camera, calm serious expression, lips gently closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, deep black background, dramatic chiaroscuro, soft directional light shaping one eye, cheekbone, nose bridge and lips, controlled shadows across part of the face, one eye clearly visible with natural catchlight, realistic skin texture without harsh aging, cinematic art portrait photography, 85mm lens, true 3:4 vertical composition",
       negativePrompt:
-        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, changed face, different person, altered jaw, altered cheeks, harsh shadow covering both eyes, crushed facial features, zebra shadow, striped light, window blind stripes`,
+        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, looking at camera, direct eye contact, smile, low angle glamour pose, changed face, different person, altered jaw, altered cheeks, harsh shadow covering both eyes, crushed facial features, old face, harsh wrinkles`,
     },
     {
       id: "bw_soft_black_turtleneck_smile",
