@@ -47,11 +47,11 @@ export const BLACK_WHITE_EDITORIAL_PACK: LoraOnlyStylePack = {
     },
     {
       id: "bw_soft_beauty_side_gaze_close",
-      title: "Soft beauty side-gaze close-up",
+      title: "Photogenic beauty editorial side-gaze",
       prompt:
-        "Photorealistic black and white soft beauty close-up portrait of tok woman, elegant three-quarter angle, eyes looking slightly to the side away from camera, relaxed calm expression, lips gently closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, flattering soft beauty lighting, both eyes clearly readable with natural catchlights, smooth healthy skin without harsh texture, youthful natural appearance, softly styled straight hair with light volume, dark gray studio background, minimal polished makeup, refined modern portrait photography, 85mm lens, shallow depth of field, true 3:4 vertical composition",
+        "Photorealistic black and white photogenic beauty editorial close-up portrait of tok woman, elegant three-quarter angle, eyes looking slightly to the side away from camera, chin slightly raised, relaxed confident expression, lips gently closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, flattering soft sculpting beauty light, elegant catchlights in the eyes, smooth healthy skin without harsh texture, polished professional hair styling with soft volume and movement, minimal soft glam makeup, elegant black outfit, dark gray studio background, premium studio photoshoot, magazine-quality but realistic, beautiful flattering angle, 85mm lens, shallow depth of field, true 3:4 vertical composition",
       negativePrompt:
-        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, harsh shadow, deep shadow, noir, gloomy, funeral portrait, tired face, grey hair, messy hair, harsh skin texture, pores emphasized, deep wrinkles, forehead wrinkles, under eye bags, dramatic aging, changed face, different person, altered jaw, altered cheeks`,
+        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, plain passport photo, casual snapshot, harsh shadow, deep shadow, noir, gloomy, funeral portrait, tired face, grey hair, messy hair, flat hair, no makeup, harsh skin texture, pores emphasized, deep wrinkles, forehead wrinkles, under eye bags, dramatic aging, changed face, different person, altered jaw, altered cheeks, overretouched plastic face`,
       status: "main",
     },
     {
