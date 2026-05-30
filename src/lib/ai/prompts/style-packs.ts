@@ -39,8 +39,9 @@ export const BLACK_WHITE_EDITORIAL_PACK: LoraOnlyStylePack = {
       id: "bw_dramatic_shadow_profile_close",
       title: "Dramatic shadow close-up profile",
       prompt:
-        "Photorealistic black and white close-up cinematic portrait of tok woman, tight face portrait in three-quarter side profile, looking away from camera, calm thoughtful expression, dramatic hard light stripes crossing the face, deep black background, strong chiaroscuro, realistic skin texture without harsh aging, glossy natural eyes, lips closed, hair softly framing the face, fine art studio photography, 85mm lens, true 3:4 vertical composition",
-      negativePrompt: BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT,
+        "Photorealistic black and white close-up cinematic portrait of tok woman, tight face portrait in gentle three-quarter view, looking slightly away from camera, calm thoughtful expression, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, soft narrow shadow pattern across part of the face, not covering the eyes, deep black background, controlled chiaroscuro with soft fill light, realistic skin texture without harsh aging, glossy natural eyes, lips closed, hair softly framing the face, fine art studio photography, 85mm lens, true 3:4 vertical composition",
+      negativePrompt:
+        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, changed face, different person, altered jaw, altered cheeks, harsh shadow covering eyes, crushed facial features`,
     },
     {
       id: "bw_soft_black_turtleneck_smile",
@@ -53,9 +54,9 @@ export const BLACK_WHITE_EDITORIAL_PACK: LoraOnlyStylePack = {
       id: "bw_bright_natural_teeth_smile",
       title: "Bright natural smile with teeth",
       prompt:
-        "Photorealistic black and white close-up joyful portrait of tok woman, head gently tilted back, natural warm smile with teeth visible, smiling eyes, relaxed genuine expression, not exaggerated, long smooth hair over one shoulder, simple dark top, deep black studio background, soft flattering beauty light, realistic skin and natural facial proportions, premium commercial portrait photography, 85mm lens, true 3:4 vertical composition",
+        "Photorealistic black and white close-up portrait of tok woman, direct eye contact, gentle natural warm smile with small teeth visible, smiling eyes, relaxed genuine expression, not exaggerated, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, same cheeks, long smooth hair over one shoulder, simple dark top, deep black studio background, soft flattering beauty light, realistic skin and natural facial proportions, premium commercial portrait photography, 85mm lens, true 3:4 vertical composition",
       negativePrompt:
-        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, wide open mouth, forced advertising smile, excessive teeth`,
+        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, changed face, different person, altered jaw, altered cheeks, exaggerated cheeks, wide grin, wide open mouth, forced advertising smile, excessive teeth`,
     },
     {
       id: "bw_waist_up_blazer_side_gaze",
