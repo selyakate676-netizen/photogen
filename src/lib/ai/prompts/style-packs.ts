@@ -39,9 +39,9 @@ export const BLACK_WHITE_EDITORIAL_PACK: LoraOnlyStylePack = {
       id: "bw_dramatic_shadow_profile_close",
       title: "Dramatic shadow close-up profile",
       prompt:
-        "Photorealistic black and white close-up cinematic portrait of tok woman, tight face portrait in gentle three-quarter view, looking slightly away from camera, calm thoughtful expression, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, soft narrow shadow pattern across part of the face, not covering the eyes, deep black background, controlled chiaroscuro with soft fill light, realistic skin texture without harsh aging, glossy natural eyes, lips closed, hair softly framing the face, fine art studio photography, 85mm lens, true 3:4 vertical composition",
+        "Photorealistic black and white dramatic beauty close-up portrait of tok woman, low-angle intimate three-quarter face portrait, face turned slightly upward and looking just past the camera, calm serious expression, lips gently closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, soft focused spotlight falling across one eye, cheekbone, nose bridge and lips, deep surrounding shadows, black background, no stripe pattern, no hard bars of light, realistic skin texture without harsh aging, glossy natural eye catchlight, elegant fine art studio photography, 85mm lens, true 3:4 vertical composition",
       negativePrompt:
-        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, changed face, different person, altered jaw, altered cheeks, harsh shadow covering eyes, crushed facial features`,
+        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, changed face, different person, altered jaw, altered cheeks, harsh shadow covering both eyes, crushed facial features, zebra shadow, striped light, window blind stripes`,
     },
     {
       id: "bw_soft_black_turtleneck_smile",
