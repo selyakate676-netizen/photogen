@@ -10,6 +10,7 @@ export interface LoraOnlyShotPreset {
   title: string;
   prompt: string;
   negativePrompt: string;
+  status?: "main" | "optional" | "risky";
 }
 
 export interface LoraOnlyStylePack {
@@ -42,6 +43,16 @@ export const BLACK_WHITE_EDITORIAL_PACK: LoraOnlyStylePack = {
         "Photorealistic black and white fashion beauty close-up portrait of tok woman, elegant three-quarter side angle, eyes looking to the side away from camera, relaxed beautiful expression, lips softly closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, flattering beauty lighting, soft graphic shadow pattern across part of the face, beautiful catchlights in the eyes, smooth youthful skin, polished healthy skin, softly styled hair, clean black studio background, stylish modern beauty photography, refined and elegant, not gloomy, not noir, 85mm lens, true 3:4 vertical composition",
       negativePrompt:
         `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, noir, gloomy, funeral portrait, tired face, grey hair, messy hair, harsh skin texture, pores emphasized, deep wrinkles, forehead wrinkles, under eye bags, dramatic aging, harsh shadow covering eyes, crushed facial features, low angle, changed face, different person, altered jaw, altered cheeks`,
+      status: "risky",
+    },
+    {
+      id: "bw_soft_beauty_side_gaze_close",
+      title: "Soft beauty side-gaze close-up",
+      prompt:
+        "Photorealistic black and white soft beauty close-up portrait of tok woman, elegant three-quarter angle, eyes looking slightly to the side away from camera, relaxed calm expression, lips gently closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, flattering soft beauty lighting, both eyes clearly readable with natural catchlights, smooth healthy skin without harsh texture, youthful natural appearance, softly styled straight hair with light volume, dark gray studio background, minimal polished makeup, refined modern portrait photography, 85mm lens, shallow depth of field, true 3:4 vertical composition",
+      negativePrompt:
+        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, harsh shadow, deep shadow, noir, gloomy, funeral portrait, tired face, grey hair, messy hair, harsh skin texture, pores emphasized, deep wrinkles, forehead wrinkles, under eye bags, dramatic aging, changed face, different person, altered jaw, altered cheeks`,
+      status: "main",
     },
     {
       id: "bw_soft_black_turtleneck_smile",
