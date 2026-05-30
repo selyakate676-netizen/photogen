@@ -37,11 +37,11 @@ export const BLACK_WHITE_EDITORIAL_PACK: LoraOnlyStylePack = {
     },
     {
       id: "bw_dramatic_shadow_profile_close",
-      title: "Soft side-light artistic portrait",
+      title: "Fashion beauty shadow portrait",
       prompt:
-        "Photorealistic black and white soft side-light portrait of tok woman, close-up to chest-up portrait, gentle three-quarter angle, eyes looking slightly to the side away from camera, calm elegant expression, lips closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, flattering soft directional light from one side with gentle fill light, both eyes readable with natural catchlights, smooth natural skin without harsh texture, youthful natural appearance, dark gray studio background, softly styled hair, minimal polished makeup, elegant artistic studio photography, 85mm lens, true 3:4 vertical composition",
+        "Photorealistic black and white fashion beauty close-up portrait of tok woman, elegant three-quarter side angle, eyes looking to the side away from camera, relaxed beautiful expression, lips softly closed, preserve facial identity, same facial structure, same eye shape, same nose, same jawline, flattering beauty lighting, soft graphic shadow pattern across part of the face, beautiful catchlights in the eyes, smooth youthful skin, polished healthy skin, softly styled hair, clean black studio background, stylish modern beauty photography, refined and elegant, not gloomy, not noir, 85mm lens, true 3:4 vertical composition",
       negativePrompt:
-        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, deep shadow, dramatic aging, tired face, grey hair, harsh wrinkles, forehead wrinkles, under eye bags, harsh shadow covering eyes, crushed facial features, low angle, changed face, different person, altered jaw, altered cheeks`,
+        `${BLACK_WHITE_EDITORIAL_NEGATIVE_PROMPT}, noir, gloomy, funeral portrait, tired face, grey hair, messy hair, harsh skin texture, pores emphasized, deep wrinkles, forehead wrinkles, under eye bags, dramatic aging, harsh shadow covering eyes, crushed facial features, low angle, changed face, different person, altered jaw, altered cheeks`,
     },
     {
       id: "bw_soft_black_turtleneck_smile",
