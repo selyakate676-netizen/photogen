@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Settings } from 'lucide-react';
+import { Gem, Settings } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
+import { accountTokenBalance } from '@/lib/accountMockData';
 import PhotoGenLogo from './PhotoGenLogo';
 import ThemeToggle from './ThemeToggle';
 import styles from './Navbar.module.css';
@@ -22,7 +23,7 @@ const guestLinks = [
 
 const userLinks = [
   { href: '/account/generated', label: 'Мои генерации' },
-  { href: '/dashboard', label: 'Профиль' },
+  { href: '/account/profile', label: 'Профиль' },
 ];
 
 export default function Navbar() {
@@ -59,6 +60,13 @@ export default function Navbar() {
       <Link href="/settings" className={styles.iconButton} onClick={closeMenu} aria-label="Настройки" title="Настройки">
         <Settings aria-hidden="true" />
       </Link>
+      {user ? (
+        <Link href="/#pricing" className={styles.balanceCta} onClick={closeMenu} aria-label={`Баланс ${accountTokenBalance} токенов. Пополнить`}>
+          <Gem aria-hidden="true" />
+          <strong>{accountTokenBalance}</strong>
+          <span>Пополнить</span>
+        </Link>
+      ) : null}
     </>
   );
 
