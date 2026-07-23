@@ -1,0 +1,46 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-accent);
+  background: var(--surface);
+  color: var(--accent-primary);
+  box-shadow: 0 0 0 1px rgba(212, 160, 90, 0.06);
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.toggle:hover,
+.toggle:focus-visible {
+  color: var(--accent-secondary);
+  border-color: rgba(232, 191, 128, 0.75);
+  background: var(--bg-card-dark-hover);
+  box-shadow: 0 0 0 3px rgba(212, 160, 90, 0.12);
+  outline: none;
+}
+
+.toggle:hover {
+  transform: translateY(-1px);
+}
+
+.toggle svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.toggle svg circle,
+.toggle svg path:first-child {
+  fill: currentColor;
+}
+
+.toggle svg path:not(:first-child) {
+  fill: none;
+}

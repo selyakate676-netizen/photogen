@@ -1,96 +1,103 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Settings } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
+import PhotoGenLogo from './PhotoGenLogo';
+import ThemeToggle from './ThemeToggle';
 import styles from './Navbar.module.css';
+
+const leftLinks = [
+  { href: '/#how-it-works', label: 'Как это работает' },
+  { href: '/#catalog', label: 'Каталог' },
+  { href: '/dashboard/new', label: 'Студия' },
+];
+
+const guestLinks = [
+  { href: '/login', label: 'Войти' },
+  { href: '/signup', label: 'Регистрация' },
+];
+
+const userLinks = [
+  { href: '/account/generated', label: 'Мои генерации' },
+  { href: '/dashboard', label: 'Профиль' },
+];
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const router = useRouter();
-  const supabase = createClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    let isMounted = true;
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data } = await supabase.auth.getUser();
+      if (isMounted) {
+        setUser(data.user);
+        setIsAuthLoading(false);
+      }
     };
     getUser();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setIsAuthLoading(false);
     });
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.refresh();
-    closeMenu();
-  };
+  const accountLinks = user ? userLinks : guestLinks;
+  const accountActions = user ? (
+    <>
+      <ThemeToggle />
+      <Link href="/settings" className={styles.iconButton} onClick={closeMenu} aria-label="Настройки" title="Настройки">
+        <Settings aria-hidden="true" />
+      </Link>
+    </>
+  ) : <ThemeToggle />;
 
   return (
     <nav className={styles.navbar}>
       <div className={`container ${styles.navInner}`}>
-        <Link href="/" className={styles.logo} onClick={closeMenu}>
-          <span className="gradient-text">PhotoGen</span>
-        </Link>
+        <div className={styles.leftZone}>
+          <Link href="/" className={styles.logo} onClick={closeMenu}>
+            <PhotoGenLogo className={styles.logoMark} />
+          </Link>
+          <div className={styles.leftNav}>
+            {leftLinks.map((link) => <Link key={link.href} href={link.href} onClick={closeMenu}>{link.label}</Link>)}
+          </div>
+        </div>
 
-        {/* Бургер-меню для мобилок */}
-        <button 
-          className={`${styles.burger} ${isMenuOpen ? styles.burgerActive : ''}`}
-          onClick={toggleMenu}
-          aria-label="Открыть меню"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
+        <button type="button" className={`${styles.burger} ${isMenuOpen ? styles.burgerActive : ''}`} onClick={() => setIsMenuOpen((current) => !current)} aria-label="Открыть меню" aria-expanded={isMenuOpen}>
+          <span /><span /><span />
         </button>
 
-        <div className={`${styles.navLinks} ${isMenuOpen ? styles.navLinksOpen : ''}`}>
-          <a href="/#examples" onClick={closeMenu}>Примеры</a>
-          <a href="/#how-it-works" onClick={closeMenu}>Как это работает</a>
-          <a href="/#styles" onClick={closeMenu}>Направления</a>
-          <a href="/#pricing" onClick={closeMenu}>Цены</a>
-          
-          {user ? (
-            <>
-              <Link href="/dashboard" className={styles.mobileCta} onClick={closeMenu}>
-                Кабинет
-              </Link>
-              <button onClick={handleSignOut} className={styles.signOutBtnMobile}>
-                Выйти
-              </button>
-            </>
-          ) : (
-            <Link href="/login" className={`btn btn-primary ${styles.mobileCta}`} onClick={closeMenu}>
-              Войти
-            </Link>
-          )}
+        <div className={`${styles.mobilePanel} ${isMenuOpen ? styles.mobilePanelOpen : ''}`}>
+          <div className={styles.mobileNavGroup}>
+            {leftLinks.map((link) => <Link key={link.href} href={link.href} onClick={closeMenu}>{link.label}</Link>)}
+          </div>
+          {!isAuthLoading ? (
+            <div className={styles.mobileNavGroup}>
+              {accountLinks.map((link) => <Link key={link.label} href={link.href} onClick={closeMenu}>{link.label}</Link>)}
+            </div>
+          ) : null}
+          {!isAuthLoading ? <div className={styles.mobileActionRow}>{accountActions}</div> : null}
         </div>
 
-        <div className={styles.desktopActions}>
-          {user ? (
-            <div className={styles.userActions}>
-              <Link href="/dashboard" className={`btn btn-secondary ${styles.navCta}`}>
-                Кабинет
-              </Link>
-              <button onClick={handleSignOut} className={styles.signOutBtn}>
-                Выйти
-              </button>
+        {!isAuthLoading ? (
+          <div className={styles.rightZone}>
+            <div className={styles.userRow}>
+              {accountLinks.map((link) => <Link key={link.label} href={link.href} onClick={closeMenu}>{link.label}</Link>)}
             </div>
-          ) : (
-            <Link href="/login" className={`btn btn-primary ${styles.navCta}`}>
-              Войти
-            </Link>
-          )}
-        </div>
+            {accountActions}
+          </div>
+        ) : null}
       </div>
     </nav>
   );

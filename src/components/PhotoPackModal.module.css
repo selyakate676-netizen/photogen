@@ -1,0 +1,39 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 2.4vw, 28px);
+  background: color-mix(in srgb, var(--background) 74%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.dialog {
+  width: min(100%, 1180px);
+  max-height: 90vh;
+  overflow: auto;
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: 0 34px 120px color-mix(in srgb, var(--background) 88%, transparent), 0 0 44px var(--accent-glow);
+  overscroll-behavior: contain;
+}
+
+.dialog:focus {
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .dialog {
+    max-height: 92vh;
+    border-radius: var(--radius-lg);
+  }
+}

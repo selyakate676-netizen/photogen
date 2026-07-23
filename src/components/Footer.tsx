@@ -20,14 +20,13 @@ export default function Footer() {
               <h4>Сервис</h4>
               <ul>
                 <li><a href="#how-it-works">Как это работает</a></li>
-                <li><a href="#styles">Направления</a></li>
-                <li><a href="#pricing">Цены</a></li>
+                <li><a href="#catalog">Каталог</a></li>
               </ul>
             </div>
             <div className={styles.footerCol}>
               <h4>Поддержка</h4>
               <ul>
-                <li><a href="#">FAQ</a></li>
+                <li><a href="#faq">FAQ</a></li>
                 <li><a href="#">Telegram</a></li>
                 <li><a href="#">Email</a></li>
               </ul>

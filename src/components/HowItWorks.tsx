@@ -1,150 +1,144 @@
-import { ImageUp, SlidersHorizontal, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import styles from './HowItWorks.module.css';
-import Reveal from './Reveal';
 
-const steps = [
-  {
-    number: 1,
-    title: 'ЗАГРУЗИТЕ СВОИ ФОТО',
-    desc: 'Загрузите 10–20 своих фото, чтобы нейросеть обучилась работать с вашим лицом и фигурой.',
-    icon: <ImageUp size={32} />
+const text = {
+  heading: '\u041a\u0430\u043a \u044d\u0442\u043e \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442',
+  subtitle: '\u0414\u043e \u2192 \u0432\u044b\u0431\u0440\u0430\u043d\u043e \u2192 \u043f\u043e\u0441\u043b\u0435: \u0442\u0440\u0438 \u0448\u0430\u0433\u0430 \u0434\u043e \u043f\u0440\u043e\u0444\u0435\u0441\u0441\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u043e\u0439 \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u0438',
+  cta: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u044e',
+  selected: '\u0412\u044b\u0431\u0440\u0430\u043d\u043e',
+  selectedPhotos: '\u0412\u044b\u0431\u0440\u0430\u043d\u043e 3 \u0444\u043e\u0442\u043e',
+  ready: '\u0413\u043e\u0442\u043e\u0432\u043e',
+};
+
+const steps = {
+  one: {
+    step: '\u0428\u0410\u0413 1',
+    kicker: '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0430\u0448\u0438 \u043b\u0443\u0447\u0448\u0438\u0435 \u0444\u043e\u0442\u043e',
   },
-  {
-    number: 2,
-    title: 'ВЫБЕРИТЕ ФОТОСЕССИЮ',
-    desc: 'Выберите любой готовый пакет фотосессии — от делового стиля до креативного арта.',
-    icon: <SlidersHorizontal size={32} />
+  two: {
+    step: '\u0428\u0410\u0413 2',
+    kicker: '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u044e',
   },
-  {
-    number: 3,
-    title: 'ПОЛУЧИТЕ ГОТОВЫЕ ИИ ФОТО',
-    desc: 'В результате вы получите несколько нейрофото с вами в разных позах, готовых к публикации!',
-    icon: <Sparkles size={32} />
+  three: {
+    step: '\u0428\u0410\u0413 3',
+    kicker: '\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u0435 \u0433\u043e\u0442\u043e\u0432\u044b\u0435 AI-\u0444\u043e\u0442\u043e',
   },
-];
+};
+
+const sourcePhotos = ['/selfie-2.png', '/selfie-3.png', '/before-main.png'];
+const packagePhotos = ['/studio-glamour.png', '/studio-fashion.png', '/studio-nature.png'];
+const resultPhotos = ['/studio-glamour.png', '/studio-fashion.png', '/studio-nature.png', '/studio-red-light-v2.png'];
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m6 12.5 4 4L18.5 8" />
+    </svg>
+  );
+}
+
+function StepLabel({ step, kicker }: { step: string; kicker: string }) {
+  return (
+    <div className={styles.stepCopy}>
+      <div className={styles.stepKicker}>{step}</div>
+      <h3>{kicker}</h3>
+    </div>
+  );
+}
+
+function SourceVisual() {
+  return (
+    <div className={`${styles.visualPanel} ${styles.sourcePanel}`} aria-hidden="true">
+      <div className={styles.panelTopline}>
+        <span>PhotoGen</span>
+        <strong>{text.selectedPhotos}</strong>
+      </div>
+      <div className={styles.sourceGrid}>
+        {sourcePhotos.map((src, index) => (
+          <div className={styles.sourcePhoto} key={src}>
+            <img src={src} alt="" />
+            <div className={styles.photoCheck}><CheckIcon /></div>
+            <span>{index + 1}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PackageVisual() {
+  return (
+    <div className={`${styles.visualPanel} ${styles.packagePanel}`} aria-hidden="true">
+      <div className={styles.packageHero}>
+        <img src="/studio-glamour.png" alt="" />
+        <div className={styles.packageBadge}>{text.selected}</div>
+      </div>
+      <div className={styles.packageInfo}>
+        <div>
+          <span>Modern Muse</span>
+          <strong>Studio editorial</strong>
+        </div>
+        <div className={styles.selectedPill}>{text.selected}</div>
+      </div>
+      <div className={styles.packageStrip}>
+        {packagePhotos.map((src) => (
+          <img src={src} alt="" key={src} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ResultVisual() {
+  return (
+    <div className={`${styles.visualPanel} ${styles.resultPanel}`} aria-hidden="true">
+      <div className={styles.resultMosaic}>
+        <div className={styles.resultMain}>
+          <img src={resultPhotos[0]} alt="" />
+          <div className={styles.readyBadge}>{text.ready}</div>
+        </div>
+        <div className={styles.resultStack}>
+          {resultPhotos.slice(1).map((src) => (
+            <img src={src} alt="" key={src} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function HowItWorks() {
   return (
     <section className={`${styles.howItWorks} section section-dark-alt`} id="how-it-works">
       <div className="container">
-        <Reveal>
-          <h2 className="section-title">
-            Как это <span className="gradient-text">работает</span>
-          </h2>
-          <p className="section-subtitle">
-            Три простых шага — и ваши идеальные фотографии готовы
-          </p>
-        </Reveal>
-
-        <div className={styles.grid}>
-          {/* Step 1: Text Top, Image Bottom */}
-          <div className={styles.stepColumn}>
-            <Reveal delay={0.1}>
-              <div className={styles.textPart}>
-                <div className={styles.stepNumber}>Шаг 1</div>
-                <h3 className={styles.stepTitle}>{steps[0].title}</h3>
-                <p className={styles.stepDesc}>{steps[0].desc}</p>
-              </div>
-            </Reveal>
-            <Reveal delay={0.2}>
-              <div className={`${styles.phonePart} ${styles.phoneTop}`}>
-                <div className={styles.phoneMockup}>
-                  <div className={styles.phoneScreen}>
-                     <div className={styles.phoneHeader}>
-                        <div className={styles.phoneTitle}>Галерея</div>
-                     </div>
-                     <div className={styles.phoneGalleryGrid}>
-                        <div className={styles.galleryItem}><img src="/before-main.png" alt="Selfie 1" /></div>
-                        <div className={styles.galleryItem}><img src="/ashley-1.png" alt="Selfie 2" /></div>
-                        <div className={styles.galleryItem}><img src="/ashley-2.png" alt="Selfie 3" /></div>
-                        <div className={styles.galleryItem}><img src="/ashley-3.png" alt="Selfie 4" /></div>
-                        <div className={styles.galleryItem}><img src="/ashley-4.png" alt="Selfie 5" /></div>
-                        <div className={styles.galleryItem}><img src="/before-1.png" alt="Selfie 6" /></div>
-                     </div>
-                     <div className={styles.phoneSelectionTag}>Выбрано 15/15</div>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Step 2: Image Top, Text Bottom */}
-          <div className={styles.stepColumn}>
-            <Reveal delay={0.3}>
-              <div className={`${styles.phonePart} ${styles.phoneBottom}`}>
-                <div className={styles.phoneMockup}>
-                  <div className={styles.phoneScreen}>
-                     <div className={styles.phoneHeader}>
-                        <div className={styles.phoneTitle}>Выбор стиля</div>
-                     </div>
-                     <div className={styles.phoneStylePreview}>
-                        <img src="/after-1.png" alt="Preview" className={styles.blurredPreview} />
-                        <div className={styles.previewOverlay} >
-                           <div className={styles.phoneStylesLabelSmall}>Популярные направления:</div>
-                           <div className={styles.phoneMiniStyles}>
-                              <div className={styles.miniStyleCard}><img src="/studio-fashion.png" alt="S1" /></div>
-                              <div className={styles.miniStyleCard}><img src="/studio-nature.png" alt="S2" /></div>
-                              <div className={styles.miniStyleCard}><img src="/studio-bw-man.png" alt="S3" /></div>
-                           </div>
-                        </div>
-                     </div>
-                     <div className={styles.phoneStyleLabel}>Стиль: Modern Muse</div>
-                     <div className={styles.phoneStylesPreview}>
-                        <div className={styles.styleCard}><img src="/studio-fashion.png" alt="Fashion" /></div>
-                        <div className={styles.styleCard} style={{borderColor: 'var(--accent-primary)'}}><img src="/studio-glamour.png" alt="Glamour" /></div>
-                        <div className={styles.styleCard}><img src="/studio-nature.png" alt="Nature" /></div>
-                     </div>
-                     <div className={styles.phoneActionButton}>Начать фотосессию</div>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-            <Reveal delay={0.4}>
-              <div className={styles.textPart}>
-                <div className={styles.stepNumber}>Шаг 2</div>
-                <h3 className={styles.stepTitle}>{steps[1].title}</h3>
-                <p className={styles.stepDesc}>{steps[1].desc}</p>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Step 3: Text Top, Image Bottom */}
-          <div className={styles.stepColumn}>
-            <Reveal delay={0.5}>
-              <div className={styles.textPart}>
-                <div className={styles.stepNumber}>Шаг 3</div>
-                <h3 className={styles.stepTitle}>{steps[2].title}</h3>
-                <p className={styles.stepDesc}>{steps[2].desc}</p>
-              </div>
-            </Reveal>
-            <Reveal delay={0.6}>
-              <div className={`${styles.phonePart} ${styles.phoneTop}`}>
-                <div className={styles.phoneMockup}>
-                  <div className={styles.phoneScreen}>
-                     <div className={styles.phoneResultHeader}>
-                        <span>Результат</span>
-                        <div className={styles.heartIcon}>❤️</div>
-                     </div>
-                     <div className={styles.phoneResultImage}>
-                        <img src="/after-main.png" alt="Result" />
-                        <div className={styles.successBadge}>Идеально!</div>
-                     </div>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          </div>
+        <div className={styles.header}>
+          <h2 className={styles.title}>{text.heading}</h2>
+          <p className={styles.subtitle}>{text.subtitle}</p>
         </div>
 
-        <Reveal delay={0.8}>
-          <div className={styles.footerAction}>
-            <a href="#pricing" className="btn btn-primary btn-lg">
-              Создать свою фотосессию
-            </a>
-          </div>
-        </Reveal>
+        <div className={styles.story}>
+          <article className={`${styles.step} ${styles.stepOne}`}>
+            <StepLabel {...steps.one} />
+            <SourceVisual />
+          </article>
+
+          <article className={`${styles.step} ${styles.stepTwo}`}>
+            <PackageVisual />
+            <StepLabel {...steps.two} />
+          </article>
+
+          <article className={`${styles.step} ${styles.stepThree}`}>
+            <StepLabel {...steps.three} />
+            <ResultVisual />
+          </article>
+        </div>
+
+        <div className={styles.footerAction}>
+          <Link href="/#styles" className={`btn btn-primary ${styles.cta}`}>
+            {text.cta}
+          </Link>
+        </div>
       </div>
     </section>
   );
 }
-

@@ -28,6 +28,97 @@
   pointer-events: none;
 }
 
+.heroContainer {
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  background: var(--bg-dark);
+}
+
+.heroContainer > .gridContainer {
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  background: #070b12;
+}
+
+.heroContainer > .gridContainer::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  background-image: linear-gradient(rgba(7, 11, 18, 0.36), rgba(7, 11, 18, 0.36)), url('/selfie-2.png');
+  background-size: cover;
+  background-position: 50% 40%;
+  filter: blur(18px) saturate(0.9);
+  transform: scale(1.08);
+}
+
+.heroContainer > .gridContainer .imageGridItem {
+  position: relative;
+  z-index: 1;
+  object-fit: cover;
+  object-position: 50% 42%;
+  transform: scale(1);
+}
+
+.heroContainer > .gridContainer .imageGridItem:nth-child(n+2) {
+  display: none;
+}
+
+.heroContainer .foregroundWrapper .gridContainer {
+  display: flex;
+  gap: 0;
+  background: linear-gradient(145deg, rgba(14, 19, 31, 0.96), rgba(42, 32, 23, 0.88));
+}
+
+.heroContainer .foregroundWrapper .imageGridItem {
+  position: relative;
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+  box-shadow: -16px 0 28px rgba(0, 0, 0, 0.24);
+  transform: scale(1.03);
+}
+
+.heroContainer .foregroundWrapper .imageGridItem + .imageGridItem {
+  margin-left: -4.5%;
+}
+
+.heroContainer .foregroundWrapper .imageGridItem:nth-child(1) {
+  z-index: 4;
+  flex-basis: 29%;
+  object-position: 50% 42%;
+}
+
+.heroContainer .foregroundWrapper .imageGridItem:nth-child(2) {
+  z-index: 3;
+  flex-basis: 27%;
+  object-position: 50% 45%;
+}
+
+.heroContainer .foregroundWrapper .imageGridItem:nth-child(3) {
+  z-index: 2;
+  flex-basis: 27%;
+  object-position: 50% 50%;
+}
+
+.heroContainer .foregroundWrapper .imageGridItem:nth-child(4) {
+  z-index: 1;
+  flex-basis: 27%;
+  object-position: 50% 45%;
+}
+
+.heroContainer .foregroundWrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(8, 10, 16, 0.14), transparent 18%, transparent 82%, rgba(8, 10, 16, 0.18));
+}
+
 .foregroundWrapper {
   position: absolute;
   top: 0;
@@ -36,6 +127,7 @@
   height: 100%;
   will-change: clip-path;
   pointer-events: none;
+  z-index: 2;
 }
 
 .label {
@@ -101,10 +193,25 @@
   .container {
     aspect-ratio: 2 / 1;
   }
+
   .gridContainer {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .imageGridItem:nth-child(n+3) {
+    display: none;
+  }
+
+  .heroContainer {
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+  }
+
+  .heroContainer > .gridContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .heroContainer > .gridContainer .imageGridItem:nth-child(n+2) {
     display: none;
   }
 }
@@ -113,17 +220,34 @@
   .container {
     aspect-ratio: 1 / 1.1;
   }
+
   .gridContainer {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .imageGridItem:nth-child(n+3) {
     display: none;
   }
+
+  .heroContainer {
+    aspect-ratio: 16 / 10;
+  }
+
+  .heroContainer > .gridContainer .imageGridItem {
+    object-position: 50% 42%;
+    transform: scale(1);
+  }
+
+  .heroContainer .foregroundWrapper .imageGridItem {
+    clip-path: polygon(9% 0, 100% 0, 91% 100%, 0 100%);
+  }
+
   .label {
     font-size: var(--font-size-xs);
     bottom: var(--space-lg);
     padding: var(--space-xs) var(--space-md);
   }
+
   .labelLeft { left: var(--space-md); }
   .labelRight { right: var(--space-md); }
 }

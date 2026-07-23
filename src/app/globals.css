@@ -1,6 +1,6 @@
 /* ===== Design Tokens ===== */
 :root {
-  /* Colors — Deep Navy + Warm Amber + Light sections */
+  /* Colors - Deep Navy + Warm Amber + Light sections */
   --bg-dark: #080c18;
   --bg-dark-alt: #0c1225;
   --bg-light: #f5f3ee;
@@ -31,7 +31,7 @@
   --border-accent: rgba(212, 160, 90, 0.25);
 
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -66,10 +66,70 @@
   --shadow-glow: 0 0 40px var(--accent-glow);
   --shadow-card-light: 0 2px 20px rgba(0, 0, 0, 0.06);
 
+  /* Theme aliases */
+  --background: var(--bg-dark);
+  --surface: var(--bg-card-dark);
+  --surface-secondary: var(--bg-dark-alt);
+  --text-primary: var(--text-on-dark);
+  --text-secondary: var(--text-on-dark-secondary);
+  --text-muted: var(--text-on-dark-muted);
+  --border: var(--border-dark);
+  --accent: var(--accent-primary);
+  --accent-contrast: #1a1000;
+  --header-background: rgba(10, 10, 15, 0.8);
+  --header-border: rgba(255, 255, 255, 0.05);
+  --shadow: 0 20px 64px rgba(0, 0, 0, 0.42);
+  --bg-primary: var(--bg-dark);
+  --bg-secondary: var(--bg-dark-alt);
+  --surface-dark: rgba(255, 255, 255, 0.04);
+  --accent-gradient-subtle: linear-gradient(135deg, rgba(212, 160, 90, 0.15), rgba(232, 191, 128, 0.08));
+
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
+  --transition-normal: var(--transition-base);
   --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme='light'] {
+  --bg-dark: #f4f0e8;
+  --bg-dark-alt: #ebe5d9;
+  --bg-light: #faf8f3;
+  --bg-light-alt: #eee8dc;
+  --bg-card-dark: rgba(255, 255, 255, 0.76);
+  --bg-card-dark-hover: rgba(255, 255, 255, 0.95);
+  --bg-card-light: rgba(255, 255, 255, 0.9);
+  --bg-card-light-hover: #ffffff;
+
+  --text-on-dark: #191723;
+  --text-on-dark-secondary: #5f6070;
+  --text-on-dark-muted: #8a8795;
+  --text-on-light: #191723;
+  --text-on-light-secondary: #5f6070;
+  --text-on-light-muted: #8a8795;
+
+  --border-dark: rgba(25, 23, 35, 0.12);
+  --border-light: rgba(25, 23, 35, 0.1);
+  --accent-primary: #c7862f;
+  --accent-secondary: #9b641f;
+  --accent-dark: #7a4e18;
+  --accent-glow: rgba(199, 134, 47, 0.18);
+  --accent-gradient: linear-gradient(135deg, #b97925 0%, #c7862f 44%, #e0ad63 100%);
+
+  --background: var(--bg-dark);
+  --surface: var(--bg-card-dark);
+  --surface-secondary: var(--bg-dark-alt);
+  --text-primary: var(--text-on-dark);
+  --text-secondary: var(--text-on-dark-secondary);
+  --text-muted: var(--text-on-dark-muted);
+  --border: var(--border-dark);
+  --header-background: rgba(248, 244, 236, 0.86);
+  --header-border: rgba(25, 23, 35, 0.08);
+  --shadow: 0 18px 46px rgba(61, 46, 22, 0.12);
+  --bg-primary: var(--bg-dark);
+  --bg-secondary: var(--bg-dark-alt);
+  --surface-dark: rgba(255, 255, 255, 0.74);
+  --shadow-card-light: 0 2px 20px rgba(61, 46, 22, 0.08);
 }
 
 /* ===== Reset & Base ===== */
@@ -89,10 +149,15 @@ html {
 
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-dark);
-  color: var(--text-on-dark);
+  background-color: var(--background);
+  color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] body {
+  color-scheme: light;
 }
 
 a {
@@ -117,9 +182,9 @@ button {
 /* ===== Section Types ===== */
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: min(92vw, 1560px);
   margin: 0 auto;
-  padding: 0 var(--space-xl);
+  padding: 0 clamp(24px, 2.5vw, 48px);
 }
 
 .section {
@@ -315,6 +380,11 @@ button {
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    padding: 0 clamp(16px, 5vw, 20px);
+  }
+
   .section-title {
     font-size: var(--font-size-3xl);
   }

@@ -1,304 +1,542 @@
 .howItWorks {
-  background: var(--bg-dark-alt);
+  background:
+    radial-gradient(circle at 12% 16%, rgba(212, 160, 90, 0.1), transparent 28%),
+    radial-gradient(circle at 84% 78%, rgba(212, 160, 90, 0.07), transparent 30%),
+    var(--bg-dark-alt);
   overflow: hidden;
-  padding: var(--space-section) 0;
+  scroll-margin-top: 96px;
+  padding: clamp(44px, 5.5vh, 64px) 0;
   font-family: var(--font-family);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2xl);
-  margin-top: var(--space-3xl);
-  align-items: start;
+.header {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
 }
 
-.stepColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xl);
+.title {
+  margin: 0;
+  color: var(--accent-primary);
+  font-size: clamp(var(--font-size-3xl), 3.1vw, var(--font-size-4xl));
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0;
 }
 
-.stepNumber {
-  font-size: 2.5rem;
-  font-weight: 800;
-  line-height: 1.2;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: var(--space-xs);
-  opacity: 0.9;
-  text-transform: uppercase;
-}
-
-.stepTitle {
-  font-size: var(--font-size-xl);
-  font-weight: 800;
-  margin-bottom: var(--space-md);
-  letter-spacing: -0.01em;
-  color: var(--text-on-dark);
-}
-
-.stepDesc {
-  font-size: var(--font-size-base);
-  color: var(--text-on-dark-secondary);
+.subtitle {
+  max-width: 620px;
+  margin: var(--space-sm) auto 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
   line-height: 1.6;
 }
 
-/* Updated Phone Screen - No Bezel, Longer */
-.phonePart {
-  width: 100%;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  background: var(--bg-card-dark);
-  border: 1px solid var(--border-dark);
-  position: relative;
-  aspect-ratio: 4/5; /* Window for the longer phone */
-  display: flex;
-  justify-content: center;
-}
-
-.phoneMockup {
-  position: absolute;
-  width: 280px;
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
-}
-
-.phoneTop .phoneMockup {
-  top: 10px;
-}
-
-.phoneBottom .phoneMockup {
-  bottom: 0; /* Align to bottom to show footer */
-}
-
-.phoneScreen {
-  background: #0d0d12;
-  border-radius: 32px;
-  overflow: hidden;
-  aspect-ratio: 9/21; /* significantly longer screen */
-  display: flex;
-  flex-direction: column;
-  box-shadow: 
-    inset 0 0 20px rgba(0,0,0,0.8),
-    0 20px 40px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Common Phone Internal UI */
-.phoneHeader {
-  padding: 20px 15px 15px;
-  text-align: center;
-  flex-shrink: 0;
-  z-index: 10;
-  position: relative;
-  background: linear-gradient(to bottom, #0d0d12 0%, transparent 100%);
-}
-
-.phoneTitle {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-/* Step 1 internal UI */
-.phoneGalleryGrid {
+.story {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  padding: 0 15px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.12fr) minmax(0, 0.95fr);
+  align-items: start;
+  gap: clamp(var(--space-lg), 2.2vw, var(--space-2xl));
+  margin-top: clamp(28px, 3.2vh, var(--space-2xl));
 }
 
-.galleryItem {
-  aspect-ratio: 1/1;
-  background: #222;
-  border-radius: 8px;
+.step {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-md);
+  animation: stepIn 620ms var(--transition-slow) both;
+}
+
+.stepOne {
+  animation-delay: 80ms;
+}
+
+.stepTwo {
+  margin-top: 24px;
+  animation-delay: 200ms;
+}
+
+.stepThree {
+  margin-top: 8px;
+  animation-delay: 320ms;
+}
+
+.stepCopy {
+  position: relative;
+  z-index: 2;
+}
+
+.stepOne .stepCopy,
+.stepThree .stepCopy {
+  min-height: 108px;
+}
+.stepKicker {
+  margin-bottom: 6px;
+  color: var(--accent-primary);
+  font-size: clamp(0.85rem, 1.45vw, 1.35rem);
+  font-weight: 900;
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+
+.stepCopy h3 {
+  max-width: 430px;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(var(--font-size-xl), 2.1vw, var(--font-size-3xl));
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+
+.visualPanel {
+  position: relative;
+  width: 100%;
+  min-height: 310px;
   overflow: hidden;
+  border: 1px solid rgba(212, 160, 90, 0.28);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    #0b101e;
+  box-shadow: 0 22px 68px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(212, 160, 90, 0.04);
 }
 
-.galleryItem img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.visualPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 22% 8%, rgba(232, 191, 128, 0.18), transparent 34%);
+  pointer-events: none;
 }
 
-.phoneSelectionTag {
-  margin-top: 15px;
-  padding: 8px 15px;
-  background: var(--accent-gradient);
-  color: #000;
-  font-size: 0.7rem;
+.panelTopline {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 14px 16px 0;
+  color: var(--text-on-dark-secondary);
+  font-size: var(--font-size-xs);
   font-weight: 700;
-  align-self: center;
-  border-radius: 20px;
 }
 
-/* Step 2 internal UI - NEW SECTION TO FILL SPACE */
-.phoneStylePreview {
-  width: 100%;
-  flex: 1;
-  min-height: 180px;
+.panelTopline strong {
+  color: var(--accent-secondary);
+  font-weight: 800;
+}
+
+.sourceGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  height: calc(100% - 34px);
+  min-height: 0;
+  padding: 16px 12px 14px;
+}
+
+.sourcePhoto {
   position: relative;
   overflow: hidden;
-  margin-bottom: 20px;
+  border: 1px solid rgba(232, 191, 128, 0.22);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
 }
 
-.blurredPreview {
+.sourcePhoto:nth-child(2) {
+  transform: translateY(14px);
+}
+
+.sourcePhoto:nth-child(3) {
+  transform: translateY(5px);
+}
+
+.sourcePhoto img,
+.packageHero img,
+.packageStrip img,
+.resultMain img,
+.resultStack img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(8px) brightness(0.6);
-  transform: scale(1.1);
 }
 
-.previewOverlay {
+.sourcePhoto span {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to top, #0d0d12 0%, transparent 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 20px 15px;
+  left: 10px;
+  bottom: 10px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: rgba(7, 10, 18, 0.72);
+  color: var(--accent-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  backdrop-filter: blur(8px);
 }
 
-.phoneStylesLabelSmall {
-  font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.photoCheck {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--accent-gradient);
+  box-shadow: 0 8px 18px rgba(212, 160, 90, 0.28);
 }
 
-.phoneMiniStyles {
-  display: flex;
-  gap: 6px;
+.photoCheck svg,
+.readyBadge svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--accent-contrast);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.miniStyleCard {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+.packagePanel {
+  min-height: 350px;
+  padding: 16px;
+}
+
+.packageHero {
+  position: relative;
+  height: 185px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  opacity: 0.7;
+  border: 1px solid rgba(232, 191, 128, 0.24);
+  border-radius: var(--radius-lg);
 }
 
-.miniStyleCard img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.packageHero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 42%, rgba(6, 8, 14, 0.72));
 }
 
-.phoneStyleLabel {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--accent-primary);
-  padding: 0 15px;
-  margin-bottom: 10px;
+.packageBadge,
+.readyBadge,
+.selectedPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--accent-gradient);
+  color: var(--accent-contrast);
+  font-size: var(--font-size-xs);
+  font-weight: 900;
+  line-height: 1;
 }
 
-.phoneStylesPreview {
+.packageBadge {
+  position: absolute;
+  z-index: 2;
+  left: 14px;
+  bottom: 14px;
+  min-height: 32px;
+  padding: 0 14px;
+}
+
+.packageInfo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: 10px;
+}
+
+.packageInfo span {
+  display: block;
+  color: var(--text-on-dark-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.packageInfo strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-on-dark);
+  font-size: var(--font-size-xs);
+  font-weight: 900;
+}
+
+.selectedPill {
+  min-height: 30px;
+  padding: 0 12px;
+  flex: 0 0 auto;
+}
+
+.packageStrip {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 0 15px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.styleCard {
-  aspect-ratio: 1/1;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  overflow: hidden;
+.packageStrip img {
+  aspect-ratio: 4 / 5;
+  border: 1px solid rgba(232, 191, 128, 0.2);
+  border-radius: var(--radius-md);
 }
 
-.styleCard img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.sourcePanel,
+.resultPanel {
+  box-sizing: border-box;
+  height: 330px;
+  min-height: 330px;
+  padding: 16px;
 }
 
-.phoneActionButton {
-  margin: 0 15px 30px;
-  background: var(--accent-gradient);
-  color: #000;
-  text-align: center;
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-/* Step 3 internal UI */
-.phoneResultHeader {
-  display: flex;
-  justify-content: space-between;
-  padding: 20px 15px;
-  font-weight: 700;
-}
-
-.phoneResultImage {
+.resultMosaic {
   position: relative;
-  padding: 0 15px;
+  z-index: 1;
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: 1.25fr 0.78fr;
+  gap: 8px;
 }
 
-.phoneResultImage img {
-  border-radius: 16px;
-  width: 100%;
+.resultMain,
+.resultStack img {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(232, 191, 128, 0.22);
+  border-radius: var(--radius-lg);
 }
 
-.heartIcon {
-  color: #ff4757;
+.resultStack {
+  display: grid;
+  gap: 8px;
 }
 
-.successBadge {
+.readyBadge {
   position: absolute;
-  top: -10px;
-  right: 5px;
-  background: #4ade80;
-  color: #000;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 0.6rem;
-  font-weight: 800;
-  box-shadow: 0 4px 10px rgba(74, 222, 128, 0.4);
+  right: 14px;
+  bottom: 14px;
+  min-height: 34px;
+  padding: 0 14px;
+  box-shadow: 0 10px 24px rgba(212, 160, 90, 0.25);
 }
 
 .footerAction {
-  margin-top: var(--space-4xl);
   display: flex;
   justify-content: center;
+  margin-top: clamp(28px, 3.2vh, var(--space-2xl));
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-3xl);
-  }
-  
-  .stepColumn {
-    text-align: center;
-  }
-  
-  .phonePart {
-    max-width: 500px;
-    margin: 0 auto;
-    aspect-ratio: 16/9; /* Switch to landscape-like window on mobile */
+.cta {
+  min-height: 44px;
+  padding-inline: clamp(28px, 5vw, 44px);
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .visualPanel {
+    transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
   }
 
-  .phoneMockup {
-    width: 240px;
+  .step:hover .visualPanel {
+    transform: translateY(-5px);
+    border-color: rgba(232, 191, 128, 0.55);
+    box-shadow: 0 28px 78px rgba(0, 0, 0, 0.35), 0 0 36px rgba(212, 160, 90, 0.12);
   }
-  
-  .stepColumn:nth-child(2) {
-    flex-direction: column;
+}
+
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1180px) {
+  .story {
+    gap: var(--space-md);
+  }
+
+  .visualPanel {
+    min-height: 360px;
+  }
+
+  .sourcePanel,
+  .resultPanel {
+    height: 400px;
+    min-height: 400px;
+  }
+
+  .packagePanel {
+    min-height: 400px;
+  }
+
+  .packageHero {
+    height: 220px;
+  }
+
+  .sourceGrid {
+    min-height: 300px;
+  }
+
+  .resultMosaic {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 860px) {
+  .howItWorks {
+    padding: var(--space-4xl) 0;
+  }
+
+  .story {
+    grid-template-columns: 1fr;
+    gap: var(--space-3xl);
+    width: min(100%, 620px);
+    margin: var(--space-3xl) auto 0;
+  }
+
+  .step,
+  .stepTwo,
+  .stepThree {
+    margin-top: 0;
+  }
+
+  .stepTwo {
+    flex-direction: column-reverse;
+  }
+
+  .stepCopy,
+  .stepCopy h3 {
+    max-width: none;
+  }
+
+  .visualPanel,
+  .packagePanel {
+    min-height: auto;
+  }
+
+  .sourcePanel,
+  .resultPanel {
+    height: auto;
+    min-height: auto;
+  }
+
+  .stepOne .stepCopy,
+  .stepThree .stepCopy {
+    min-height: 0;
+  }
+
+  .sourceGrid {
+    min-height: 320px;
+  }
+
+  .packageHero {
+    height: 300px;
+  }
+
+  .resultMosaic {
+    min-height: 380px;
+  }
+
+  .footerAction {
+    width: min(100%, 620px);
+    margin: var(--space-3xl) auto 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .howItWorks {
+    padding: var(--space-3xl) 0;
+  }
+
+  .title {
+    font-size: clamp(2rem, 10vw, var(--font-size-3xl));
+  }
+
+  .subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .story {
+    gap: var(--space-2xl);
+    margin-top: var(--space-2xl);
+  }
+
+  .step {
+    gap: var(--space-lg);
+  }
+
+  .stepKicker {
+    font-size: clamp(1rem, 7vw, 1.6rem);
+  }
+
+  .stepCopy h3 {
+    font-size: var(--font-size-xl);
+  }
+
+  .visualPanel {
+    border-radius: var(--radius-lg);
+  }
+
+  .sourceGrid {
+    min-height: 260px;
+    gap: 8px;
+    padding: 18px 12px 14px;
+  }
+
+  .sourcePhoto:nth-child(2),
+  .sourcePhoto:nth-child(3) {
+    transform: none;
+  }
+
+  .sourcePanel,
+  .packagePanel,
+  .resultPanel {
+    padding: 12px;
+  }
+
+  .packageHero {
+    height: 230px;
+  }
+
+  .packageStrip {
+    gap: 8px;
+  }
+
+  .resultMosaic {
+    min-height: 300px;
+    gap: 8px;
+  }
+
+  .resultStack {
+    gap: 8px;
+  }
+
+  .cta {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
   }
 }
