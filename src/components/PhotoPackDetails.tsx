@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type UIEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Gem } from 'lucide-react';
 import type { PhotoPack } from '@/lib/photoPacks';
 import styles from './PhotoPackDetails.module.css';
 
@@ -15,6 +15,9 @@ type PhotoPackDetailsProps = {
   onSelectPack?: (slug: string) => void;
   titleId?: string;
 };
+
+type Quality = 'hd' | 'fullHd';
+const crystalBalance = 40;
 
 const labels = {
   navigation: '\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',
@@ -28,6 +31,14 @@ const labels = {
   approxTime: '\u043f\u0440\u0438\u043c\u0435\u0440\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f',
   highQuality: '\u0432\u044b\u0441\u043e\u043a\u043e\u0435 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u043e',
   minutes: '~5 \u043c\u0438\u043d',
+  priceLabel: '\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c',
+  crystalsUnit: '\u043a\u0440\u0438\u0441\u0442\u0430\u043b\u043b\u0430\u043c\u0438',
+  crystalsPrice: '\u043a\u0440\u0438\u0441\u0442\u0430\u043b\u043b\u043e\u0432',
+  or: '\u0438\u043b\u0438',
+  buyFor: '\u041a\u0443\u043f\u0438\u0442\u044c \u0437\u0430',
+  payWith: '\u041e\u043f\u043b\u0430\u0442\u0438\u0442\u044c',
+  insufficientCrystals: '\u041d\u0435\u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u043a\u0440\u0438\u0441\u0442\u0430\u043b\u043b\u043e\u0432',
+  topUpBalance: '\u041f\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0441\u043a\u043e\u0440\u043e \u0431\u0443\u0434\u0435\u0442 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e',
   included: '\u0427\u0442\u043e \u0432\u0445\u043e\u0434\u0438\u0442 \u0432 \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u044e',
   modalIncluded: '\u0412\u044b \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u0435',
   professionalPhotos: '\u043f\u0440\u043e\u0444\u0435\u0441\u0441\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0444\u043e\u0442\u043e',
@@ -39,6 +50,8 @@ const labels = {
   relatedModal: '\u0412\u0430\u043c \u043c\u043e\u0436\u0435\u0442 \u043f\u043e\u043d\u0440\u0430\u0432\u0438\u0442\u044c\u0441\u044f',
   relatedPage: '\u0412\u0430\u043c \u0442\u0430\u043a\u0436\u0435 \u043c\u043e\u0436\u0435\u0442 \u043f\u043e\u043d\u0440\u0430\u0432\u0438\u0442\u044c\u0441\u044f',
   photo: '\u0444\u043e\u0442\u043e',
+  quality: '\u041a\u0430\u0447\u0435\u0441\u0442\u0432\u043e',
+  qualityHint: 'HD \u2014 \u0434\u043b\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u0430\u0446\u0438\u0438 \u043e\u043d\u043b\u0430\u0439\u043d. Full HD \u2014 \u0434\u043b\u044f \u043f\u0435\u0447\u0430\u0442\u0438 \u0438 \u043a\u0440\u0443\u043f\u043d\u044b\u0445 \u0444\u043e\u0440\u043c\u0430\u0442\u043e\u0432.',
   lightbox: '\u041f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u0444\u043e\u0442\u043e\u0433\u0440\u0430\u0444\u0438\u0438',
   closeLightbox: '\u0417\u0430\u043a\u0440\u044b\u0442\u044c \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440',
   prevFrame: '\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0438\u0439 \u043a\u0430\u0434\u0440',
@@ -67,6 +80,11 @@ const commonBenefits = [
   '\u0413\u043e\u0442\u043e\u0432\u043e \u043f\u0440\u0438\u043c\u0435\u0440\u043d\u043e \u0437\u0430 5 \u043c\u0438\u043d\u0443\u0442',
 ];
 
+const qualityOptions: Array<{ id: Quality; title: string; description: string }> = [
+  { id: 'hd', title: 'HD', description: '\u0421\u043e\u0446\u0441\u0435\u0442\u0438, \u0441\u0442\u043e\u0440\u0438\u0441, \u043c\u0435\u0441\u0441\u0435\u043d\u0434\u0436\u0435\u0440\u044b, \u0430\u0432\u0430\u0442\u0430\u0440\u044b' },
+  { id: 'fullHd', title: 'Full HD', description: '\u041f\u0435\u0447\u0430\u0442\u044c, \u043e\u0431\u043b\u043e\u0436\u043a\u0438, \u0441\u0430\u0439\u0442\u044b, \u0431\u043e\u043b\u044c\u0448\u0438\u0435 \u044d\u043a\u0440\u0430\u043d\u044b' },
+];
+
 export default function PhotoPackDetails({
   pack,
   relatedPacks,
@@ -77,6 +95,8 @@ export default function PhotoPackDetails({
 }: PhotoPackDetailsProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [mobileFrameIndex, setMobileFrameIndex] = useState(0);
+  const [quality, setQuality] = useState<Quality>('hd');
+  const [paymentMessage, setPaymentMessage] = useState(false);
   const [canScrollRelatedPrev, setCanScrollRelatedPrev] = useState(false);
   const [canScrollRelatedNext, setCanScrollRelatedNext] = useState(false);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -85,12 +105,12 @@ export default function PhotoPackDetails({
 
   const gallery = useMemo(() => {
     const uniqueImages = Array.from(new Set([pack.image, ...pack.gallery]));
-    return uniqueImages.slice(0, 4);
-  }, [pack.gallery, pack.image]);
+    return uniqueImages.slice(0, Math.min(pack.photoCount, 4));
+  }, [pack.gallery, pack.image, pack.photoCount]);
 
   const modalBenefits = useMemo(
-    () => [...frameBenefits.slice(0, Math.min(gallery.length, frameBenefits.length)), ...commonBenefits],
-    [gallery.length],
+    () => [...frameBenefits.slice(0, Math.min(pack.photoCount, frameBenefits.length)), ...commonBenefits],
+    [pack.photoCount],
   );
 
 
@@ -124,6 +144,8 @@ export default function PhotoPackDetails({
   const startHref = `/dashboard/new?style=${pack.id}`;
   const visibleRelated = relatedPacks.slice(0, isModal ? 8 : 6);
   const currentLightboxImage = lightboxIndex === null ? null : gallery[lightboxIndex];
+  const canPayWithCrystals = crystalBalance >= pack.priceCrystals;
+  const crystalPaymentHref = `${startHref}&payment=crystals`;
 
   const updateRelatedScrollState = useCallback(() => {
     const rail = relatedRailRef.current;
@@ -232,9 +254,29 @@ export default function PhotoPackDetails({
 
           {isModal ? (
             <>
+              <fieldset className={styles.qualityBlock}>
+                <legend>{labels.quality}</legend>
+                <div className={styles.qualityOptions}>
+                  {qualityOptions.map((option) => (
+                    <label key={option.id} className={`${styles.qualityOption} ${quality === option.id ? styles.qualityOptionActive : ''}`}>
+                      <input
+                        type="radio"
+                        name={`quality-${pack.id}`}
+                        value={option.id}
+                        checked={quality === option.id}
+                        onChange={() => setQuality(option.id)}
+                      />
+                      <span>{option.title}</span>
+                      <em>{option.description}</em>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+
               <section className={styles.benefitsBlock}>
                 <h2>{labels.modalIncluded}</h2>
-                <p className={styles.benefitsLead}>{gallery.length} {labels.professionalPhotos}:</p>
+                <p className={styles.benefitsLead}>{pack.photoCount} {labels.professionalPhotos}:</p>
                 <ul className={styles.benefitsList}>
                   {modalBenefits.map((benefit) => (
                     <li key={benefit}>{benefit}</li>
@@ -242,15 +284,34 @@ export default function PhotoPackDetails({
                 </ul>
               </section>
 
-              <Link href={startHref} className={styles.summaryCta}>
-                {labels.start}
-              </Link>
+              <div className={styles.paymentBlock}>
+                <div className={styles.paymentActions}>
+                  <Link href={startHref} className={styles.paymentPrimary}>
+                    {labels.buyFor} {pack.priceRub} {'\u20bd'}
+                  </Link>
+                  {canPayWithCrystals ? (
+                    <Link href={crystalPaymentHref} className={styles.paymentSecondary}>
+                      <Gem aria-hidden="true" /> {labels.payWith} {pack.priceCrystals} {labels.crystalsUnit}
+                    </Link>
+                  ) : (
+                    <button type="button" className={styles.paymentSecondary} onClick={() => setPaymentMessage(true)}>
+                      <Gem aria-hidden="true" /> {labels.payWith} {pack.priceCrystals} {labels.crystalsUnit}
+                    </button>
+                  )}
+                </div>
+                {paymentMessage ? (
+                  <div className={styles.paymentMessage} role="status">
+                    <span>{labels.insufficientCrystals}</span>
+                    <span>{labels.topUpBalance}</span>
+                  </div>
+                ) : null}
+              </div>
             </>
           ) : (
             <>
               <div className={styles.specGrid} aria-label={labels.specs}>
                 <div>
-                  <span>{pack.photos}</span>
+                  <span>{pack.photoCount}</span>
                   <p>{labels.readyPhotos}</p>
                 </div>
                 <div>
@@ -267,6 +328,13 @@ export default function PhotoPackDetails({
                 </div>
               </div>
 
+              <div className={styles.priceRow}>
+                <span>{labels.priceLabel}</span>
+                <div>
+                  <strong>{pack.priceRub} {'\u20bd'}</strong>
+                  <em>{labels.or} {pack.priceCrystals} {labels.crystalsPrice}</em>
+                </div>
+              </div>
 
               <section className={styles.outcomeBlock}>
                 <h2>{labels.included}</h2>
@@ -280,7 +348,7 @@ export default function PhotoPackDetails({
                   ))}
                 </div>
                 <div className={styles.qualityNote}>
-                  <span>{pack.photos} {labels.images}</span>
+                  <span>{pack.photoCount} {labels.images}</span>
                   <span>{labels.inHighQuality}</span>
                   <span>{labels.forSocial}</span>
                 </div>
@@ -338,7 +406,7 @@ export default function PhotoPackDetails({
                 </div>
                 <h3>{related.title}</h3>
                 <p>{related.description}</p>
-                <span>{related.photos} {labels.photo}</span>
+                <span>{related.photoCount} {labels.photo}</span>
               </>
             );
 

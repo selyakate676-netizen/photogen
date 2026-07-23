@@ -53,14 +53,14 @@ export default function Navbar() {
 
   const closeMenu = () => setIsMenuOpen(false);
   const accountLinks = user ? userLinks : guestLinks;
-  const accountActions = user ? (
+  const accountActions = (
     <>
       <ThemeToggle />
       <Link href="/settings" className={styles.iconButton} onClick={closeMenu} aria-label="Настройки" title="Настройки">
         <Settings aria-hidden="true" />
       </Link>
     </>
-  ) : <ThemeToggle />;
+  );
 
   return (
     <nav className={styles.navbar}>

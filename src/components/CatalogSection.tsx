@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Gem } from 'lucide-react';
 import PhotoPackModal from '@/components/PhotoPackModal';
 import { getPhotoPack, photoPacks } from '@/lib/photoPacks';
 import styles from './CatalogSection.module.css';
@@ -14,6 +15,8 @@ type CatalogCard = {
   title: string;
   description: string;
   photos: number;
+  priceRub?: number;
+  priceCrystals?: number;
   category: Exclude<Category, 'all'>;
   categoryLabel: string;
   image: string;
@@ -83,6 +86,8 @@ const realCards: CatalogCard[] = photoPacks.map((pack) => ({
   title: pack.title,
   description: pack.description,
   photos: pack.photos,
+  priceRub: pack.priceRub,
+  priceCrystals: pack.priceCrystals,
   category: pack.category,
   categoryLabel: pack.categoryLabel,
   image: pack.image,
@@ -159,6 +164,12 @@ function Card({ card, onOpen }: { card: CatalogCard; onOpen: (card: CatalogCard,
         <p>{card.description}</p>
         <div className={styles.cardMeta}>
           <span>{card.photos} {labels.photo}</span>
+          {card.real && card.priceRub && card.priceCrystals ? (
+            <span className={styles.cardPrices}>
+              <strong>{card.priceRub} {'\u20bd'}</strong>
+              <em><Gem aria-hidden="true" /> {card.priceCrystals}</em>
+            </span>
+          ) : null}
         </div>      </div>
     </>
   );
@@ -425,7 +436,6 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
     filterButtonRefs.current.get(activeFilter)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     updateFilterScrollState();
   }, [activeFilter, updateFilterScrollState]);
-
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {

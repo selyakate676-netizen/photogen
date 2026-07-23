@@ -1,5 +1,15 @@
 export type PhotoPackCategory = 'social' | 'dating' | 'business' | 'travel' | 'fashion' | 'lifestyle';
 
+export type PhotoPackPricing = {
+  hd: {
+    tokens: number;
+    rubles: number;
+  };
+  fullHd: {
+    tokens: number;
+    rubles: number;
+  };
+};
 
 export type PhotoPack = {
   id: string;
@@ -9,6 +19,10 @@ export type PhotoPack = {
   summary: string;
   photos: number;
   price: string;
+  photoCount: 2 | 4 | 6 | 8;
+  priceRub: number;
+  priceCrystals: number;
+  pricing: PhotoPackPricing;
   category: PhotoPackCategory;
   categoryLabel: string;
   image: string;
@@ -25,7 +39,7 @@ const sharedFeatures = [
   'реалистичная обработка',
 ];
 
-const basePhotoPacks: PhotoPack[] = [
+const basePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRub' | 'priceCrystals'>[] = [
   {
     id: 'career',
     slug: 'career',
@@ -220,9 +234,39 @@ const basePhotoPacks: PhotoPack[] = [
   },
 ];
 
-const productionPackIds = new Set(['career', 'dating', 'social', 'studio', 'neon', 'bw']);
+type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
 
-export const photoPacks: PhotoPack[] = basePhotoPacks.filter((pack) => productionPackIds.has(pack.id));
+const economyByPack: Record<string, PhotoPackEconomy> = {
+  career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
+  dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
+  sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },
+  'studio-elegance': { photoCount: 6, priceRub: 269, priceCrystals: 54 },
+  'lakeside-walk': { photoCount: 4, priceRub: 179, priceCrystals: 36 },
+  'casual-park': { photoCount: 4, priceRub: 189, priceCrystals: 38 },
+  'minimal-black-studio': { photoCount: 4, priceRub: 199, priceCrystals: 40 },
+  'russian-editorial': { photoCount: 6, priceRub: 279, priceCrystals: 56 },
+  social: { photoCount: 2, priceRub: 99, priceCrystals: 20 },
+  studio: { photoCount: 6, priceRub: 269, priceCrystals: 54 },
+  neon: { photoCount: 8, priceRub: 369, priceCrystals: 74 },
+  bw: { photoCount: 4, priceRub: 199, priceCrystals: 40 },
+};
+
+const productionPhotoPackIds = new Set(['career', 'dating', 'social', 'studio', 'neon', 'bw']);
+
+export const photoPacks: PhotoPack[] = basePhotoPacks.filter((pack) => productionPhotoPackIds.has(pack.id)).map((pack) => {
+  const economy = economyByPack[pack.id] ?? { photoCount: 4, priceRub: 189, priceCrystals: 38 };
+
+  return {
+    ...pack,
+    ...economy,
+    photos: economy.photoCount,
+    price: `${economy.priceRub} ₽`,
+    pricing: {
+      hd: { tokens: economy.priceCrystals, rubles: economy.priceRub },
+      fullHd: { tokens: economy.priceCrystals, rubles: economy.priceRub },
+    },
+  };
+});
 export function getPhotoPack(slug: string) {
   return photoPacks.find((pack) => pack.slug === slug || pack.id === slug);
 }
