@@ -37,7 +37,7 @@ export async function mockPayment(formData: FormData) {
   }
 
   // Обновляем страницу дашборда и возвращаем пользователя туда
-  revalidatePath('/dashboard');
-  redirect('/dashboard');
+  revalidatePath('/account/generated');
+  redirect('/account/generated');
 }
 

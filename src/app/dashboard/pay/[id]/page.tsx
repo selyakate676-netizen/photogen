@@ -26,12 +26,12 @@ export default async function MockPaymentPage({ params }: { params: Promise<{ id
 
   // Если заказ не найден или не принадлежит пользователю
   if (!photoshoot) {
-    return redirect('/dashboard');
+    return redirect('/account/generated');
   }
 
   // Если статус уже не pending (уже оплачено или ошибка)
   if (photoshoot.status !== 'pending') {
-    return redirect('/dashboard');
+    return redirect('/account/generated');
   }
 
   return (
@@ -40,8 +40,8 @@ export default async function MockPaymentPage({ params }: { params: Promise<{ id
       <main className={dashboardStyles.wrapper}>
         <div className={dashboardStyles.container}>
           <div className={dashboardStyles.header}>
-             <Link href="/dashboard" style={{ color: 'var(--text-on-dark-secondary)', textDecoration: 'none' }}>
-               ← Вернуться в мои фотосессии
+             <Link href="/account/generated" style={{ color: 'var(--text-on-dark-secondary)', textDecoration: 'none' }}>
+               ← Вернуться в мои генерации
              </Link>
           </div>
           

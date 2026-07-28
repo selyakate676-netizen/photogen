@@ -23,7 +23,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
     .single();
 
   if (!photoshoot || photoshoot.status !== 'completed') {
-    return redirect('/dashboard');
+    return redirect('/account/generated');
   }
 
   // Конфиг домена S3 для отображения изображений
@@ -42,8 +42,8 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
       <main className={dashboardStyles.wrapper} style={{ paddingBottom: 'var(--space-4xl)'}}>
         <div className={dashboardStyles.container}>
           <div className={dashboardStyles.header}>
-             <Link href="/dashboard" style={{ color: 'var(--text-on-dark-secondary)', textDecoration: 'none' }}>
-               ← Вернуться в дашборд
+             <Link href="/account/generated" style={{ color: 'var(--text-on-dark-secondary)', textDecoration: 'none' }}>
+               ← Вернуться в мои генерации
              </Link>
              <h1 style={{ marginTop: 'var(--space-md)', fontSize: 'var(--font-size-2xl)' }}>
                Твои результаты ✨

@@ -43,7 +43,7 @@ export async function createPhotoshoot({ styleId, imageKeys, gender, bodyType, e
   }
 
   // 3. Обновляем данные на главной странице кабинета
-  revalidatePath('/dashboard');
+  revalidatePath('/account/generated');
 
   return { success: true, data };
 }

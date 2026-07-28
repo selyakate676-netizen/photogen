@@ -30,6 +30,6 @@ export async function retryTraining(formData: FormData) {
     console.error('Error in retry action:', err);
   }
 
-  revalidatePath('/dashboard');
+  revalidatePath('/account/generated');
 }
 
