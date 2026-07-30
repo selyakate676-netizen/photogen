@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 import YandexMetrica from '@/components/YandexMetrica';
+import YandexMetricaBootstrap from '@/components/YandexMetricaBootstrap';
 import Navbar from '@/components/Navbar';
 
 const themeInitScript = `
@@ -46,6 +47,7 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <YandexMetricaBootstrap />
         <link
           href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap"
           rel="stylesheet"
