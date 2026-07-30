@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { reachMetricaGoal } from '@/components/YandexMetrica';
+import { trackAnalyticsGoal } from '@/lib/analytics';
 import SocialAuth from '@/components/SocialAuth';
 import styles from '../login/login.module.css';
 
@@ -20,6 +20,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackAnalyticsGoal('signup_start', { source_page: 'signup' });
     setError(null);
 
     if (password !== confirmPassword) {
@@ -39,11 +40,9 @@ export default function SignupPage() {
       });
 
       if (error) throw error;
-      
-      reachMetricaGoal('USER_SIGNUP');
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Ошибка при регистрации');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Ошибка при регистрации');
     } finally {
       setLoading(false);
     }

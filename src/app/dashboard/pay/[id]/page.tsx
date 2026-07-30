@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { mockPayment } from './actions';
 import dashboardStyles from '../../dashboard.module.css';
 import SubmitPayButton from './SubmitPayButton';
+import AnalyticsEvent from '@/components/AnalyticsEvent';
 
 export default async function MockPaymentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,6 +37,15 @@ export default async function MockPaymentPage({ params }: { params: Promise<{ id
 
   return (
     <>
+      <AnalyticsEvent
+        goal="checkout_view"
+        params={{
+          package_slug: photoshoot.style_id,
+          order_status: photoshoot.status,
+          source_page: 'checkout',
+          is_test_mode: true,
+        }}
+      />
       <Navbar />
       <main className={dashboardStyles.wrapper}>
         <div className={dashboardStyles.container}>
@@ -74,7 +84,7 @@ export default async function MockPaymentPage({ params }: { params: Promise<{ id
 
              <form action={mockPayment}>
                 <input type="hidden" name="photoshootId" value={photoshoot.id} />
-                <SubmitPayButton />
+                <SubmitPayButton packageSlug={photoshoot.style_id} />
              </form>
           </div>
         </div>

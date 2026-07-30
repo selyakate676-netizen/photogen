@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Gem } from 'lucide-react';
 import type { PhotoPack } from '@/lib/photoPacks';
+import { trackAnalyticsGoal } from '@/lib/analytics';
 import styles from './PhotoPackDetails.module.css';
 
 type PhotoPackDetailsProps = {
@@ -100,8 +101,19 @@ export default function PhotoPackDetails({
   const [canScrollRelatedPrev, setCanScrollRelatedPrev] = useState(false);
   const [canScrollRelatedNext, setCanScrollRelatedNext] = useState(false);
   const galleryRef = useRef<HTMLDivElement>(null);
+  const trackedPackSlugRef = useRef<string | null>(null);
   const relatedRailRef = useRef<HTMLDivElement>(null);
   const isModal = mode === 'modal';
+
+  useEffect(() => {
+    if (trackedPackSlugRef.current === pack.slug) return;
+    trackedPackSlugRef.current = pack.slug;
+    trackAnalyticsGoal('pack_view', {
+      package_slug: pack.slug,
+      requested_images_count: pack.photoCount,
+      source_page: isModal ? 'catalog_modal' : 'pack_page',
+    });
+  }, [isModal, pack.photoCount, pack.slug]);
 
   const gallery = useMemo(() => {
     const uniqueImages = Array.from(new Set([pack.image, ...pack.gallery]));

@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, ShieldCheck, Loader2, CheckCircle2 } from 'lucide-react';
 import styles from './PhotoUpload.module.css';
+import { trackAnalyticsGoal } from '@/lib/analytics';
 
 interface PhotoUploadProps {
   files: File[];
@@ -60,8 +61,12 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
     const keys = await Promise.all(uploadPromises);
     
     const successfulKeys = keys.filter((k): k is string => k !== null);
-    if (onUploadComplete && successfulKeys.length > 0) {
-      onUploadComplete(successfulKeys);
+    if (successfulKeys.length > 0) {
+      trackAnalyticsGoal('photo_upload_complete', {
+        requested_images_count: successfulKeys.length,
+        source_page: 'studio',
+      });
+      onUploadComplete?.(successfulKeys);
     }
   }, [files, setFiles, onUploadComplete]);
 
@@ -108,7 +113,7 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
                   <img 
                     src={URL.createObjectURL(file)} 
                     alt="Preview" 
-                    onLoad={(e) => URL.revokeObjectURL((e.target as any).src)}
+                    onLoad={(event) => URL.revokeObjectURL(event.currentTarget.src)}
                   />
                   <div className={styles.itemOverlay}>
                     {status === 'uploading' && <Loader2 className={styles.spin} size={20} />}

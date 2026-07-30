@@ -1,68 +1,75 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
+import {
+  canUseYandexMetrika,
+  flushPendingAnalyticsGoals,
+  shouldSendAnalyticsPageView,
+  yandexMetrikaId,
+} from '@/lib/analytics';
+function subscribeToRuntimeAvailability() {
+  return () => {};
+}
+
+function getServerRuntimeAvailability() {
+  return false;
+}
+
 
 export default function YandexMetrica() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const counterId = process.env.NEXT_PUBLIC_YANDEX_METRICA_ID;
+  const isAllowed = useSyncExternalStore(
+    subscribeToRuntimeAvailability,
+    canUseYandexMetrika,
+    getServerRuntimeAvailability,
+  );
+  const [isReady, setIsReady] = useState(false);
+  const lastPageViewRef = useRef<string | null>(null);
+  const pageUrl = useMemo(() => {
+    const query = searchParams.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }, [pathname, searchParams]);
 
   useEffect(() => {
-    if (counterId && typeof window.ym !== 'undefined') {
-      window.ym(counterId, 'hit', pathname);
-    }
-  }, [pathname, searchParams, counterId]);
+    if (
+      !isAllowed
+      || !isReady
+      || !yandexMetrikaId
+      || typeof window.ym !== 'function'
+      || !shouldSendAnalyticsPageView(lastPageViewRef.current, pageUrl)
+    ) return;
 
-  if (!counterId) return null;
+    try {
+      window.ym(yandexMetrikaId, 'hit', pageUrl);
+      lastPageViewRef.current = pageUrl;
+    } catch {
+      // A blocked analytics request must not affect navigation.
+    }
+  }, [isAllowed, isReady, pageUrl]);
+
+  if (!isAllowed || !yandexMetrikaId) return null;
 
   return (
-    <>
-      <Script id="yandex-metrica" strategy="afterInteractive">
-        {`
-          (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-          m[i].l=1*new Date();
-          for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-          k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-          (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-          ym(${counterId}, "init", {
-               clickmap:true,
-               trackLinks:true,
-               accurateTrackBounce:true,
-               webvisor:true
-          });
-        `}
-      </Script>
-      <noscript>
-        <div>
-          <img
-            src={`https://mc.yandex.ru/watch/${counterId}`}
-            style={{ position: 'absolute', left: '-9999px' }}
-            alt=""
-          />
-        </div>
-      </noscript>
-    </>
+    <Script id="yandex-metrika" strategy="afterInteractive" onReady={() => {
+      flushPendingAnalyticsGoals();
+      setIsReady(true);
+    }}>
+      {`
+        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+        (window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+        ym(${yandexMetrikaId},"init",{defer:true});
+      `}
+    </Script>
   );
 }
 
-/**
- * Функция для отправки достигнутой цели в Метрику
- * @param goalName Имя цели (должно совпадать с настроенным в кабинете Метрики)
- */
-export function reachMetricaGoal(goalName: string) {
-  const counterId = process.env.NEXT_PUBLIC_YANDEX_METRICA_ID;
-  if (counterId && typeof window.ym !== 'undefined') {
-    window.ym(counterId, 'reachGoal', goalName);
-    console.log(`[Metrica] Goal reached: ${goalName}`);
-  }
-}
-
-// Добавляем ym в глобальный объект window для TypeScript
-declare global {
-  interface Window {
-    ym: (id: string | number, action: string, ...args: any[]) => void;
-  }
+/** @deprecated Use the typed trackAnalyticsGoal helper for new events. */
+export function reachMetricaGoal(goal: 'SELECT_PLAN' | 'CREATE_PHOTOSHOOT') {
+  void goal;
 }

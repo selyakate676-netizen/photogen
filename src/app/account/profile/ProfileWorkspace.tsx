@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { accountPersonas, type AccountPersona } from '@/lib/accountMockData';
+import { trackAnalyticsGoal } from '@/lib/analytics';
 import styles from '../account.module.css';
 
 type ProfileWorkspaceProps = {
@@ -55,6 +56,13 @@ export default function ProfileWorkspace({
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nextPersonaIdRef = useRef(accountPersonas.length + 1);
+  const personaStartSentRef = useRef(false);
+
+  const trackPersonaStart = () => {
+    if (personaStartSentRef.current) return;
+    personaStartSentRef.current = true;
+    trackAnalyticsGoal('persona_start', { source_page: 'profile' });
+  };
 
   useEffect(() => {
     setReferralUrl(`${window.location.origin}/signup?ref=${referralCode}`);
@@ -65,6 +73,7 @@ export default function ProfileWorkspace({
   };
 
   const updateForm = (personaId: string, field: keyof Questionnaire, value: string) => {
+    trackPersonaStart();
     setForms((current) => ({
       ...current,
       [personaId]: { ...current[personaId], [field]: value },
@@ -73,6 +82,7 @@ export default function ProfileWorkspace({
   };
 
   const openFilePicker = (personaId: string, index: number | null) => {
+    trackPersonaStart();
     setUploadTarget({ personaId, index });
     fileInputRef.current?.click();
   };
@@ -105,6 +115,10 @@ export default function ProfileWorkspace({
       return { ...current, [uploadTarget.personaId]: [...existing, ...urls].slice(0, 3) };
     });
     setMessage(uploadTarget.personaId, 'Фотографии изменены локально и сохранятся после подключения backend.');
+    trackAnalyticsGoal('photo_upload_complete', {
+      requested_images_count: validFiles.length,
+      source_page: 'profile',
+    });
     setUploadTarget(null);
   };
 
@@ -122,6 +136,7 @@ export default function ProfileWorkspace({
   };
 
   const addPersonaAfter = (index: number) => {
+    trackPersonaStart();
     const id = `local-persona-${nextPersonaIdRef.current++}`;
     const newPersona: AccountPersona = {
       id,
@@ -287,6 +302,7 @@ export default function ProfileWorkspace({
                   className={styles.personaQuestionnaire}
                   onSubmit={(event) => {
                     event.preventDefault();
+                    trackAnalyticsGoal('persona_complete', { source_page: 'profile' });
                     setMessage(persona.id, 'Сохранение в backend пока не подключено. Изменения останутся до перезагрузки страницы.');
                   }}
                 >

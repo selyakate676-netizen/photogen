@@ -4,6 +4,8 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import dashboardStyles from '../../dashboard.module.css';
+import AnalyticsEvent from '@/components/AnalyticsEvent';
+import TrackedDownloadLink from '@/components/TrackedDownloadLink';
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -38,6 +40,15 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
   return (
     <>
+      <AnalyticsEvent
+        goal="generation_result_view"
+        params={{
+          package_slug: photoshoot.style_id,
+          requested_images_count: photoshoot.result_images?.length ?? 0,
+          order_status: photoshoot.status,
+          source_page: 'result',
+        }}
+      />
       <Navbar />
       <main className={dashboardStyles.wrapper} style={{ paddingBottom: 'var(--space-4xl)'}}>
         <div className={dashboardStyles.container}>
@@ -83,15 +94,16 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                          display: 'flex',
                          justifyContent: 'center'
                      }}>
-                        <a 
+                        <TrackedDownloadLink
                           href={getImageUrl(key)} 
                           download={`ai-portrait-${index + 1}.jpg`} 
                           target="_blank" 
                           rel="noreferrer"
+                          analyticsParams={{ package_slug: photoshoot.style_id, source_page: 'result' }}
                           className="btn btn-primary btn-sm"
                         >
                           ⬇ Скачать HD
-                        </a>
+                        </TrackedDownloadLink>
                      </div>
                   </div>
                ))}

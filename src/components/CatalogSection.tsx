@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { Gem } from 'lucide-react';
 import PhotoPackModal from '@/components/PhotoPackModal';
 import { getPhotoPack, photoPacks } from '@/lib/photoPacks';
+import { trackAnalyticsGoal } from '@/lib/analytics';
 import styles from './CatalogSection.module.css';
 
 type Category = 'all' | 'social' | 'dating' | 'business' | 'travel' | 'fashion' | 'lifestyle';
@@ -282,6 +283,8 @@ function CarouselRow({ collection, cards, onOpenPack }: { collection: Collection
   );
 }
 export default function CatalogSection({ standalone = false }: CatalogSectionProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const catalogViewSentRef = useRef(false);
   const searchWrapRef = useRef<HTMLDivElement>(null);
   const filterRailRef = useRef<HTMLDivElement>(null);
   const filterButtonRefs = useRef(new Map<FilterId, HTMLButtonElement>());
@@ -417,6 +420,21 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
   }, []);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || catalogViewSentRef.current) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting || catalogViewSentRef.current) return;
+      catalogViewSentRef.current = true;
+      trackAnalyticsGoal('catalog_view', { source_page: standalone ? 'catalog' : 'landing' });
+      observer.disconnect();
+    }, { threshold: 0.2 });
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [standalone]);
+
+  useEffect(() => {
     updateFilterScrollState();
     const rail = filterRailRef.current;
     if (!rail) {
@@ -479,7 +497,7 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
     }
   };
   return (
-    <section id="catalog" className={`${styles.catalogSection} ${standalone ? styles.catalogStandalone : ''}`}>
+    <section ref={sectionRef} id="catalog" className={`${styles.catalogSection} ${standalone ? styles.catalogStandalone : ''}`}>
       <div className="container">
         <div className={styles.hero}>
           <h2>{labels.catalog}</h2>
