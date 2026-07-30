@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import {
@@ -9,29 +9,25 @@ import {
   shouldSendAnalyticsPageView,
   yandexMetrikaId,
 } from '@/lib/analytics';
-function subscribeToRuntimeAvailability() {
-  return () => {};
-}
-
-function getServerRuntimeAvailability() {
-  return false;
-}
-
 
 export default function YandexMetrica() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isAllowed = useSyncExternalStore(
-    subscribeToRuntimeAvailability,
-    canUseYandexMetrika,
-    getServerRuntimeAvailability,
-  );
+  const [isAllowed, setIsAllowed] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const lastPageViewRef = useRef<string | null>(null);
   const pageUrl = useMemo(() => {
     const query = searchParams.toString();
     return query ? `${pathname}?${query}` : pathname;
   }, [pathname, searchParams]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsAllowed(canUseYandexMetrika());
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     if (
