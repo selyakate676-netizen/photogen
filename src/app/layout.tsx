@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
 };
 
 import YandexMetricaBootstrap from '@/components/YandexMetricaBootstrap';
+import YandexMetrica from '@/components/YandexMetrica';
 import Navbar from '@/components/Navbar';
 
 const themeInitScript = `
@@ -54,6 +56,9 @@ export default function RootLayout({
       </head>
       <body>
         <Navbar />
+        <Suspense fallback={null}>
+          <YandexMetrica />
+        </Suspense>
 
         {children}
       </body>

@@ -35,6 +35,7 @@ type MetrikaFunction = (
 declare global {
   interface Window {
     ym?: MetrikaFunction;
+    __photogenMetrikaPageUrl?: string;
   }
 }
 
