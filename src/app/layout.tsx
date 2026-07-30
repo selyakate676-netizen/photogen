@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Suspense } from 'react';
 import YandexMetrica from '@/components/YandexMetrica';
 import Navbar from '@/components/Navbar';
 
@@ -55,9 +54,7 @@ export default function RootLayout({
       <body>
         <Navbar />
 
-        <Suspense fallback={null}>
-          <YandexMetrica />
-        </Suspense>
+        <YandexMetrica />
         {children}
       </body>
     </html>
