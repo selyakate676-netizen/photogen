@@ -2,31 +2,12 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "@/lib/s3";
 import { createClient } from "@/utils/supabase/server";
+import { getReplicateApiToken, getS3BucketName, getSiteUrl, getWebhookSecret } from "@/lib/env";
 import Replicate from "replicate";
-import fs from 'fs';
-import path from 'path';
 
 // Функция получения токена API (как в training.ts)
-function getReliableToken(): string | undefined {
-  try {
-    const envPath = path.join(process.cwd(), '.env.local');
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, 'utf8');
-      const lines = content.split('\n');
-      for (const line of lines) {
-        if (line.startsWith('REPLICATE_API_TOKEN=')) {
-          const rawToken = line.split('=')[1]?.trim();
-          const token = rawToken ? rawToken.replace(/^["']|["']$/g, '') : undefined;
-          if (token) return token;
-        }
-      }
-    }
-  } catch (err) {}
-  return process.env.REPLICATE_API_TOKEN;
-}
-
 const replicate = new Replicate({
-  auth: getReliableToken(),
+  auth: getReplicateApiToken(),
 });
 
 // Базовые стили для проверки реалистичности с InstantID
@@ -42,6 +23,7 @@ const STYLES_PROMPT_MAP: Record<string, string> = {
 
 export async function startGenerationForPhotoshoot(photoshootId: string) {
   const supabase = await createClient();
+  const s3BucketName = getS3BucketName();
 
   // 1. Получаем инфо о фотосессии
   const { data: photoshoot, error: fetchError } = await supabase
@@ -65,7 +47,7 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
 
   // Генерируем временную ссылку на 2 часа
   const presignedGetCommand = new GetObjectCommand({
-    Bucket: process.env.S3_BUCKET_NAME,
+    Bucket: s3BucketName,
     Key: referenceImageKey,
   });
   const imageUrl = await getSignedUrl(s3Client, presignedGetCommand, { expiresIn: 7200 });
@@ -78,8 +60,8 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
   const negative_prompt = "cartoon, illustration, cgi, 3d, render, fake skin, smooth skin, blurry, deformed face, bad anatomy";
 
   // 4. Подготавливаем Webhook для получения результата
-  const host = process.env.NEXT_PUBLIC_SITE_URL || "https://photogenlab.ru";
-  const webhookUrl = `${host}/api/webhooks/replicate/generation?secret=${process.env.WEBHOOK_SECRET}&photoshootId=${photoshoot.id}`;
+  const host = getSiteUrl();
+  const webhookUrl = `${host}/api/webhooks/replicate/generation?secret=${getWebhookSecret()}&photoshootId=${photoshoot.id}`;
 
   console.log("[InstantID] Calling fofr/instant-id...");
   
@@ -117,8 +99,9 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
   
     return { success: true, generationId: result.id };
 
-  } catch (err: any) {
-    console.error(`[CRITICAL] Fatal error in generation trigger:`, err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[CRITICAL] Fatal error in generation trigger:`, message);
     throw err;
   }
 }

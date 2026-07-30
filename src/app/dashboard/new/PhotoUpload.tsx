@@ -66,7 +66,9 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
         requested_images_count: successfulKeys.length,
         source_page: 'studio',
       });
-      onUploadComplete?.(successfulKeys);
+    }
+    if (onUploadComplete && successfulKeys.length > 0) {
+      onUploadComplete(successfulKeys);
     }
   }, [files, setFiles, onUploadComplete]);
 
@@ -113,7 +115,7 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
                   <img 
                     src={URL.createObjectURL(file)} 
                     alt="Preview" 
-                    onLoad={(event) => URL.revokeObjectURL(event.currentTarget.src)}
+                    onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
                   />
                   <div className={styles.itemOverlay}>
                     {status === 'uploading' && <Loader2 className={styles.spin} size={20} />}

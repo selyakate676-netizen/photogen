@@ -1,5 +1,32 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getS3BucketName, getSupabaseServiceRoleConfig, getWebhookSecret } from "@/lib/env";
+import { updatePhotoshootGenerationStatus } from "@/lib/photoshoots/status";
+import type { Database, PhotoshootStatus } from "@/types/database";
+
+const COMPLETED_IMAGES_THRESHOLD = 3;
+
+interface ReplicateGenerationPayload {
+  id?: string;
+  status?: string;
+  output?: unknown;
+}
+
+function getOutputImages(output: unknown): string[] {
+  if (!Array.isArray(output)) {
+    return [];
+  }
+
+  return output.filter((item): item is string => typeof item === "string" && item.length > 0);
+}
+
+function getStableKeyPart(value: string): string {
+  return Buffer.from(value).toString("base64url").slice(0, 32);
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return Array.from(new Set(values));
+}
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +35,7 @@ export async function POST(request: Request) {
     const secret = searchParams.get("secret");
     const photoshootId = searchParams.get("photoshootId");
 
-    if (secret !== process.env.WEBHOOK_SECRET) {
+    if (secret !== getWebhookSecret()) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -17,28 +44,44 @@ export async function POST(request: Request) {
     }
 
     // 2. Получаем тело запроса от Replicate
-    const payload = await request.json();
+    const payload = (await request.json()) as ReplicateGenerationPayload;
     console.log(`Replicate Generation Webhook received for photoshoot: ${photoshootId}. Status: ${payload.status}`);
 
     // Важно: ИСПОЛЬЗУЕМ SERVICE ROLE KEY для обхода RLS
     // Иначе анонимный вебхук не сможет обновить вашу базу данных!
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseConfig = getSupabaseServiceRoleConfig();
+    const supabase = createClient<Database>(supabaseConfig.url, supabaseConfig.serviceRoleKey);
 
     // Если генерация завершилась с ошибкой
     if (payload.status === "failed" || payload.status === "canceled") {
-      await supabase.from('photoshoots').update({ status: 'error' }).eq('id', photoshootId);
-      return NextResponse.json({ message: "Generation failed/canceled." });
+      const { data: currentShoot } = await supabase
+        .from('photoshoots')
+        .select('result_images')
+        .eq('id', photoshootId)
+        .single();
+
+      const existingCount = (currentShoot?.result_images || []).length;
+      const nextStatus: PhotoshootStatus =
+        existingCount >= COMPLETED_IMAGES_THRESHOLD
+          ? 'completed'
+          : existingCount > 0
+            ? 'generating'
+            : 'error';
+
+      const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus);
+      if (!updated) {
+        return NextResponse.json({ message: `Generation failed/canceled. Status transition to ${nextStatus} was ignored.` });
+      }
+
+      return NextResponse.json({ message: `Generation failed/canceled. Status updated to ${nextStatus}.` });
     }
 
     // 3. Успешная генерация
     if (payload.status === "succeeded") {
-      const images: string[] = payload.output || [];
+      const images = getOutputImages(payload.output);
 
       if (images.length === 0) {
-        await supabase.from('photoshoots').update({ status: 'error' }).eq('id', photoshootId);
+        await updatePhotoshootGenerationStatus(supabase, photoshootId, 'error');
         return NextResponse.json({ error: "No images generated." }, { status: 400 });
       }
 
@@ -60,11 +103,11 @@ export async function POST(request: Request) {
            
            const buffer = Buffer.from(await response.arrayBuffer());
            // Добавляем timestamp, чтобы ключи были уникальными для параллельных вебхуков
-           const uniqueSuffix = Date.now().toString() + Math.floor(Math.random() * 1000).toString();
-           const s3Key = `photoshoots/generations/${photoshootId}/result_${uniqueSuffix}.jpg`;
+           const stableSource = payload.id || imageUrl;
+           const s3Key = `photoshoots/generations/${photoshootId}/result_${getStableKeyPart(stableSource)}_${i}.jpg`;
            
            await s3Client.send(new PutObjectCommand({
-             Bucket: process.env.S3_BUCKET_NAME,
+             Bucket: getS3BucketName(),
              Key: s3Key,
              Body: buffer,
              ContentType: "image/jpeg",
@@ -91,18 +134,16 @@ export async function POST(request: Request) {
       // Берём только изображения, накопленные в рамках ТЕКУЩЕЙ генерации
       // Если generation_id изменился с последнего запуска — сбрасываем старые
       const existingImages = currentShoot?.result_images || [];
-      const newImages = [...existingImages, ...savedS3Keys];
+      const newImages = uniqueStrings([...existingImages, ...savedS3Keys]);
       
-      // Считаем, что фотосессия завершена, если у нас собралось 4 картинки
-      const isCompleted = newImages.length >= 4;
+      // Считаем завершённым если собралось >= 3 картинки (1 может упасть из-за ошибки Replicate)
+      const isCompleted = newImages.length >= COMPLETED_IMAGES_THRESHOLD;
 
-      await supabase
-        .from('photoshoots')
-        .update({ 
-          status: isCompleted ? 'completed' : 'generating',
-          result_images: newImages
-        })
-        .eq('id', photoshootId);
+      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : 'generating';
+      const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus, newImages);
+      if (!updated) {
+        return NextResponse.json({ message: `Image saved, but status transition to ${nextStatus} was ignored. Total: ${newImages.length}` });
+      }
 
       return NextResponse.json({ message: `Image added. Status updated to ${isCompleted ? 'completed' : 'generating'}. Total: ${newImages.length}` });
 
@@ -110,7 +151,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Status received but no action required." });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Generation Webhook error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

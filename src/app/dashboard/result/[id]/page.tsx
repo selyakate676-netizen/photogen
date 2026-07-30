@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import dashboardStyles from '../../dashboard.module.css';
+import { getEnv, getOptionalEnv } from '@/lib/env';
 import AnalyticsEvent from '@/components/AnalyticsEvent';
 import TrackedDownloadLink from '@/components/TrackedDownloadLink';
 
@@ -25,12 +26,12 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
     .single();
 
   if (!photoshoot || photoshoot.status !== 'completed') {
-    return redirect('/account/generated');
+    return redirect('/dashboard');
   }
 
   // Конфиг домена S3 для отображения изображений
-  const s3Endpoint = process.env.S3_ENDPOINT || 'https://s3.ru1.storage.beget.cloud';
-  const bucket = process.env.S3_BUCKET_NAME || 'b22788230a30-photogen';
+  const s3Endpoint = getOptionalEnv('S3_ENDPOINT', 'https://s3.ru1.storage.beget.cloud');
+  const bucket = getEnv('S3_BUCKET_NAME');
   
   // Функция для превращения S3 ключа в публичный URL URL
   const getImageUrl = (key: string) => {
@@ -53,8 +54,8 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
       <main className={dashboardStyles.wrapper} style={{ paddingBottom: 'var(--space-4xl)'}}>
         <div className={dashboardStyles.container}>
           <div className={dashboardStyles.header}>
-             <Link href="/account/generated" style={{ color: 'var(--text-on-dark-secondary)', textDecoration: 'none' }}>
-               ← Вернуться в мои генерации
+             <Link href="/dashboard" style={{ color: 'var(--text-on-dark-secondary)', textDecoration: 'none' }}>
+               ← Вернуться в дашборд
              </Link>
              <h1 style={{ marginTop: 'var(--space-md)', fontSize: 'var(--font-size-2xl)' }}>
                Твои результаты ✨

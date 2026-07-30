@@ -30,8 +30,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files (local secrets, never commit)
+.env
+.env.local
+.env.production
+.env.development
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -41,5 +46,6 @@ yarn-error.log*
 next-env.d.ts
 
 # scratch / debug scripts (local only)
-/scratch/
+/scratch/*
+!/scratch/README.md
 /build_errors.txt

@@ -30,8 +30,8 @@ export default function LoginPage() {
 
       router.push('/dashboard');
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Ошибка при входе');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Ошибка при входе');
     } finally {
       setLoading(false);
     }

@@ -14,9 +14,9 @@ export async function POST(request: Request) {
     
     return NextResponse.json(result);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AI Generation Trigger Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to start generation" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to start generation";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

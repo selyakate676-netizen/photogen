@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ArrowRight, ChevronLeft } from 'lucide-react';
 import styles from './StylesPreview.module.css';
 import Reveal from './Reveal';
 
@@ -70,11 +70,10 @@ interface PhotoItem {
 
 interface ScrollRowProps {
   photos: PhotoItem[];
-  title: string;
   onPhotoClick: (src: string) => void;
 }
 
-function ScrollRow({ photos, title, onPhotoClick }: ScrollRowProps) {
+function ScrollRow({ photos, onPhotoClick }: ScrollRowProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -97,7 +96,7 @@ function ScrollRow({ photos, title, onPhotoClick }: ScrollRowProps) {
     rowRef.current.scrollLeft = scrollLeft.current - walk;
   };
 
-  const onMouseUp = (e: React.MouseEvent, src: string) => {
+  const onMouseUp = () => {
     isDragging.current = false;
     if (rowRef.current) rowRef.current.style.cursor = 'grab';
   };
@@ -126,7 +125,7 @@ function ScrollRow({ photos, title, onPhotoClick }: ScrollRowProps) {
         className={styles.scrollTrack}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
-        onMouseUp={(e) => onMouseUp(e, '')}
+        onMouseUp={onMouseUp}
         onMouseLeave={() => { isDragging.current = false; }}
       >
         <div className={styles.scrollRow}>
@@ -168,16 +167,21 @@ export default function StylesPreview() {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<typeof sections[0] | null>(null);
 
+  useEffect(() => {
+    document.body.style.overflow = selectedPhoto ? 'hidden' : 'auto';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [selectedPhoto]);
+
   const openModal = (src: string, section: typeof sections[0]) => {
     setSelectedPhoto(src);
     setSelectedSection(section);
-    document.body.style.overflow = 'hidden';
   };
 
   const closeModal = () => {
     setSelectedPhoto(null);
     setSelectedSection(null);
-    document.body.style.overflow = 'auto';
   };
 
   // Close on ESC
@@ -204,7 +208,6 @@ export default function StylesPreview() {
 
           <ScrollRow 
             photos={section.photos} 
-            title={section.title} 
             onPhotoClick={(src) => openModal(src, section)}
           />
         </div>

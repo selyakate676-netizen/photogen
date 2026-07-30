@@ -1,45 +1,27 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { getReplicateApiToken } from "@/lib/env";
+import { updatePhotoshootStatus } from "@/lib/photoshoots/status";
+import type { PhotoshootStatus } from "@/types/database";
 import Replicate from "replicate";
-import fs from 'fs';
-import path from 'path';
 
 // Функция для гарантированного получения ключа напрямую из файла (обход глюков кеша VPS)
-function getReliableToken(): string | undefined {
-  try {
-    const envPath = path.join(process.cwd(), '.env.local');
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, 'utf8');
-      const lines = content.split('\n');
-      for (const line of lines) {
-        if (line.startsWith('REPLICATE_API_TOKEN=')) {
-          const rawToken = line.split('=')[1]?.trim();
-          return rawToken ? rawToken.replace(/^["']|["']$/g, '') : undefined;
-        }
-      }
-    }
-  } catch (err) {
-    console.error('[Diagnostic] Error reading .env.local manually:', err);
-  }
-  return process.env.REPLICATE_API_TOKEN;
-}
-
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const photoshootId = params.id;
+    const { id: photoshootId } = await params;
     const supabase = await createClient();
     
     const replicate = new Replicate({
-      auth: getReliableToken(),
+      auth: getReplicateApiToken(),
     });
 
     // 1. Получаем запись из базы
     const { data: photoshoot, error: dbError } = await supabase
       .from('photoshoots')
-      .select('status, training_id')
+      .select('status, training_id, result_images')
       .eq('id', photoshootId)
       .single();
 
@@ -57,6 +39,17 @@ export async function GET(
       return NextResponse.json({ status: 'error', progress: 0 });
     }
 
+    // Если статус 'generating' — проверяем сколько фото уже сохранено
+    if (photoshoot.status === 'generating') {
+      const savedCount = (photoshoot.result_images || []).length;
+      if (savedCount >= 3) {
+        // Вебхук вызвался но не обновил статус — доисправляем
+        const updated = await updatePhotoshootStatus(supabase, photoshootId, 'completed');
+        return NextResponse.json({ status: updated ? 'completed' : photoshoot.status, progress: updated ? 100 : 95 });
+      }
+      return NextResponse.json({ status: 'generating', progress: 95 });
+    }
+
     // Если обучение еще не привязано, возвращаем текущий статус из базы
     if (!photoshoot.training_id) {
        return NextResponse.json({ status: photoshoot.status, progress: 0 });
@@ -66,7 +59,7 @@ export async function GET(
     const training = await replicate.trainings.get(photoshoot.training_id);
     
     // 3. Маппим статус Replicate на наш
-    let currentStatus = photoshoot.status;
+    let currentStatus: PhotoshootStatus = photoshoot.status;
     let progress = 0;
 
     if (training.status === 'starting') {
@@ -91,10 +84,10 @@ export async function GET(
 
     // 4. Синхронизируем базу, если статус изменился
     if (currentStatus !== photoshoot.status) {
-        await supabase
-          .from('photoshoots')
-          .update({ status: currentStatus })
-          .eq('id', photoshootId);
+        const updated = await updatePhotoshootStatus(supabase, photoshootId, currentStatus);
+        if (!updated) {
+          currentStatus = photoshoot.status;
+        }
     }
 
     return NextResponse.json({ 

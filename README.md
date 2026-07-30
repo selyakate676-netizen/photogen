@@ -1,34 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PhotoGen
 
-## Getting Started
+PhotoGen - это веб-приложение для AI-фотосессий. Пользователь загружает свои фотографии, выбирает стиль, проходит оплату, а система запускает обучение и генерацию изображений через внешние AI-сервисы.
 
-First, run the development server:
+## Важно про безопасность
+
+Никогда не публиковать `.env.local`.
+
+Реальные пароли, токены и ключи должны храниться только локально в `.env.local` или в приватном хранилище владельца проекта. В GitHub можно хранить только `.env.example`, потому что там нет реальных значений.
+
+## Как запустить проект
+
+1. Установить зависимости:
+
+```bash
+npm install
+```
+
+2. Подготовить локальные настройки:
+
+```bash
+copy .env.example .env.local
+```
+
+После этого владелец проекта должен заполнить `.env.local` реальными значениями. Не публикуйте этот файл.
+
+3. Запустить проект локально:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Приложение запускается на `http://localhost:3001`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Основные команды
 
-## Learn More
+- `npm run dev` - запуск локально для разработки.
+- `npm run build` - production-сборка.
+- `npm run start` - запуск production-сборки.
+- `npm run lint` - проверка качества кода.
+- `node_modules\.bin\tsc.cmd --noEmit` - проверка TypeScript на Windows.
 
-To learn more about Next.js, take a look at the following resources:
+## Где лежат важные файлы
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `src/app/` - страницы сайта, API routes и dashboard.
+- `src/components/` - повторно используемые блоки интерфейса.
+- `src/lib/` - работа с AI, S3 и внутренними сервисами.
+- `src/utils/supabase/` - подключение к Supabase.
+- `public/` - картинки и публичные файлы.
+- `supabase_schema.sql` - SQL-схема базы данных.
+- `.env.local` - реальные локальные секреты, не для GitHub.
+- `.env.example` - безопасный шаблон env.
+- `ROADMAP.md` - план работ и приоритеты.
+- `docs/` - документация для владельца и разработчиков.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Куда смотреть владельцу проекта
 
-## Deploy on Vercel
+Начните с этих файлов:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `docs/NON_TECH_OWNER_GUIDE.md` - простое объяснение проекта.
+- `ROADMAP.md` - что сделано, что в работе и что дальше.
+- `docs/CHANGELOG.md` - что менялось по этапам.
+- `docs/ENV_GUIDE.md` - как устроены ключи и настройки.
+- `docs/SETUP_GUIDE.md` - как запустить и проверить проект.

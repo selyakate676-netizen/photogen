@@ -7,7 +7,8 @@
     "build": "next build",
     "build-safe": "next build",
     "start": "next start -p 3001",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check": "eslint && tsc --noEmit && next build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1027.0",
@@ -20,7 +21,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-dropzone": "^15.0.0",
-    "replicate": "^1.4.0"
+    "replicate": "^1.4.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/node": "^20",
