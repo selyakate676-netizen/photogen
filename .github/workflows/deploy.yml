@@ -31,6 +31,7 @@ jobs:
             git clean -fd
 
             # 3. Install & Build
+            export NEXT_PUBLIC_YANDEX_METRIKA_ID='${{ vars.NEXT_PUBLIC_YANDEX_METRIKA_ID }}'
             npm install
             rm -rf .next
             npm run build

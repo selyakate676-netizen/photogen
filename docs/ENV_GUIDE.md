@@ -58,7 +58,7 @@ Env-файлы хранят настройки проекта. Некоторы�
 - `OPENAI_API_KEY` - ключ OpenAI, если будет добавлена интеграция OpenAI.
 - `DATABASE_URL` - строка подключения к базе, если понадобится прямое подключение.
 - `NEXT_PUBLIC_VERCEL_URL` - адрес Vercel, если используется Vercel.
-- `NEXT_PUBLIC_YANDEX_METRICA_ID` - счётчик Яндекс Метрики.
+- `NEXT_PUBLIC_YANDEX_METRIKA_ID` - счётчик Яндекс Метрики.
 - `PAYMENT_STORE_ID` - идентификатор платёжного магазина.
 - `PAYMENT_SECRET_KEY` - секрет платёжной системы.
 - `SUPABASE_DB_PASSWORD` - пароль базы Supabase для ручных операций.

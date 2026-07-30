@@ -3,7 +3,7 @@ type PublicEnvName =
   | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
   | "NEXT_PUBLIC_SITE_URL"
   | "NEXT_PUBLIC_VERCEL_URL"
-  | "NEXT_PUBLIC_YANDEX_METRICA_ID";
+  | "NEXT_PUBLIC_YANDEX_METRIKA_ID";
 
 function cleanPublicEnvValue(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
