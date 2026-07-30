@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   },
 };
 
-import YandexMetrica from '@/components/YandexMetrica';
 import YandexMetricaBootstrap from '@/components/YandexMetricaBootstrap';
 import Navbar from '@/components/Navbar';
 
@@ -56,7 +55,6 @@ export default function RootLayout({
       <body>
         <Navbar />
 
-        <YandexMetrica />
         {children}
       </body>
     </html>

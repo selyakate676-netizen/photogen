@@ -17,15 +17,52 @@ export default function YandexMetricaBootstrap() {
         || hostname === "::1"
         || hostname === "[::1]";
 
-      if (isLocalhost) return;
+      if (isLocalhost || window.__photogenMetrikaInitialized) return;
+      window.__photogenMetrikaInitialized = true;
 
       window.ym = window.ym || function () {
         (window.ym.a = window.ym.a || []).push(arguments);
       };
       window.ym.l = 1 * new Date();
+
+      var currentPageUrl = window.location.pathname + window.location.search;
+      document.documentElement.dataset.metrikaPageUrl = currentPageUrl;
       window.ym(${counterId}, "init", { defer: true });
-      document.documentElement.dataset.metrikaPageUrl =
-        window.location.pathname + window.location.search;
+      window.ym(${counterId}, "hit", currentPageUrl);
+
+      function sendPageView() {
+        var nextPageUrl = window.location.pathname + window.location.search;
+        if (nextPageUrl === currentPageUrl) return;
+
+        currentPageUrl = nextPageUrl;
+        document.documentElement.dataset.metrikaPageUrl = currentPageUrl;
+
+        try {
+          window.ym(${counterId}, "hit", currentPageUrl);
+        } catch (_) {
+          // Analytics must never affect navigation.
+        }
+      }
+
+      var pageViewScheduled = false;
+      function schedulePageView() {
+        if (pageViewScheduled) return;
+        pageViewScheduled = true;
+        window.setTimeout(function () {
+          pageViewScheduled = false;
+          sendPageView();
+        }, 0);
+      }
+
+      ["pushState", "replaceState"].forEach(function (methodName) {
+        var original = window.history[methodName];
+        window.history[methodName] = function () {
+          var result = original.apply(this, arguments);
+          schedulePageView();
+          return result;
+        };
+      });
+      window.addEventListener("popstate", schedulePageView);
 
       function loadMetrikaTag() {
         if (document.querySelector("script[data-yandex-metrika-tag]")) return;
