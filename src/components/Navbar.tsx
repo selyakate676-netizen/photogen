@@ -13,7 +13,7 @@ import styles from './Navbar.module.css';
 const leftLinks = [
   { href: '/#how-it-works', label: 'Как это работает' },
   { href: '/#catalog', label: 'Каталог' },
-  { href: '/dashboard/new', label: 'Студия' },
+  { href: '/studio', label: 'Студия' },
 ];
 
 const guestLinks = [

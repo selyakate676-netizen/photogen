@@ -9,7 +9,9 @@ import { s3Client } from "@/lib/s3";
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export async function GET(_request: Request, { params }: RouteContext<"/api/personas/[personaId]/photos">) {
+type PersonaRouteContext = { params: Promise<{ personaId: string }> };
+
+export async function GET(_request: Request, { params }: PersonaRouteContext) {
   const { personaId } = await params;
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();
@@ -38,7 +40,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/pers
   }
 }
 
-export async function POST(request: Request, { params }: RouteContext<"/api/personas/[personaId]/photos">) {
+export async function POST(request: Request, { params }: PersonaRouteContext) {
   const { personaId } = await params;
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();

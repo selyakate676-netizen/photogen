@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { authenticatedDb, deletePrivateObjects, invalidInput, jsonError, parsePersonaBody, personaJson, PERSONA_SELECT, UUID_RE } from "@/lib/personas/api";
 
-export async function GET(_request: Request, { params }: RouteContext<"/api/personas/[personaId]">) {
+type PersonaRouteContext = { params: Promise<{ personaId: string }> };
+
+export async function GET(_request: Request, { params }: PersonaRouteContext) {
   const { personaId } = await params;
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();
@@ -11,7 +13,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/pers
   return NextResponse.json({ persona: personaJson(data) });
 }
 
-export async function PATCH(request: Request, { params }: RouteContext<"/api/personas/[personaId]">) {
+export async function PATCH(request: Request, { params }: PersonaRouteContext) {
   const { personaId } = await params;
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();
@@ -40,7 +42,7 @@ export async function PATCH(request: Request, { params }: RouteContext<"/api/per
   }
 }
 
-export async function DELETE(_request: Request, { params }: RouteContext<"/api/personas/[personaId]">) {
+export async function DELETE(_request: Request, { params }: PersonaRouteContext) {
   const { personaId } = await params;
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();

@@ -61,4 +61,3 @@ test("Studio is separate from catalog generation", async () => {
   assert.doesNotMatch(studio, /dashboard\/new/);
   assert.match(studio, /href="\/catalog"/);
 });
-

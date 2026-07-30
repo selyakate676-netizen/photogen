@@ -5,7 +5,9 @@ type ReorderBody = {
   photoIds?: unknown;
 };
 
-export async function PUT(request: Request, { params }: RouteContext<"/api/personas/[personaId]/photos/reorder">) {
+type PersonaRouteContext = { params: Promise<{ personaId: string }> };
+
+export async function PUT(request: Request, { params }: PersonaRouteContext) {
   const { personaId } = await params;
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

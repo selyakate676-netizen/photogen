@@ -124,8 +124,3 @@ export default function StylesGrid({ selected, onSelect }: StylesGridProps) {
     </div>
   );
 }
-
-
-
-
-

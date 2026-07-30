@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { authenticatedDb, jsonError, personaJson, UUID_RE } from "@/lib/personas/api";
 
-export async function POST(_request: Request, { params }: RouteContext<"/api/personas/[personaId]/default">) {
+type PersonaRouteContext = { params: Promise<{ personaId: string }> };
+
+export async function POST(_request: Request, { params }: PersonaRouteContext) {
   const { personaId } = await params;
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();

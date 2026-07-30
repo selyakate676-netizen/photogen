@@ -9,7 +9,9 @@ import {
   UUID_RE,
 } from "@/lib/personas/api";
 
-export async function DELETE(_request: Request, { params }: RouteContext<"/api/personas/[personaId]/photos/[photoId]">) {
+type PersonaPhotoRouteContext = { params: Promise<{ personaId: string; photoId: string }> };
+
+export async function DELETE(_request: Request, { params }: PersonaPhotoRouteContext) {
   const { personaId, photoId } = await params;
   if (!UUID_RE.test(personaId) || !UUID_RE.test(photoId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();
