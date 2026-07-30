@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import { Check } from 'lucide-react';
@@ -15,9 +15,43 @@ const styleCategories = [
     id: 'dating',
     name: 'Знакомства',
     desc: 'Притягательные фото для Tinder и соцсетей.',
-    preview: '/dating-woman-1.png',
+    preview: '/package-previews/sp004-cozy-cafe.jpg',
   },
   {
+    id: 'sup',
+    name: 'SUP Editorial',
+    desc: 'Luxury editorial paddleboard photoshoot on crystal-clear water.',
+    preview: '/package-previews/sp005-sup-editorial.jpg',
+  },
+  {
+    id: 'studio-elegance',
+    name: 'Studio Elegance',
+    desc: 'Elegant premium studio photoshoot in a warm minimalist interior.',
+    preview: '/package-previews/sp006-studio-elegance.jpg',
+  },
+  {
+    id: 'lakeside-walk',
+    name: 'Lakeside Walk',
+    desc: 'Romantic golden-hour walk around a quiet lakeside park.',
+    preview: '/package-previews/sp007-lakeside-walk.jpg',
+  },
+  {
+    id: 'casual-park',
+    name: 'Casual Park',
+    desc: 'Natural casual walk in a quiet green city park.',
+    preview: '/package-previews/sp008-quiet-luxury-park.jpg',
+  },
+  {
+    id: 'minimal-black-studio',
+    name: 'Minimal Black Studio',
+    desc: 'Minimal premium portrait session in a modern studio.',
+    preview: '/studio-bw-man.png',
+  },  {
+    id: 'russian-editorial',
+    name: 'Russian Editorial',
+    desc: 'Modern designer editorial with white texture and red accent.',
+    preview: '/studio-red-light-v2.png',
+  },  {
     id: 'social',
     name: 'Лайфстайл',
     desc: 'Стильные городские образы на каждый день.',
@@ -90,3 +124,8 @@ export default function StylesGrid({ selected, onSelect }: StylesGridProps) {
     </div>
   );
 }
+
+
+
+
+
