@@ -2,7 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { startTrainingForPhotoshoot } from '@/lib/ai/training';
+import { startMvpGenerationForPhotoshoot } from '@/lib/ai/mvp-generation-adapter';
+import { SAFE_GENERATION_ERROR, updatePhotoshootStatus } from '@/lib/photoshoots/status';
 
 export async function retryTraining(formData: FormData) {
   const photoshootId = formData.get('photoshootId') as string;
@@ -10,26 +11,18 @@ export async function retryTraining(formData: FormData) {
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     return;
   }
 
-  // Обновляем статус на training для повторного запуска
-  await supabase
-    .from('photoshoots')
-    .update({ status: 'training' })
-    .eq('id', photoshootId)
-    .eq('user_id', user.id);
-
-  // Пытаемся запустить заново
   try {
-    console.log(`[Retry Action] Manually restarting training for ${photoshootId}`);
-    await startTrainingForPhotoshoot(photoshootId);
+    console.log(`[Retry Action] Manually restarting MVP generation for ${photoshootId}`);
+    await startMvpGenerationForPhotoshoot(photoshootId, { waitForCompletion: false });
   } catch (err) {
     console.error('Error in retry action:', err);
+    await updatePhotoshootStatus(supabase, photoshootId, 'failed', SAFE_GENERATION_ERROR.message);
   }
 
   revalidatePath('/account/generated');
 }
-

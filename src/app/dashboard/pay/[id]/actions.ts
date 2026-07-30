@@ -4,7 +4,10 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { startTrainingForPhotoshoot } from '@/lib/ai/training';
+import {
+  confirmMockPaymentAndQueue,
+  startQueuedPhotoshootGeneration,
+} from '@/lib/photoshoots/orchestration';
 
 export async function mockPayment(formData: FormData) {
   const photoshootId = formData.get('photoshootId') as string;
@@ -17,26 +20,16 @@ export async function mockPayment(formData: FormData) {
     redirect('/login');
   }
 
-  // Меняем статус на 'training' после успешной оплаты
-  const { error } = await supabase
-    .from('photoshoots')
-    .update({ status: 'training' })
-    .eq('id', photoshootId)
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.error('Failed to update photoshoot status:', error);
-    throw new Error('Failed to update status');
+  const payment = await confirmMockPaymentAndQueue(photoshootId, user.id);
+  if (!payment.ok) {
+    redirect('/account/generated');
   }
 
-  // Запускаем обучение LoRA
-  try {
-    await startTrainingForPhotoshoot(photoshootId);
-  } catch (err) {
-    console.error('Error starting training:', err);
+  if (payment.shouldStartGeneration) {
+    await startQueuedPhotoshootGeneration(photoshootId, user.id);
   }
 
-  // Обновляем страницу дашборда и возвращаем пользователя туда
+  // Refresh the current generations list and return to its polling flow.
   revalidatePath('/account/generated');
   redirect('/account/generated');
 }
