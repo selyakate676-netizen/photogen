@@ -17,7 +17,6 @@ export const PHOTOSHOOT_HISTORY_SELECT = [
   "requested_images_count",
   "package_snapshot",
   "created_at",
-  "updated_at",
   "completed_at",
 ].join(",");
 
@@ -53,7 +52,6 @@ export async function photoshootHistoryJson(row: Photoshoot) {
     id: row.id,
     status: row.status,
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
     completedAt: row.completed_at,
     package: {
       id: snapshotString(packageSnapshot, "id") ?? fallbackPack?.id ?? row.style_id,
