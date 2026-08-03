@@ -7,14 +7,37 @@ import {
   shouldSendAnalyticsPageView,
 } from '../src/lib/analytics.ts';
 
-const componentSource = await readFile(
+const clientComponentSource = await readFile(
   new URL('../src/components/YandexMetrica.tsx', import.meta.url),
   'utf8',
 );
 
+const bootstrapComponentSource = await readFile(
+  new URL('../src/components/YandexMetricaBootstrap.tsx', import.meta.url),
+  'utf8',
+);
+
 test('manual SPA page views use defer and send one hit per distinct URL', () => {
-  assert.match(componentSource, /ym\(\$\{yandexMetrikaId\},"init",\{defer:true\}\)/);
-  assert.equal(componentSource.match(/window\.ym\(yandexMetrikaId, 'hit', pageUrl\)/g)?.length, 1);
+  assert.equal(
+    bootstrapComponentSource.match(/window\.ym\(\$\{counterId\}, "init", \{ defer: true \}\)/g)?.length,
+    1,
+  );
+  assert.equal(
+    bootstrapComponentSource.match(/window\.ym\(\$\{counterId\}, "hit", currentPageUrl\)/g)?.length,
+    1,
+  );
+  assert.match(
+    bootstrapComponentSource,
+    /window\.__photogenMetrikaPageUrl = currentPageUrl;[\s\S]*?"init"[\s\S]*?"hit"/,
+  );
+  assert.equal(
+    clientComponentSource.match(/window\.ym\(yandexMetrikaId, 'hit', pageUrl\)/g)?.length,
+    1,
+  );
+  assert.match(
+    clientComponentSource,
+    /window\.__photogenMetrikaPageUrl === pageUrl/,
+  );
 
   let previousPageUrl = null;
   let hitCount = 0;
