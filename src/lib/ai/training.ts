@@ -1,6 +1,7 @@
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "@/lib/s3";
+import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import { getReplicateApiToken, getS3BucketName, getSiteUrl, getWebhookSecret } from "@/lib/env";
 import AdmZip from "adm-zip";
@@ -15,19 +16,29 @@ async function streamToBuffer(stream: AsyncIterable<Buffer | Uint8Array | string
 }
 
 export async function startTrainingForPhotoshoot(photoshootId: string) {
-  const supabase = await createClient();
+  const sessionClient = await createClient();
+  const {
+    data: { user },
+  } = await sessionClient.auth.getUser();
+
+  if (!user) {
+    throw new Error("Authentication required.");
+  }
   const s3BucketName = getS3BucketName();
 
   // 1. Получаем инфо о фотосессии
-  const { data: photoshoot, error: fetchError } = await supabase
+  const { data: photoshoot, error: fetchError } = await sessionClient
     .from('photoshoots')
     .select('*')
     .eq('id', photoshootId)
+    .eq('user_id', user.id)
     .single();
 
   if (fetchError || !photoshoot) {
     throw new Error("Заказ не найден");
   }
+
+  const serviceClient = createServiceRoleClient();
 
   if (!photoshoot.images || photoshoot.images.length === 0) {
     throw new Error("Нет изображений для обучения");
@@ -121,7 +132,7 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
     
     // 6. Сохраняем ID
     console.log(`[Internal] Replicate training started SUCCESS. ID: ${resultData.id}`);
-    await supabase
+    await serviceClient
       .from('photoshoots')
       .update({ 
         training_id: resultData.id 

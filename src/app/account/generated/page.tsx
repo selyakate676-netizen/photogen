@@ -64,7 +64,7 @@ export default async function GeneratedPage() {
               ? shoot.result_images.filter((image: unknown): image is string => typeof image === 'string').slice(0, 4)
               : [];
             const previewImages: string[] = resultImages.length > 0 ? resultImages : [pack?.image ?? '/after-main.png'];
-            const isProcessing = shoot.status === 'training' || shoot.status === 'generating';
+            const isProcessing = shoot.status === 'queued' || shoot.status === 'generating';
 
             return (
               <article key={shoot.id} className={styles.generationCard}>
@@ -93,7 +93,7 @@ export default async function GeneratedPage() {
                     {shoot.status === 'completed' ? (
                       <Link href={`/dashboard/result/${shoot.id}`} className={styles.primaryButton}>Открыть</Link>
                     ) : null}
-                    {shoot.status === 'error' ? (
+                    {shoot.status === 'failed' ? (
                       <form action={retryTraining}>
                         <input type="hidden" name="photoshootId" value={shoot.id} />
                         <button type="submit" className={styles.secondaryButton}>Повторить</button>

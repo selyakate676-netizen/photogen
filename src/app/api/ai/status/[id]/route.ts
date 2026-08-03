@@ -1,101 +1,186 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import Replicate from "replicate";
 import { getReplicateApiToken } from "@/lib/env";
 import { updatePhotoshootStatus } from "@/lib/photoshoots/status";
+import { createServiceRoleClient } from "@/utils/supabase/admin";
+import { createClient } from "@/utils/supabase/server";
 import type { PhotoshootStatus } from "@/types/database";
-import Replicate from "replicate";
 
-// Функция для гарантированного получения ключа напрямую из файла (обход глюков кеша VPS)
+function countGenerationJobs(generationId: string | null): number {
+  if (!generationId) return 0;
+  return generationId
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean).length;
+}
+
+function getGenerationJobIds(generationId: string | null): string[] {
+  if (!generationId) return [];
+  return generationId
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+function getRequiredResultCount(generationId: string | null): number {
+  return countGenerationJobs(generationId);
+}
+
+function getRecoverableResultCount(generationId: string | null): number {
+  const total = countGenerationJobs(generationId);
+  if (total <= 1) return total;
+
+  // Hero Composition sets can recover from one provider failure instead of leaving the UI stuck forever.
+  return Math.max(1, total - 1);
+}
+
+async function getGenerationFailureState(
+  generationId: string | null,
+): Promise<{ hasFailedJob: boolean; allJobsFinished: boolean }> {
+  const generationIds = getGenerationJobIds(generationId);
+  if (generationIds.length <= 1) {
+    return { hasFailedJob: false, allJobsFinished: false };
+  }
+
+  const replicate = new Replicate({ auth: getReplicateApiToken() });
+  const results = await Promise.allSettled(
+    generationIds.map((id) => replicate.predictions.get(id)),
+  );
+
+  const statuses = results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value.status] : [],
+  );
+
+  const hasFailedJob = statuses.some((status) => status === "failed" || status === "canceled");
+  const allJobsFinished =
+    statuses.length === generationIds.length &&
+    statuses.every((status) => status === "succeeded" || status === "failed" || status === "canceled");
+
+  return { hasFailedJob, allJobsFinished };
+}
+
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: photoshootId } = await params;
-    const supabase = await createClient();
-    
-    const replicate = new Replicate({
-      auth: getReplicateApiToken(),
-    });
+    const sessionClient = await createClient();
+    const {
+      data: { user },
+    } = await sessionClient.auth.getUser();
 
-    // 1. Получаем запись из базы
-    const { data: photoshoot, error: dbError } = await supabase
-      .from('photoshoots')
-      .select('status, training_id, result_images')
-      .eq('id', photoshootId)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: photoshoot, error: dbError } = await sessionClient
+      .from("photoshoots")
+      .select("status, training_id, generation_id, result_images")
+      .eq("id", photoshootId)
+      .eq("user_id", user.id)
       .single();
 
     if (dbError || !photoshoot) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    // Если уже готово — возвращаем сразу, не опрашиваем Replicate
-    if (photoshoot.status === 'completed') {
-      return NextResponse.json({ status: 'completed', progress: 100 });
+    const serviceClient = createServiceRoleClient();
+
+    if (photoshoot.status === "completed") {
+      return NextResponse.json({ status: "completed", progress: 100, stage: "completed" });
     }
 
-    // Если ошибка — возвращаем сразу
-    if (photoshoot.status === 'error') {
-      return NextResponse.json({ status: 'error', progress: 0 });
+    if (photoshoot.status === "failed") {
+      return NextResponse.json({ status: "failed", progress: 0, stage: "failed" });
     }
 
-    // Если статус 'generating' — проверяем сколько фото уже сохранено
-    if (photoshoot.status === 'generating') {
+    if (photoshoot.status === "generating") {
       const savedCount = (photoshoot.result_images || []).length;
-      if (savedCount >= 3) {
-        // Вебхук вызвался но не обновил статус — доисправляем
-        const updated = await updatePhotoshootStatus(supabase, photoshootId, 'completed');
-        return NextResponse.json({ status: updated ? 'completed' : photoshoot.status, progress: updated ? 100 : 95 });
+      const expectedCount = getRequiredResultCount(photoshoot.generation_id);
+      const recoverableCount = getRecoverableResultCount(photoshoot.generation_id);
+
+      if (expectedCount > 0 && savedCount >= expectedCount) {
+        const updated = await updatePhotoshootStatus(serviceClient, photoshootId, "completed");
+        return NextResponse.json({
+          status: updated ? "completed" : photoshoot.status,
+          progress: updated ? 100 : 98,
+          stage: updated ? "completed" : "generating",
+          savedCount,
+          expectedCount,
+        });
       }
-      return NextResponse.json({ status: 'generating', progress: 95 });
-    }
 
-    // Если обучение еще не привязано, возвращаем текущий статус из базы
-    if (!photoshoot.training_id) {
-       return NextResponse.json({ status: photoshoot.status, progress: 0 });
-    }
+      if (recoverableCount > 0 && savedCount >= recoverableCount && recoverableCount < expectedCount) {
+        const { hasFailedJob, allJobsFinished } = await getGenerationFailureState(photoshoot.generation_id);
 
-    // 2. Опрашиваем Replicate
-    const training = await replicate.trainings.get(photoshoot.training_id);
-    
-    // 3. Маппим статус Replicate на наш
-    let currentStatus: PhotoshootStatus = photoshoot.status;
-    let progress = 0;
-
-    if (training.status === 'starting') {
-        progress = 10;
-    } else if (training.status === 'processing') {
-        currentStatus = 'training';
-        progress = 45; // Fallback
-        
-        // Псевдо-прогресс: обучение обычно идет 15-20 минут
-        const startTime = training.started_at ? new Date(training.started_at).getTime() : Date.now();
-        const elapsedMinutes = (Date.now() - startTime) / 60000;
-        
-        // Маппим 15 минут на прогресс от 10% до 90%
-        const calculatedProgress = 10 + Math.floor((elapsedMinutes / 15) * 80);
-        progress = Math.min(95, Math.max(10, calculatedProgress)); 
-    } else if (training.status === 'succeeded') {
-        progress = 100;
-        currentStatus = 'generating'; // Генерация запускается сразу после тренировки на вебхуке
-    } else if (training.status === 'failed' || training.status === 'canceled') {
-        currentStatus = 'error';
-    }
-
-    // 4. Синхронизируем базу, если статус изменился
-    if (currentStatus !== photoshoot.status) {
-        const updated = await updatePhotoshootStatus(supabase, photoshootId, currentStatus);
-        if (!updated) {
-          currentStatus = photoshoot.status;
+        if (hasFailedJob || allJobsFinished) {
+          const updated = await updatePhotoshootStatus(serviceClient, photoshootId, "completed");
+          return NextResponse.json({
+            status: updated ? "completed" : photoshoot.status,
+            progress: updated ? 100 : 98,
+            stage: updated ? "completed" : "generating",
+            savedCount,
+            expectedCount,
+            recoveredFromPartialSet: updated,
+          });
         }
+      }
+
+      const total = expectedCount || 4;
+      const progress = Math.min(98, 86 + Math.floor((Math.min(savedCount, total) / total) * 12));
+      return NextResponse.json({
+        status: "generating",
+        progress,
+        stage: "generating",
+        savedCount,
+        expectedCount: total,
+      });
     }
 
-    return NextResponse.json({ 
-        status: currentStatus, 
-        progress,
-        replicateStatus: training.status 
-    });
+    if (!photoshoot.training_id) {
+      return NextResponse.json({
+        status: photoshoot.status,
+        progress: photoshoot.status === "pending" ? 3 : 0,
+        stage: photoshoot.status,
+      });
+    }
 
+    const replicate = new Replicate({ auth: getReplicateApiToken() });
+    const training = await replicate.trainings.get(photoshoot.training_id);
+
+    let currentStatus: PhotoshootStatus = photoshoot.status;
+    let progress = 5;
+
+    if (training.status === "starting") {
+      progress = 10;
+    } else if (training.status === "processing") {
+      currentStatus = "generating";
+      const startTime = training.started_at ? new Date(training.started_at).getTime() : Date.now();
+      const elapsedMinutes = (Date.now() - startTime) / 60000;
+      const calculatedProgress = 12 + Math.floor((elapsedMinutes / 15) * 72);
+      progress = Math.min(84, Math.max(12, calculatedProgress));
+    } else if (training.status === "succeeded") {
+      currentStatus = "generating";
+      progress = 85;
+    } else if (training.status === "failed" || training.status === "canceled") {
+      currentStatus = "failed";
+      progress = 0;
+    }
+
+    if (currentStatus !== photoshoot.status) {
+      const updated = await updatePhotoshootStatus(serviceClient, photoshootId, currentStatus);
+      if (!updated) {
+        currentStatus = photoshoot.status;
+      }
+    }
+
+    return NextResponse.json({
+      status: currentStatus,
+      progress,
+      stage: currentStatus,
+      replicateStatus: training.status,
+    });
   } catch (error) {
     console.error("Status check error:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

@@ -1,54 +1,66 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
-import type { PhotoshootGender } from '@/types/database';
 import { revalidatePath } from 'next/cache';
+import { getPhotoPack } from '@/lib/photoPacks';
+import { authenticatedDb } from '@/lib/personas/api';
 
-interface CreatePhotoshootProps {
+type CreatePhotoshootProps = {
+  personaId: string;
   styleId: string;
-  imageKeys: string[];
-  gender: string;
-  bodyType: string;
-  eyeColor: string;
-  hairColor: string;
-}
+};
 
-function normalizeGender(value: string): PhotoshootGender {
-  return value === 'man' ? 'man' : 'woman';
-}
+export async function createPhotoshoot({ personaId, styleId }: CreatePhotoshootProps) {
+  const { db, user } = await authenticatedDb();
+  if (!user) return { error: 'Нужно войти в систему', status: 401 };
+  if (!personaId) return { error: 'Выберите Persona для фотосессии', status: 400 };
 
-export async function createPhotoshoot({ styleId, imageKeys, gender, bodyType, eyeColor, hairColor }: CreatePhotoshootProps) {
-  const supabase = await createClient();
+  const pack = getPhotoPack(styleId);
+  if (!pack) return { error: 'Фотопак не найден', status: 400 };
 
-  // 1. Проверяем пользователя
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: 'Нужно войти в систему' };
-  }
+  const { data: persona } = await db
+    .from('personas')
+    .select('gender,eye_color,height,weight')
+    .eq('id', personaId)
+    .single();
 
-  if (!imageKeys || imageKeys.length === 0) {
-    return { error: 'Фотографии не загружены' };
-  }
+  if (!persona) return { error: 'Persona не найдена. Выберите её заново', status: 404 };
 
-  // 2. Создаем запись о фотосессии в Supabase
-  const { data, error } = await supabase.from('photoshoots').insert({
-    user_id: user.id,
-    style_id: styleId,
-    status: 'pending',
-    images: imageKeys,
-    gender: normalizeGender(gender),
-    body_type: bodyType,
-    eye_color: eyeColor,
-    hair_color: hairColor
-  }).select().single();
+  const { data, error } = await db.rpc('create_photoshoot_with_persona', {
+    p_persona_id: personaId,
+    p_style_id: pack.id,
+    p_images: [],
+    p_gender: persona.gender === 'man' ? 'man' : 'woman',
+    p_body_type: 'average',
+    p_eye_color: persona.eye_color ?? '',
+    // Persona does not store hair color yet; keep it unknown instead of inventing a default.
+    p_hair_color: '',
+    p_height_cm: persona.height,
+    p_weight_kg: persona.weight,
+    p_height_class: null,
+    p_body_shape: null,
+    p_body_build: null,
+    p_requested_images_count: pack.photoCount,
+    p_package_snapshot: {
+      id: pack.id,
+      slug: pack.slug,
+      name: pack.title,
+    },
+  }).single();
 
   if (error) {
     console.error('Database error:', error);
-    return { error: 'Не удалось создать запись в базе' };
+    if (error.code === 'P0002' || error.message.includes('PERSONA_NOT_FOUND')) {
+      return { error: 'Persona не найдена. Выберите её заново', status: 404 };
+    }
+    if (error.message.includes('PERSONA_NOT_ACTIVE')) {
+      return { error: 'Выбранная Persona ещё не готова к фотосессии', status: 409 };
+    }
+    if (error.message.includes('PERSONA_HAS_NO_PHOTOS')) {
+      return { error: 'Добавьте хотя бы одну фотографию Persona', status: 409 };
+    }
+    return { error: 'Не удалось создать фотосессию', status: 500 };
   }
 
-  // 3. Обновляем данные на главной странице кабинета
   revalidatePath('/account/generated');
-
   return { success: true, data };
 }

@@ -1,10 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getS3BucketName, getSupabaseServiceRoleConfig, getWebhookSecret } from "@/lib/env";
 import { updatePhotoshootGenerationStatus } from "@/lib/photoshoots/status";
 import type { Database, PhotoshootStatus } from "@/types/database";
-
-const COMPLETED_IMAGES_THRESHOLD = 3;
 
 interface ReplicateGenerationPayload {
   id?: string;
@@ -28,9 +26,49 @@ function uniqueStrings(values: string[]): string[] {
   return Array.from(new Set(values));
 }
 
+function getGenerationIds(generationId: string | null | undefined): string[] {
+  if (!generationId) {
+    return [];
+  }
+
+  return generationId
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+function getCompletedImagesThreshold(generationId: string | null | undefined): number {
+  const ids = getGenerationIds(generationId);
+  if (ids.length <= 1) return 1;
+
+  // Hero Composition sets should complete with one tolerated provider failure instead of leaving the UI stuck forever.
+  return Math.max(1, ids.length - 1);
+}
+
+function getRequiredImagesCount(generationId: string | null | undefined): number {
+  const ids = getGenerationIds(generationId);
+  return ids.length || 1;
+}
+
+function sortImagesByGenerationOrder(images: string[], generationId: string | null | undefined): string[] {
+  const ids = getGenerationIds(generationId);
+
+  if (ids.length <= 1) {
+    return images;
+  }
+
+  const order = new Map(ids.map((id, index) => [getStableKeyPart(id), index]));
+
+  return [...images].sort((a, b) => {
+    const aIndex = Array.from(order.entries()).find(([key]) => a.includes(key))?.[1] ?? Number.MAX_SAFE_INTEGER;
+    const bIndex = Array.from(order.entries()).find(([key]) => b.includes(key))?.[1] ?? Number.MAX_SAFE_INTEGER;
+    return aIndex - bIndex;
+  });
+}
+
 export async function POST(request: Request) {
   try {
-    // 1. Проверяем секретный ключ
+    // 1. РџСЂРѕРІРµСЂСЏРµРј СЃРµРєСЂРµС‚РЅС‹Р№ РєР»СЋС‡
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");
     const photoshootId = searchParams.get("photoshootId");
@@ -43,30 +81,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing photoshootId" }, { status: 400 });
     }
 
-    // 2. Получаем тело запроса от Replicate
+    // 2. РџРѕР»СѓС‡Р°РµРј С‚РµР»Рѕ Р·Р°РїСЂРѕСЃР° РѕС‚ Replicate
     const payload = (await request.json()) as ReplicateGenerationPayload;
     console.log(`Replicate Generation Webhook received for photoshoot: ${photoshootId}. Status: ${payload.status}`);
 
-    // Важно: ИСПОЛЬЗУЕМ SERVICE ROLE KEY для обхода RLS
-    // Иначе анонимный вебхук не сможет обновить вашу базу данных!
+    // Р’Р°Р¶РЅРѕ: РРЎРџРћР›Р¬Р—РЈР•Рњ SERVICE ROLE KEY РґР»СЏ РѕР±С…РѕРґР° RLS
+    // РРЅР°С‡Рµ Р°РЅРѕРЅРёРјРЅС‹Р№ РІРµР±С…СѓРє РЅРµ СЃРјРѕР¶РµС‚ РѕР±РЅРѕРІРёС‚СЊ РІР°С€Сѓ Р±Р°Р·Сѓ РґР°РЅРЅС‹С…!
     const supabaseConfig = getSupabaseServiceRoleConfig();
     const supabase = createClient<Database>(supabaseConfig.url, supabaseConfig.serviceRoleKey);
 
-    // Если генерация завершилась с ошибкой
+    // Р•СЃР»Рё РіРµРЅРµСЂР°С†РёСЏ Р·Р°РІРµСЂС€РёР»Р°СЃСЊ СЃ РѕС€РёР±РєРѕР№
     if (payload.status === "failed" || payload.status === "canceled") {
       const { data: currentShoot } = await supabase
         .from('photoshoots')
-        .select('result_images')
+        .select('result_images, generation_id')
         .eq('id', photoshootId)
         .single();
 
       const existingCount = (currentShoot?.result_images || []).length;
-      const nextStatus: PhotoshootStatus =
-        existingCount >= COMPLETED_IMAGES_THRESHOLD
-          ? 'completed'
-          : existingCount > 0
-            ? 'generating'
-            : 'error';
+      const expectedCount = getCompletedImagesThreshold(currentShoot?.generation_id);
+      const nextStatus: PhotoshootStatus = existingCount >= expectedCount ? 'completed' : 'failed';
 
       const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus);
       if (!updated) {
@@ -76,12 +110,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: `Generation failed/canceled. Status updated to ${nextStatus}.` });
     }
 
-    // 3. Успешная генерация
+    // 3. РЈСЃРїРµС€РЅР°СЏ РіРµРЅРµСЂР°С†РёСЏ
     if (payload.status === "succeeded") {
       const images = getOutputImages(payload.output);
 
       if (images.length === 0) {
-        await updatePhotoshootGenerationStatus(supabase, photoshootId, 'error');
+        await updatePhotoshootGenerationStatus(supabase, photoshootId, 'failed');
         return NextResponse.json({ error: "No images generated." }, { status: 400 });
       }
 
@@ -90,7 +124,7 @@ export async function POST(request: Request) {
       
       const savedS3Keys: string[] = [];
 
-      // Скачиваем каждую картинку из Replicate и сохраняем в наше долговечное S3-хранилище (Beget)
+      // РЎРєР°С‡РёРІР°РµРј РєР°Р¶РґСѓСЋ РєР°СЂС‚РёРЅРєСѓ РёР· Replicate Рё СЃРѕС…СЂР°РЅСЏРµРј РІ РЅР°С€Рµ РґРѕР»РіРѕРІРµС‡РЅРѕРµ S3-С…СЂР°РЅРёР»РёС‰Рµ (Beget)
       for (let i = 0; i < images.length; i++) {
         try {
            const imageUrl = images[i];
@@ -102,7 +136,7 @@ export async function POST(request: Request) {
            }
            
            const buffer = Buffer.from(await response.arrayBuffer());
-           // Добавляем timestamp, чтобы ключи были уникальными для параллельных вебхуков
+           // Р”РѕР±Р°РІР»СЏРµРј timestamp, С‡С‚РѕР±С‹ РєР»СЋС‡Рё Р±С‹Р»Рё СѓРЅРёРєР°Р»СЊРЅС‹РјРё РґР»СЏ РїР°СЂР°Р»Р»РµР»СЊРЅС‹С… РІРµР±С…СѓРєРѕРІ
            const stableSource = payload.id || imageUrl;
            const s3Key = `photoshoots/generations/${photoshootId}/result_${getStableKeyPart(stableSource)}_${i}.jpg`;
            
@@ -119,11 +153,10 @@ export async function POST(request: Request) {
         }
       }
 
-      // Т.к. теперь вебхук может вызываться 4 раза (из-за 4 разных промптов),
-      // нам нужно аккуратно добавить ключи к уже существующим (в рамках ОДНОЙ генерации)
+      // Рў.Рє. С‚РµРїРµСЂСЊ РІРµР±С…СѓРє РјРѕР¶РµС‚ РІС‹Р·С‹РІР°С‚СЊСЃСЏ 4 СЂР°Р·Р° (РёР·-Р·Р° 4 СЂР°Р·РЅС‹С… РїСЂРѕРјРїС‚РѕРІ),
+      // РЅР°Рј РЅСѓР¶РЅРѕ Р°РєРєСѓСЂР°С‚РЅРѕ РґРѕР±Р°РІРёС‚СЊ РєР»СЋС‡Рё Рє СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРј (РІ СЂР°РјРєР°С… РћР”РќРћР™ РіРµРЅРµСЂР°С†РёРё)
       
-      // Небольшая случайная задержка для минимизации race conditions при параллельных апдейтах
-      await new Promise(r => setTimeout(r, Math.random() * 1500));
+      // РќРµР±РѕР»СЊС€Р°СЏ СЃР»СѓС‡Р°Р№РЅР°СЏ Р·Р°РґРµСЂР¶РєР° РґР»СЏ РјРёРЅРёРјРёР·Р°С†РёРё race conditions РїСЂРё РїР°СЂР°Р»Р»РµР»СЊРЅС‹С… Р°РїРґРµР№С‚Р°С…
       
       const { data: currentShoot } = await supabase
           .from('photoshoots')
@@ -131,15 +164,21 @@ export async function POST(request: Request) {
           .eq('id', photoshootId)
           .single();
           
-      // Берём только изображения, накопленные в рамках ТЕКУЩЕЙ генерации
-      // Если generation_id изменился с последнего запуска — сбрасываем старые
+      // Р‘РµСЂС‘Рј С‚РѕР»СЊРєРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РЅР°РєРѕРїР»РµРЅРЅС‹Рµ РІ СЂР°РјРєР°С… РўР•РљРЈР©Р•Р™ РіРµРЅРµСЂР°С†РёРё
+      // Р•СЃР»Рё generation_id РёР·РјРµРЅРёР»СЃСЏ СЃ РїРѕСЃР»РµРґРЅРµРіРѕ Р·Р°РїСѓСЃРєР° вЂ” СЃР±СЂР°СЃС‹РІР°РµРј СЃС‚Р°СЂС‹Рµ
       const existingImages = currentShoot?.result_images || [];
-      const newImages = uniqueStrings([...existingImages, ...savedS3Keys]);
-      
-      // Считаем завершённым если собралось >= 3 картинки (1 может упасть из-за ошибки Replicate)
-      const isCompleted = newImages.length >= COMPLETED_IMAGES_THRESHOLD;
+      const newImages = sortImagesByGenerationOrder(
+        uniqueStrings([...existingImages, ...savedS3Keys]),
+        currentShoot?.generation_id,
+      );
+      // Successful runs wait for every Hero Composition; error recovery allows one provider failure.
+      const expectedCount =
+        currentShoot?.status === 'failed'
+          ? getCompletedImagesThreshold(currentShoot?.generation_id)
+          : getRequiredImagesCount(currentShoot?.generation_id);
+      const isCompleted = newImages.length >= expectedCount;
 
-      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : 'generating';
+      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : currentShoot?.status === 'failed' ? 'failed' : 'generating';
       const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus, newImages);
       if (!updated) {
         return NextResponse.json({ message: `Image saved, but status transition to ${nextStatus} was ignored. Total: ${newImages.length}` });

@@ -1,23 +1,34 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+﻿import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, PhotoshootStatus } from "@/types/database";
 
 type PhotoshootSupabaseClient = SupabaseClient<Database>;
 
 export const PHOTOSHOOT_STATUSES = [
   "pending",
-  "training",
+  "awaiting_payment",
+  "paid",
+  "queued",
   "generating",
   "completed",
-  "error",
+  "cancelled",
+  "failed",
 ] as const satisfies readonly PhotoshootStatus[];
 
 export const ALLOWED_PHOTOSHOOT_STATUS_TRANSITIONS = {
-  pending: ["training", "error"],
-  training: ["generating", "error"],
-  generating: ["completed", "error"],
+  pending: ["awaiting_payment", "cancelled"],
+  awaiting_payment: ["paid", "cancelled"],
+  paid: ["queued", "cancelled"],
+  queued: ["generating", "cancelled"],
+  generating: ["completed", "failed"],
   completed: [],
-  error: ["training"],
+  failed: [],
+  cancelled: [],
 } as const satisfies Record<PhotoshootStatus, readonly PhotoshootStatus[]>;
+
+export const SAFE_GENERATION_ERROR = {
+  code: "GENERATION_FAILED",
+  message: "Не удалось завершить генерацию. Попробуйте позже.",
+} as const;
 
 export function canTransitionPhotoshootStatus(
   from: PhotoshootStatus,
@@ -31,42 +42,11 @@ export function canTransitionPhotoshootStatus(
   return allowedTransitions.includes(to);
 }
 
-async function canUpdatePhotoshootStatus(
-  supabase: PhotoshootSupabaseClient,
-  photoshootId: string,
-  nextStatus: PhotoshootStatus,
-): Promise<boolean> {
-  const { data: photoshoot, error } = await supabase
-    .from("photoshoots")
-    .select("status")
-    .eq("id", photoshootId)
-    .single();
-
-  if (error || !photoshoot) {
-    console.error(`Could not load photoshoot status before transition to ${nextStatus}:`, error);
-    return false;
-  }
-
-  if (!canTransitionPhotoshootStatus(photoshoot.status, nextStatus)) {
-    console.warn(
-      `Blocked invalid photoshoot status transition for ${photoshootId}: ${photoshoot.status} -> ${nextStatus}`,
-    );
-    return false;
-  }
-
-  return true;
-}
-
 export async function markPhotoshootTrainingFailed(
   supabase: PhotoshootSupabaseClient,
   photoshootId: string,
 ): Promise<boolean> {
-  if (!(await canUpdatePhotoshootStatus(supabase, photoshootId, "error"))) {
-    return false;
-  }
-
-  await supabase.from("photoshoots").update({ status: "error" }).eq("id", photoshootId);
-  return true;
+  return updatePhotoshootStatus(supabase, photoshootId, "failed", SAFE_GENERATION_ERROR.message);
 }
 
 export async function markPhotoshootGenerating(
@@ -74,19 +54,12 @@ export async function markPhotoshootGenerating(
   photoshootId: string,
   loraUrl: string,
 ): Promise<boolean> {
-  if (!(await canUpdatePhotoshootStatus(supabase, photoshootId, "generating"))) {
-    return false;
-  }
-
-  await supabase
+  const { error } = await supabase
     .from("photoshoots")
-    .update({
-      status: "generating",
-      lora_url: loraUrl,
-    })
+    .update({ lora_url: loraUrl })
     .eq("id", photoshootId);
-
-  return true;
+  if (error) return false;
+  return updatePhotoshootStatus(supabase, photoshootId, "generating");
 }
 
 export async function savePhotoshootGenerationIds(
@@ -106,30 +79,80 @@ export async function updatePhotoshootGenerationStatus(
   nextStatus: PhotoshootStatus,
   resultImages?: string[],
 ): Promise<boolean> {
-  if (!(await canUpdatePhotoshootStatus(supabase, photoshootId, nextStatus))) {
-    return false;
+  if (resultImages?.length) {
+    const { error: resultError } = await supabase.rpc("record_photoshoot_result_images", {
+      p_photoshoot_id: photoshootId,
+      p_result_images: resultImages,
+    });
+    if (resultError) {
+      console.error("Could not record photoshoot result images:", resultError);
+      return false;
+    }
   }
 
-  await supabase
-    .from("photoshoots")
-    .update({
-      status: nextStatus,
-      ...(resultImages ? { result_images: resultImages } : {}),
-    })
-    .eq("id", photoshootId);
-
-  return true;
+  return updatePhotoshootStatus(
+    supabase,
+    photoshootId,
+    nextStatus,
+    nextStatus === "failed" ? SAFE_GENERATION_ERROR.message : null,
+  );
 }
 
 export async function updatePhotoshootStatus(
   supabase: PhotoshootSupabaseClient,
   photoshootId: string,
   nextStatus: PhotoshootStatus,
+  safeError: string | null = null,
 ): Promise<boolean> {
-  if (!(await canUpdatePhotoshootStatus(supabase, photoshootId, nextStatus))) {
-    return false;
+  if (nextStatus === "completed" || nextStatus === "failed") {
+    const { error } = await supabase.rpc("finish_photoshoot_generation", {
+      p_photoshoot_id: photoshootId,
+      p_succeeded: nextStatus === "completed",
+      p_safe_error: safeError,
+    });
+    if (error) {
+      console.warn("Blocked photoshoot finish transition to " + nextStatus + ":", error);
+      return false;
+    }
+    return true;
   }
 
-  await supabase.from("photoshoots").update({ status: nextStatus }).eq("id", photoshootId);
+  const { error } = await supabase.rpc("transition_photoshoot_status", {
+    p_photoshoot_id: photoshootId,
+    p_next_status: nextStatus,
+    p_safe_error: safeError,
+  });
+  if (error) {
+    console.warn("Blocked photoshoot status transition to " + nextStatus + ":", error);
+    return false;
+  }
   return true;
+}
+
+export async function confirmMockPhotoshootPayment(
+  supabase: PhotoshootSupabaseClient,
+  photoshootId: string,
+): Promise<Database["public"]["Tables"]["photoshoots"]["Row"] | null> {
+  const { data, error } = await supabase
+    .rpc("confirm_mock_photoshoot_payment", { p_photoshoot_id: photoshootId })
+    .single();
+  if (error) {
+    console.error("Could not confirm mock photoshoot payment:", error);
+    return null;
+  }
+  return data;
+}
+
+export async function claimPhotoshootGeneration(
+  supabase: PhotoshootSupabaseClient,
+  photoshootId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("claim_photoshoot_generation", {
+    p_photoshoot_id: photoshootId,
+  });
+  if (error) {
+    console.warn("Could not claim photoshoot generation:", error);
+    return false;
+  }
+  return data === true;
 }
