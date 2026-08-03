@@ -9,6 +9,7 @@ values
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select public.create_persona(null, null, null, 'woman', 'green');
 select public.add_persona_photo(
   (select id from public.personas where user_id = auth.uid() and is_default),
@@ -21,6 +22,11 @@ select public.create_photoshoot_with_persona(
   'dating', '{}', 'woman', 'average', 'green', '',
   null, null, null, null, null,
   4, '{"id":"dating","slug":"dating","name":"Знакомства"}'::jsonb
+);
+select set_config(
+  'photogen.lifecycle_order_one',
+  (select id::text from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
+  true
 );
 
 select is(
@@ -41,17 +47,25 @@ select is(
   'package name is fixed in package snapshot'
 );
 
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select throws_ok(
   $$select public.finish_photoshoot_generation(
-    (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
+    current_setting('photogen.lifecycle_order_one')::uuid,
     true
   )$$,
   '23514', 'INVALID_PHOTOSHOOT_STATUS_TRANSITION',
   'awaiting_payment cannot bypass paid and queued'
 );
 
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select public.confirm_mock_photoshoot_payment(
-  (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1)
+  current_setting('photogen.lifecycle_order_one')::uuid
 );
 select is(
   (select status from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
@@ -60,7 +74,7 @@ select is(
 );
 
 select public.confirm_mock_photoshoot_payment(
-  (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1)
+  current_setting('photogen.lifecycle_order_one')::uuid
 );
 select is(
   (select status from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
@@ -68,61 +82,67 @@ select is(
   'repeated mock payment is a safe no-op'
 );
 
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select ok(
   public.claim_photoshoot_generation(
-    (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1)
+    current_setting('photogen.lifecycle_order_one')::uuid
   ),
   'first generation request claims queued order'
 );
 
 select is(
   public.claim_photoshoot_generation(
-    (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1)
+    current_setting('photogen.lifecycle_order_one')::uuid
   ),
   false,
   'second generation request cannot claim the same order'
 );
 
 select public.record_photoshoot_result_images(
-  (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
-  array['photoshoots/generations/' ||
-    (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1) || '/result_one.jpg']
+  current_setting('photogen.lifecycle_order_one')::uuid,
+  array['photoshoots/generations/' || current_setting('photogen.lifecycle_order_one') || '/result_one.jpg']
 );
 select public.record_photoshoot_result_images(
-  (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
-  array['photoshoots/generations/' ||
-    (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1) || '/result_one.jpg']
+  current_setting('photogen.lifecycle_order_one')::uuid,
+  array['photoshoots/generations/' || current_setting('photogen.lifecycle_order_one') || '/result_one.jpg']
 );
 select is(
-  (select cardinality(result_images) from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
+  (select cardinality(result_images) from public.photoshoots where id = current_setting('photogen.lifecycle_order_one')::uuid),
   1,
   'repeated result event does not duplicate an image'
 );
 
 select public.finish_photoshoot_generation(
-  (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
+  current_setting('photogen.lifecycle_order_one')::uuid,
   true
 );
 select is(
-  (select status from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
+  (select status from public.photoshoots where id = current_setting('photogen.lifecycle_order_one')::uuid),
   'completed',
   'generating order completes'
 );
 
 select ok(
-  (select completed_at is not null from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
+  (select completed_at is not null from public.photoshoots where id = current_setting('photogen.lifecycle_order_one')::uuid),
   'completion timestamp is stored'
 );
 
 select throws_ok(
   $$select public.finish_photoshoot_generation(
-    (select id from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
+    current_setting('photogen.lifecycle_order_one')::uuid,
     false
   )$$,
   '23514', 'INVALID_PHOTOSHOOT_STATUS_TRANSITION',
   'completed order is terminal'
 );
 
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select throws_ok(
   $$update public.photoshoots set package_snapshot = '{}'::jsonb
     where user_id = auth.uid()$$,
@@ -136,19 +156,34 @@ select public.create_photoshoot_with_persona(
   null, null, null, null, null,
   4, '{"id":"career","slug":"career","name":"Бизнес-портрет"}'::jsonb
 );
-select public.confirm_mock_photoshoot_payment(
-  (select id from public.photoshoots where user_id = auth.uid() and style_id = 'career' limit 1)
+select set_config(
+  'photogen.lifecycle_order_two',
+  (select id::text from public.photoshoots where user_id = auth.uid() and style_id = 'career' limit 1),
+  true
 );
+select public.confirm_mock_photoshoot_payment(
+  current_setting('photogen.lifecycle_order_two')::uuid
+);
+
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select ok(
   public.claim_photoshoot_generation(
-    (select id from public.photoshoots where user_id = auth.uid() and style_id = 'career' limit 1)
+    current_setting('photogen.lifecycle_order_two')::uuid
   ),
   'second queued order can be claimed independently'
 );
 select public.finish_photoshoot_generation(
-  (select id from public.photoshoots where user_id = auth.uid() and style_id = 'career' limit 1),
+  current_setting('photogen.lifecycle_order_two')::uuid,
   false, 'Не удалось завершить генерацию. Попробуйте позже.'
 );
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select is(
   (select status from public.photoshoots where user_id = auth.uid() and style_id = 'career' limit 1),
   'failed',
@@ -165,12 +200,11 @@ select set_config('request.jwt.claim.sub', '92000000-0000-4000-8000-000000000092
 select is((select count(*) from public.photoshoots), 0::bigint, 'foreign user cannot list owner orders');
 
 select throws_ok(
-  $$select public.finish_photoshoot_generation(
-    (select id from public.photoshoots where user_id = '91000000-0000-4000-8000-000000000091' limit 1),
-    true
+  $$select public.confirm_mock_photoshoot_payment(
+    current_setting('photogen.lifecycle_order_one')::uuid
   )$$,
   'P0002', 'PHOTOSHOOT_NOT_FOUND',
-  'foreign order is hidden from lifecycle operations'
+  'foreign order is hidden from owner-facing payment operations'
 );
 
 reset role;

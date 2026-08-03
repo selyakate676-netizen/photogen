@@ -14,6 +14,7 @@ import {
 } from "@/lib/ai/prompt-system-quality";
 import { s3Client } from "@/lib/s3";
 import { claimPhotoshootGeneration, updatePhotoshootGenerationStatus, updatePhotoshootStatus } from "@/lib/photoshoots/status";
+import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import type { Photoshoot } from "@/types/database";
 
@@ -1591,18 +1592,18 @@ export async function startMvpGenerationForPhotoshoot(
   photoshootId: string,
   options: MvpGenerationOptions = {},
 ): Promise<MvpGenerationResult> {
-  const supabase = await createClient();
+  const sessionClient = await createClient();
   const userId = options.userId;
   const {
     data: { user },
-  } = userId ? { data: { user: null } } : await supabase.auth.getUser();
+  } = userId ? { data: { user: null } } : await sessionClient.auth.getUser();
   const ownerId = userId || user?.id;
 
   if (!ownerId) {
     throw new Error("Authentication required.");
   }
 
-  const { data: photoshoot, error } = await supabase
+  const { data: photoshoot, error } = await sessionClient
     .from("photoshoots")
     .select("*")
     .eq("id", photoshootId)
@@ -1629,9 +1630,10 @@ export async function startMvpGenerationForPhotoshoot(
     throw new Error("PHOTOSHOOT_NOT_QUEUED");
   }
 
-  const claimed = await claimPhotoshootGeneration(supabase, photoshoot.id);
+  const serviceClient = createServiceRoleClient();
+  const claimed = await claimPhotoshootGeneration(serviceClient, photoshoot.id);
   if (!claimed) {
-    const { data: current } = await supabase
+    const { data: current } = await serviceClient
       .from("photoshoots")
       .select("generation_id,result_images")
       .eq("id", photoshoot.id)
@@ -1701,7 +1703,7 @@ export async function startMvpGenerationForPhotoshoot(
 
       predictionIds.push(prediction.id);
 
-      await supabase
+      await serviceClient
         .from("photoshoots")
         .update({ generation_id: predictionIds.join(",") })
         .eq("id", photoshoot.id);
@@ -1714,7 +1716,7 @@ export async function startMvpGenerationForPhotoshoot(
 
       if (completedPrediction.status !== "succeeded") {
         if (resultImages.length === 0) {
-          await updatePhotoshootStatus(supabase, photoshoot.id, "failed");
+          await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
           throw new Error(completedPrediction.error || `Prediction ${completedPrediction.status}`);
         }
 
@@ -1735,7 +1737,7 @@ export async function startMvpGenerationForPhotoshoot(
       };
     }
 
-    await updatePhotoshootGenerationStatus(supabase, photoshoot.id, "completed", resultImages);
+    await updatePhotoshootGenerationStatus(serviceClient, photoshoot.id, "completed", resultImages);
 
     return {
       predictionId: predictionIds.join(","),
@@ -1762,7 +1764,7 @@ export async function startMvpGenerationForPhotoshoot(
         }),
   })) as ReplicatePredictionResponse;
 
-  await supabase
+  await serviceClient
     .from("photoshoots")
     .update({ generation_id: prediction.id })
     .eq("id", photoshoot.id);
@@ -1777,14 +1779,14 @@ export async function startMvpGenerationForPhotoshoot(
   const completedPrediction = await waitForPrediction(replicate, prediction.id);
 
   if (completedPrediction.status !== "succeeded") {
-    await updatePhotoshootStatus(supabase, photoshoot.id, "failed");
+    await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
     throw new Error(completedPrediction.error || `Prediction ${completedPrediction.status}`);
   }
 
   const outputUrls = getOutputUrls(completedPrediction.output);
 
   if (!outputUrls.length) {
-    await updatePhotoshootStatus(supabase, photoshoot.id, "failed");
+    await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
     throw new Error("Prediction succeeded without output images.");
   }
 
@@ -1793,7 +1795,7 @@ export async function startMvpGenerationForPhotoshoot(
     resultImages.push(await saveGeneratedImage(photoshoot.id, url, index + 1));
   }
 
-  await updatePhotoshootGenerationStatus(supabase, photoshoot.id, "completed", resultImages);
+  await updatePhotoshootGenerationStatus(serviceClient, photoshoot.id, "completed", resultImages);
 
   return {
     predictionId: completedPrediction.id,

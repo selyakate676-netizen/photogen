@@ -4,6 +4,7 @@ import {
   confirmMockPhotoshootPayment,
   updatePhotoshootStatus,
 } from "@/lib/photoshoots/status";
+import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
 export async function confirmMockPaymentAndQueue(photoshootId: string, userId: string) {
@@ -22,17 +23,36 @@ export async function confirmMockPaymentAndQueue(photoshootId: string, userId: s
 }
 
 export async function startQueuedPhotoshootGeneration(photoshootId: string, userId?: string) {
-  const supabase = await createClient();
+  const sessionClient = await createClient();
+  const {
+    data: { user },
+  } = await sessionClient.auth.getUser();
+
+  if (!user || (userId && user.id !== userId)) {
+    throw new Error("Authentication required.");
+  }
+
+  const { data: ownedPhotoshoot, error: ownerError } = await sessionClient
+    .from("photoshoots")
+    .select("id")
+    .eq("id", photoshootId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (ownerError || !ownedPhotoshoot) {
+    throw new Error("Photoshoot not found.");
+  }
 
   try {
     return await startMvpGenerationForPhotoshoot(photoshootId, {
       waitForCompletion: false,
-      userId,
+      userId: user.id,
     });
   } catch (error) {
     console.error("[photoshoot-generation] Provider start failed:", error);
+    const serviceClient = createServiceRoleClient();
     await updatePhotoshootStatus(
-      supabase,
+      serviceClient,
       photoshootId,
       "failed",
       SAFE_GENERATION_ERROR.message,

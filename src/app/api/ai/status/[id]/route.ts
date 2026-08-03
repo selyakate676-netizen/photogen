@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Replicate from "replicate";
 import { getReplicateApiToken } from "@/lib/env";
 import { updatePhotoshootStatus } from "@/lib/photoshoots/status";
+import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import type { PhotoshootStatus } from "@/types/database";
 
@@ -64,17 +65,27 @@ export async function GET(
 ) {
   try {
     const { id: photoshootId } = await params;
-    const supabase = await createClient();
+    const sessionClient = await createClient();
+    const {
+      data: { user },
+    } = await sessionClient.auth.getUser();
 
-    const { data: photoshoot, error: dbError } = await supabase
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: photoshoot, error: dbError } = await sessionClient
       .from("photoshoots")
       .select("status, training_id, generation_id, result_images")
       .eq("id", photoshootId)
+      .eq("user_id", user.id)
       .single();
 
     if (dbError || !photoshoot) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+
+    const serviceClient = createServiceRoleClient();
 
     if (photoshoot.status === "completed") {
       return NextResponse.json({ status: "completed", progress: 100, stage: "completed" });
@@ -90,7 +101,7 @@ export async function GET(
       const recoverableCount = getRecoverableResultCount(photoshoot.generation_id);
 
       if (expectedCount > 0 && savedCount >= expectedCount) {
-        const updated = await updatePhotoshootStatus(supabase, photoshootId, "completed");
+        const updated = await updatePhotoshootStatus(serviceClient, photoshootId, "completed");
         return NextResponse.json({
           status: updated ? "completed" : photoshoot.status,
           progress: updated ? 100 : 98,
@@ -104,7 +115,7 @@ export async function GET(
         const { hasFailedJob, allJobsFinished } = await getGenerationFailureState(photoshoot.generation_id);
 
         if (hasFailedJob || allJobsFinished) {
-          const updated = await updatePhotoshootStatus(supabase, photoshootId, "completed");
+          const updated = await updatePhotoshootStatus(serviceClient, photoshootId, "completed");
           return NextResponse.json({
             status: updated ? "completed" : photoshoot.status,
             progress: updated ? 100 : 98,
@@ -158,7 +169,7 @@ export async function GET(
     }
 
     if (currentStatus !== photoshoot.status) {
-      const updated = await updatePhotoshootStatus(supabase, photoshootId, currentStatus);
+      const updated = await updatePhotoshootStatus(serviceClient, photoshootId, currentStatus);
       if (!updated) {
         currentStatus = photoshoot.status;
       }
