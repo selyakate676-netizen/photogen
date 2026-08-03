@@ -21,7 +21,15 @@ export async function GET(
     .eq("id", photoshootId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    if (error.code === "PGRST116") {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    console.error("Photoshoot detail failed:", error);
+    return NextResponse.json({ error: "Could not load photoshoot" }, { status: 500 });
+  }
+
+  if (!data) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
