@@ -635,6 +635,10 @@ select set_config(
   true
 );
 
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select set_config(
   'photogen.pgtap_results',
   (
