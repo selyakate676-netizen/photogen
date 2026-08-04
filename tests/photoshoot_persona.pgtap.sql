@@ -161,7 +161,10 @@ select set_config(
   true
 );
 
+reset role;
+set local role service_role;
 select set_config('request.jwt.claim.sub', '50000000-0000-4000-8000-000000000005', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select set_config(
   'photogen.pgtap_results',
   (
@@ -172,6 +175,10 @@ select set_config(
   )::text,
   true
 );
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '50000000-0000-4000-8000-000000000005', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select set_config(
   'photogen.pgtap_results',
   (

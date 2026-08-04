@@ -39,12 +39,13 @@ select throws_ok($$
 $$, '23514', null, 'invalid figure type is rejected');
 
 select set_config('request.jwt.claim.sub', '80000000-0000-4000-8000-000000000008', true);
+with changed as (
+  update public.personas set body_build = 'slim'
+  where user_id = '70000000-0000-4000-8000-000000000007'
+  returning 1
+)
 select is(
-  (with changed as (
-    update public.personas set body_build = 'slim'
-    where user_id = '70000000-0000-4000-8000-000000000007'
-    returning 1
-  ) select count(*) from changed),
+  (select count(*) from changed),
   0::bigint,
   'foreign user cannot update Persona appearance'
 );

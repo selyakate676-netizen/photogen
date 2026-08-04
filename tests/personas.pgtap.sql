@@ -15,7 +15,11 @@ select lives_ok($$select public.create_persona(null, null, null, null, null)$$, 
 select is((select count(*) from public.personas where name = 'Я' and is_default), 1::bigint, 'only one Я exists');
 select lives_ok($$select public.create_persona('Друг', 180, 75, 'man', 'green')$$, 'additional persona can be created');
 select is((select count(*) from public.personas), 2::bigint, 'owner lists both personas');
-select lives_ok($$select public.update_persona((select id from public.personas where name='Друг'), 'Друг 2', 181, 76, 'man', 'blue')$$, 'additional persona can be edited');
+select lives_ok($$
+  update public.personas
+  set name = 'Друг 2', height = 181, weight = 76, gender = 'man', eye_color = 'blue'
+  where id = (select id from public.personas where name = 'Друг')
+$$, 'additional persona can be edited');
 select lives_ok($$select public.set_default_persona((select id from public.personas where name='Друг 2'))$$, 'default switches atomically');
 select is((select count(*) from public.personas where is_default), 1::bigint, 'exactly one default remains');
 select throws_ok($$select public.delete_persona((select id from public.personas where is_default))$$, '23514', 'DEFAULT_PERSONA_DELETE', 'default cannot be deleted');

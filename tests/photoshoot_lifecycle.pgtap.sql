@@ -140,9 +140,9 @@ select throws_ok(
 );
 
 reset role;
-set local role authenticated;
+set local role service_role;
 select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
-select set_config('request.jwt.claim.role', 'authenticated', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select throws_ok(
   $$update public.photoshoots set package_snapshot = '{}'::jsonb
     where user_id = auth.uid()$$,
@@ -150,6 +150,10 @@ select throws_ok(
   'order package snapshot is immutable'
 );
 
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select public.create_photoshoot_with_persona(
   (select id from public.personas where user_id = auth.uid() and is_default),
   'career', '{}', 'woman', 'average', 'green', '',
