@@ -1,63 +1,17 @@
 import { NextResponse } from "next/server";
 import Replicate from "replicate";
 import { getReplicateApiToken } from "@/lib/env";
-import { updatePhotoshootStatus } from "@/lib/photoshoots/status";
+import {
+  getRequestedImageCount,
+  isExactInternalGenerationResultSet,
+} from "@/lib/ai/generation-count-contract";
+import {
+  updatePhotoshootGenerationStatus,
+  updatePhotoshootStatus,
+} from "@/lib/photoshoots/status";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import type { PhotoshootStatus } from "@/types/database";
-
-function countGenerationJobs(generationId: string | null): number {
-  if (!generationId) return 0;
-  return generationId
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean).length;
-}
-
-function getGenerationJobIds(generationId: string | null): string[] {
-  if (!generationId) return [];
-  return generationId
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-}
-
-function getRequiredResultCount(generationId: string | null): number {
-  return countGenerationJobs(generationId);
-}
-
-function getRecoverableResultCount(generationId: string | null): number {
-  const total = countGenerationJobs(generationId);
-  if (total <= 1) return total;
-
-  // Hero Composition sets can recover from one provider failure instead of leaving the UI stuck forever.
-  return Math.max(1, total - 1);
-}
-
-async function getGenerationFailureState(
-  generationId: string | null,
-): Promise<{ hasFailedJob: boolean; allJobsFinished: boolean }> {
-  const generationIds = getGenerationJobIds(generationId);
-  if (generationIds.length <= 1) {
-    return { hasFailedJob: false, allJobsFinished: false };
-  }
-
-  const replicate = new Replicate({ auth: getReplicateApiToken() });
-  const results = await Promise.allSettled(
-    generationIds.map((id) => replicate.predictions.get(id)),
-  );
-
-  const statuses = results.flatMap((result) =>
-    result.status === "fulfilled" ? [result.value.status] : [],
-  );
-
-  const hasFailedJob = statuses.some((status) => status === "failed" || status === "canceled");
-  const allJobsFinished =
-    statuses.length === generationIds.length &&
-    statuses.every((status) => status === "succeeded" || status === "failed" || status === "canceled");
-
-  return { hasFailedJob, allJobsFinished };
-}
 
 export async function GET(
   request: Request,
@@ -76,7 +30,7 @@ export async function GET(
 
     const { data: photoshoot, error: dbError } = await sessionClient
       .from("photoshoots")
-      .select("status, training_id, generation_id, result_images")
+      .select("status, training_id, generation_id, result_images, requested_images_count")
       .eq("id", photoshootId)
       .eq("user_id", user.id)
       .single();
@@ -88,6 +42,14 @@ export async function GET(
     const serviceClient = createServiceRoleClient();
 
     if (photoshoot.status === "completed") {
+      if (!isExactInternalGenerationResultSet(
+        photoshootId,
+        photoshoot.result_images || [],
+        photoshoot.requested_images_count,
+      )) {
+        console.error("Completed photoshoot has an invalid generation result count", { photoshootId });
+        return NextResponse.json({ error: "Internal error" }, { status: 500 });
+      }
       return NextResponse.json({ status: "completed", progress: 100, stage: "completed" });
     }
 
@@ -97,11 +59,28 @@ export async function GET(
 
     if (photoshoot.status === "generating") {
       const savedCount = (photoshoot.result_images || []).length;
-      const expectedCount = getRequiredResultCount(photoshoot.generation_id);
-      const recoverableCount = getRecoverableResultCount(photoshoot.generation_id);
+      let expectedCount: number;
+      try {
+        expectedCount = getRequestedImageCount(photoshoot.requested_images_count);
+      } catch {
+        console.error("Generating photoshoot has an invalid requested image count", {
+          photoshootId,
+        });
+        await updatePhotoshootStatus(serviceClient, photoshootId, "failed");
+        return NextResponse.json({ status: "failed", progress: 0, stage: "failed" });
+      }
 
-      if (expectedCount > 0 && savedCount >= expectedCount) {
-        const updated = await updatePhotoshootStatus(serviceClient, photoshootId, "completed");
+      if (savedCount === expectedCount && isExactInternalGenerationResultSet(
+        photoshootId,
+        photoshoot.result_images || [],
+        expectedCount,
+      )) {
+        const updated = await updatePhotoshootGenerationStatus(
+          serviceClient,
+          photoshootId,
+          "completed",
+          photoshoot.result_images || [],
+        );
         return NextResponse.json({
           status: updated ? "completed" : photoshoot.status,
           progress: updated ? 100 : 98,
@@ -111,30 +90,18 @@ export async function GET(
         });
       }
 
-      if (recoverableCount > 0 && savedCount >= recoverableCount && recoverableCount < expectedCount) {
-        const { hasFailedJob, allJobsFinished } = await getGenerationFailureState(photoshoot.generation_id);
-
-        if (hasFailedJob || allJobsFinished) {
-          const updated = await updatePhotoshootStatus(serviceClient, photoshootId, "completed");
-          return NextResponse.json({
-            status: updated ? "completed" : photoshoot.status,
-            progress: updated ? 100 : 98,
-            stage: updated ? "completed" : "generating",
-            savedCount,
-            expectedCount,
-            recoveredFromPartialSet: updated,
-          });
-        }
+      if (savedCount > expectedCount) {
+        await updatePhotoshootStatus(serviceClient, photoshootId, "failed");
+        return NextResponse.json({ status: "failed", progress: 0, stage: "failed" });
       }
 
-      const total = expectedCount || 4;
-      const progress = Math.min(98, 86 + Math.floor((Math.min(savedCount, total) / total) * 12));
+      const progress = Math.min(98, 86 + Math.floor((Math.min(savedCount, expectedCount) / expectedCount) * 12));
       return NextResponse.json({
         status: "generating",
         progress,
         stage: "generating",
         savedCount,
-        expectedCount: total,
+        expectedCount,
       });
     }
 

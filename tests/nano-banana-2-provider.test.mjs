@@ -171,14 +171,17 @@ test("adapter selects the model only on the server and keeps claim before predic
 test("adapter preserves ownership, generation_id and one-prediction-per-HC contracts", async () => {
   const adapter = await read("src/lib/ai/mvp-generation-adapter.ts");
   const ownerFilter = adapter.indexOf('.eq("user_id", ownerId)');
-  const heroLoop = adapter.indexOf("for (const [heroIndex, heroScenePackage]");
-  const heroPrediction = adapter.indexOf("createPredictionWithRateLimit(replicate", heroLoop);
+  const generationPlan = adapter.indexOf("createGenerationPlan(");
+  const generationLoop = adapter.indexOf("for (const [generationIndex, generation] of generationPlan.entries())");
+  const heroPrediction = adapter.indexOf("createPredictionWithRateLimit(replicate", generationLoop);
   const generationIdWrite = adapter.indexOf(".update({ generation_id: predictionIds.join", heroPrediction);
 
   assert.ok(ownerFilter >= 0 && ownerFilter < heroPrediction);
-  assert.ok(heroLoop >= 0 && heroLoop < heroPrediction && heroPrediction < generationIdWrite);
+  assert.ok(generationPlan >= 0 && generationPlan < generationLoop);
+  assert.ok(generationLoop < heroPrediction && heroPrediction < generationIdWrite);
   assert.match(adapter, /selectPersonaReferenceKeys\(personaReferenceKeys, options\.referenceCount\)/);
-  assert.match(adapter, /buildReplicateImageInput\([\s\S]*?buildMvpPromptWithScenePackage/);
+  assert.match(adapter, /buildMvpPromptWithScenePackage\(photoshoot, generation\.scenePackage\)/);
+  assert.match(adapter, /buildReplicateImageInput\(generationModel, finalPrompt, referenceUrls\)/);
 });
 
 test("webhook validates prediction association and ignores repeated or terminal delivery", async () => {
