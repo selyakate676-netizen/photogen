@@ -1,6 +1,11 @@
 ﻿import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getS3BucketName, getSupabaseServiceRoleConfig, getWebhookSecret } from "@/lib/env";
+import {
+  ProviderOutputError,
+  downloadReplicateImage,
+  normalizeReplicateOutputUrls,
+} from "@/lib/ai/image-generation-provider";
 import { updatePhotoshootGenerationStatus } from "@/lib/photoshoots/status";
 import type { Database, PhotoshootStatus } from "@/types/database";
 
@@ -8,14 +13,6 @@ interface ReplicateGenerationPayload {
   id?: string;
   status?: string;
   output?: unknown;
-}
-
-function getOutputImages(output: unknown): string[] {
-  if (!Array.isArray(output)) {
-    return [];
-  }
-
-  return output.filter((item): item is string => typeof item === "string" && item.length > 0);
 }
 
 function getStableKeyPart(value: string): string {
@@ -90,14 +87,38 @@ export async function POST(request: Request) {
     const supabaseConfig = getSupabaseServiceRoleConfig();
     const supabase = createClient<Database>(supabaseConfig.url, supabaseConfig.serviceRoleKey);
 
+    if (!payload.id) {
+      return NextResponse.json({ error: "Missing prediction id." }, { status: 400 });
+    }
+
+    const { data: currentShoot, error: currentShootError } = await supabase
+      .from("photoshoots")
+      .select("result_images,status,generation_id")
+      .eq("id", photoshootId)
+      .single();
+
+    if (currentShootError || !currentShoot) {
+      console.error("[generation-webhook] Photoshoot lookup failed", {
+        photoshootId,
+        predictionId: payload.id,
+      });
+      return NextResponse.json({ error: "Photoshoot not found." }, { status: 404 });
+    }
+
+    if (!getGenerationIds(currentShoot.generation_id).includes(payload.id)) {
+      console.warn("[generation-webhook] Ignored unassociated prediction", {
+        photoshootId,
+        predictionId: payload.id,
+      });
+      return NextResponse.json({ message: "Prediction is not associated with this photoshoot." }, { status: 202 });
+    }
+
+    if (["completed", "failed", "cancelled"].includes(currentShoot.status)) {
+      return NextResponse.json({ message: "Terminal photoshoot status already recorded." });
+    }
+
     // Р•СЃР»Рё РіРµРЅРµСЂР°С†РёСЏ Р·Р°РІРµСЂС€РёР»Р°СЃСЊ СЃ РѕС€РёР±РєРѕР№
     if (payload.status === "failed" || payload.status === "canceled") {
-      const { data: currentShoot } = await supabase
-        .from('photoshoots')
-        .select('result_images, generation_id')
-        .eq('id', photoshootId)
-        .single();
-
       const existingCount = (currentShoot?.result_images || []).length;
       const expectedCount = getCompletedImagesThreshold(currentShoot?.generation_id);
       const nextStatus: PhotoshootStatus = existingCount >= expectedCount ? 'completed' : 'failed';
@@ -112,44 +133,65 @@ export async function POST(request: Request) {
 
     // 3. РЈСЃРїРµС€РЅР°СЏ РіРµРЅРµСЂР°С†РёСЏ
     if (payload.status === "succeeded") {
-      const images = getOutputImages(payload.output);
+      let images: string[];
+
+      try {
+        images = normalizeReplicateOutputUrls(payload.output);
+      } catch (error) {
+        console.error("[generation-webhook] Invalid provider output", {
+          photoshootId,
+          predictionId: payload.id,
+          errorCode:
+            error instanceof ProviderOutputError
+              ? error.code
+              : "MALFORMED_PROVIDER_OUTPUT",
+        });
+        await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
+        return NextResponse.json({ error: "Generation output is unavailable." }, { status: 400 });
+      }
 
       if (images.length === 0) {
         await updatePhotoshootGenerationStatus(supabase, photoshootId, 'failed');
-        return NextResponse.json({ error: "No images generated." }, { status: 400 });
+        return NextResponse.json({ error: "Generation output is unavailable." }, { status: 400 });
       }
 
       const { PutObjectCommand } = await import("@aws-sdk/client-s3");
       const { s3Client } = await import("@/lib/s3");
       
       const savedS3Keys: string[] = [];
+      const stablePredictionKey = getStableKeyPart(payload.id);
+      const existingImages = currentShoot.result_images || [];
+
+      if (existingImages.some((key) => key.includes(`result_${stablePredictionKey}_`))) {
+        return NextResponse.json({ message: "Prediction output already recorded." });
+      }
 
       // РЎРєР°С‡РёРІР°РµРј РєР°Р¶РґСѓСЋ РєР°СЂС‚РёРЅРєСѓ РёР· Replicate Рё СЃРѕС…СЂР°РЅСЏРµРј РІ РЅР°С€Рµ РґРѕР»РіРѕРІРµС‡РЅРѕРµ S3-С…СЂР°РЅРёР»РёС‰Рµ (Beget)
       for (let i = 0; i < images.length; i++) {
         try {
-           const imageUrl = images[i];
-           const response = await fetch(imageUrl);
-           
-           if (!response.ok) {
-              console.error("Failed to fetch image from Replicate:", imageUrl);
-              continue;
-           }
-           
-           const buffer = Buffer.from(await response.arrayBuffer());
+           const { buffer, contentType } = await downloadReplicateImage(images[i]);
            // Р”РѕР±Р°РІР»СЏРµРј timestamp, С‡С‚РѕР±С‹ РєР»СЋС‡Рё Р±С‹Р»Рё СѓРЅРёРєР°Р»СЊРЅС‹РјРё РґР»СЏ РїР°СЂР°Р»Р»РµР»СЊРЅС‹С… РІРµР±С…СѓРєРѕРІ
-           const stableSource = payload.id || imageUrl;
-           const s3Key = `photoshoots/generations/${photoshootId}/result_${getStableKeyPart(stableSource)}_${i}.jpg`;
+           const s3Key = `photoshoots/generations/${photoshootId}/result_${stablePredictionKey}_${i}.jpg`;
            
            await s3Client.send(new PutObjectCommand({
              Bucket: getS3BucketName(),
              Key: s3Key,
              Body: buffer,
-             ContentType: "image/jpeg",
+             ContentType: contentType,
            }));
            
            savedS3Keys.push(s3Key);
-        } catch (err) {
-           console.error("Error saving image to S3:", err);
+        } catch (error) {
+           console.error("[generation-webhook] Output persistence failed", {
+             photoshootId,
+             predictionId: payload.id,
+             errorCode:
+               error instanceof ProviderOutputError
+                 ? error.code
+                 : "S3_PERSISTENCE_FAILED",
+           });
+           await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
+           return NextResponse.json({ error: "Generation output could not be saved." }, { status: 502 });
         }
       }
 
@@ -158,7 +200,7 @@ export async function POST(request: Request) {
       
       // РќРµР±РѕР»СЊС€Р°СЏ СЃР»СѓС‡Р°Р№РЅР°СЏ Р·Р°РґРµСЂР¶РєР° РґР»СЏ РјРёРЅРёРјРёР·Р°С†РёРё race conditions РїСЂРё РїР°СЂР°Р»Р»РµР»СЊРЅС‹С… Р°РїРґРµР№С‚Р°С…
       
-      const { data: currentShoot } = await supabase
+      const { data: latestShoot } = await supabase
           .from('photoshoots')
           .select('result_images, status, generation_id')
           .eq('id', photoshootId)
@@ -166,19 +208,18 @@ export async function POST(request: Request) {
           
       // Р‘РµСЂС‘Рј С‚РѕР»СЊРєРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РЅР°РєРѕРїР»РµРЅРЅС‹Рµ РІ СЂР°РјРєР°С… РўР•РљРЈР©Р•Р™ РіРµРЅРµСЂР°С†РёРё
       // Р•СЃР»Рё generation_id РёР·РјРµРЅРёР»СЃСЏ СЃ РїРѕСЃР»РµРґРЅРµРіРѕ Р·Р°РїСѓСЃРєР° вЂ” СЃР±СЂР°СЃС‹РІР°РµРј СЃС‚Р°СЂС‹Рµ
-      const existingImages = currentShoot?.result_images || [];
       const newImages = sortImagesByGenerationOrder(
-        uniqueStrings([...existingImages, ...savedS3Keys]),
-        currentShoot?.generation_id,
+        uniqueStrings([...(latestShoot?.result_images || []), ...savedS3Keys]),
+        latestShoot?.generation_id,
       );
       // Successful runs wait for every Hero Composition; error recovery allows one provider failure.
       const expectedCount =
-        currentShoot?.status === 'failed'
-          ? getCompletedImagesThreshold(currentShoot?.generation_id)
-          : getRequiredImagesCount(currentShoot?.generation_id);
+        latestShoot?.status === 'failed'
+          ? getCompletedImagesThreshold(latestShoot?.generation_id)
+          : getRequiredImagesCount(latestShoot?.generation_id);
       const isCompleted = newImages.length >= expectedCount;
 
-      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : currentShoot?.status === 'failed' ? 'failed' : 'generating';
+      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : latestShoot?.status === 'failed' ? 'failed' : 'generating';
       const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus, newImages);
       if (!updated) {
         return NextResponse.json({ message: `Image saved, but status transition to ${nextStatus} was ignored. Total: ${newImages.length}` });

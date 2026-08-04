@@ -1,4 +1,9 @@
 import type { AiPipelineVersion } from "@/lib/ai/pipeline/types";
+import {
+  DEFAULT_AI_GENERATION_MODEL,
+  resolveAiGenerationModel,
+  type AiGenerationModel,
+} from "@/lib/ai/image-generation-provider";
 
 type EnvName =
   | "NEXT_PUBLIC_SITE_URL"
@@ -14,6 +19,7 @@ type EnvName =
   | "S3_SECRET_KEY"
   | "NEXT_PUBLIC_YANDEX_METRIKA_ID"
   | "AI_PIPELINE_MODE"
+  | "AI_GENERATION_MODEL"
   | "OPENAI_API_KEY"
   | "DATABASE_URL";
 
@@ -66,6 +72,12 @@ export function getAiPipelineMode(): AiPipelineVersion {
   );
 
   return DEFAULT_AI_PIPELINE_MODE;
+}
+
+export function getAiGenerationModel(): AiGenerationModel {
+  return resolveAiGenerationModel(
+    getOptionalEnv("AI_GENERATION_MODEL", DEFAULT_AI_GENERATION_MODEL),
+  );
 }
 
 export function getSupabaseServiceRoleConfig(): { url: string; serviceRoleKey: string } {
