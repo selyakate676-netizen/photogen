@@ -3,8 +3,20 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import Replicate from "replicate";
 import sharp from "sharp";
 
-import { getReplicateApiToken, getS3BucketName, getSiteUrl, getWebhookSecret } from "@/lib/env";
+import {
+  getAiGenerationModel,
+  getReplicateApiToken,
+  getS3BucketName,
+  getSiteUrl,
+  getWebhookSecret,
+} from "@/lib/env";
 import { renderHeroCompositionContract } from "@/lib/ai/hero-composition-catalog";
+import {
+  GPT_IMAGE_MODEL_ID,
+  buildReplicateImageInput,
+  downloadReplicateImage,
+  normalizeReplicateOutputUrls,
+} from "@/lib/ai/image-generation-provider";
 import { IDENTITY_REFERENCE_POLICY, selectPersonaReferenceKeys } from "@/lib/ai/persona-reference-policy";
 import {
   CURRENT_HERO_COMPOSITION_MARKER,
@@ -18,7 +30,6 @@ import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import type { Photoshoot } from "@/types/database";
 
-const MODEL_ID = "openai/gpt-image-2";
 const ENABLE_SP004_HERO_COMPOSITION_SET_EXPERIMENT = true;
 
 const DEFAULT_SCENE_PACKAGE_ID = "dating";
@@ -544,30 +555,6 @@ interface MvpGenerationResult {
   resultImages: string[];
 }
 
-function getOutputUrls(output: unknown): string[] {
-  if (typeof output === "string") {
-    return [output];
-  }
-
-  if (Array.isArray(output)) {
-    return output
-      .map((item) => {
-        if (typeof item === "string") return item;
-        if (item && typeof item === "object" && "url" in item && typeof item.url === "string") {
-          return item.url;
-        }
-        return null;
-      })
-      .filter((value): value is string => Boolean(value));
-  }
-
-  if (output && typeof output === "object" && "url" in output && typeof output.url === "string") {
-    return [output.url];
-  }
-
-  return [];
-}
-
 async function streamToBuffer(stream: unknown): Promise<Buffer> {
   const chunks: Buffer[] = [];
 
@@ -629,13 +616,7 @@ async function createSignedReadUrl(key: string): Promise<string> {
 }
 
 async function saveGeneratedImage(photoshootId: string, url: string, index: number): Promise<string> {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Failed to download generated image: ${response.status}`);
-  }
-
-  const buffer = Buffer.from(await response.arrayBuffer());
+  const { buffer, contentType } = await downloadReplicateImage(url);
   const key = `photoshoots/generations/${photoshootId}/mvp_gpt_image2/result_${Date.now()}_${index}.jpg`;
 
   await s3Client.send(
@@ -643,15 +624,15 @@ async function saveGeneratedImage(photoshootId: string, url: string, index: numb
       Bucket: getS3BucketName(),
       Key: key,
       Body: buffer,
-      ContentType: "image/jpeg",
+      ContentType: contentType,
     }),
   );
 
   return key;
 }
 
-async function getLatestModelVersion(): Promise<string> {
-  const response = await fetch(`https://api.replicate.com/v1/models/${MODEL_ID}`, {
+async function getLatestModelVersion(modelId: string): Promise<string> {
+  const response = await fetch(`https://api.replicate.com/v1/models/${modelId}`, {
     headers: {
       Authorization: `Bearer ${getReplicateApiToken()}`,
     },
@@ -660,7 +641,7 @@ async function getLatestModelVersion(): Promise<string> {
   const json = (await response.json().catch(() => ({}))) as ReplicateModelResponse;
 
   if (!response.ok || !json.latest_version?.id) {
-    throw new Error(`Could not load latest Replicate version for ${MODEL_ID}`);
+    throw new Error(`Could not load latest Replicate version for ${modelId}`);
   }
 
   return json.latest_version.id;
@@ -1644,6 +1625,7 @@ export async function startMvpGenerationForPhotoshoot(
     };
   }
 
+  const generationModel = getAiGenerationModel();
   const referenceKeys = selectPersonaReferenceKeys(personaReferenceKeys, options.referenceCount);
   const referenceUrls: string[] = [];
 
@@ -1669,7 +1651,10 @@ export async function startMvpGenerationForPhotoshoot(
   }
 
   const replicate = new Replicate({ auth: getReplicateApiToken() });
-  const version = await getLatestModelVersion();
+  const predictionTarget: { version: string } | { model: string } =
+    generationModel === GPT_IMAGE_MODEL_ID
+      ? { version: await getLatestModelVersion(GPT_IMAGE_MODEL_ID) }
+      : { model: generationModel };
 
   const shouldWaitForCompletion = options.waitForCompletion ?? true;
   const webhookUrl = `${getSiteUrl()}/api/webhooks/replicate/generation?secret=${getWebhookSecret()}&photoshootId=${photoshoot.id}`;
@@ -1683,16 +1668,12 @@ export async function startMvpGenerationForPhotoshoot(
 
     for (const [heroIndex, heroScenePackage] of heroScenePackages.entries()) {
       const prediction = (await createPredictionWithRateLimit(replicate, {
-        version,
-        input: {
-          prompt: buildMvpPromptWithScenePackage(photoshoot, heroScenePackage),
-          input_images: referenceUrls,
-          aspect_ratio: "2:3",
-          quality: "high",
-          output_format: "jpeg",
-          number_of_images: 1,
-          output_compression: 95,
-        },
+        ...predictionTarget,
+        input: buildReplicateImageInput(
+          generationModel,
+          buildMvpPromptWithScenePackage(photoshoot, heroScenePackage),
+          referenceUrls,
+        ),
         ...(shouldWaitForCompletion
           ? {}
           : {
@@ -1723,7 +1704,11 @@ export async function startMvpGenerationForPhotoshoot(
         continue;
       }
 
-      const outputUrls = getOutputUrls(completedPrediction.output);
+      const outputUrls = normalizeReplicateOutputUrls(completedPrediction.output);
+      if (!outputUrls.length) {
+        await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
+        throw new Error("Prediction succeeded without output images.");
+      }
 
       for (const [outputIndex, url] of outputUrls.entries()) {
         resultImages.push(await saveGeneratedImage(photoshoot.id, url, heroIndex + outputIndex + 1));
@@ -1746,16 +1731,12 @@ export async function startMvpGenerationForPhotoshoot(
   }
 
   const prediction = (await createPredictionWithRateLimit(replicate, {
-    version,
-    input: {
-      prompt: buildMvpPrompt(photoshoot, options.scenePrompt),
-      input_images: referenceUrls,
-      aspect_ratio: "2:3",
-      quality: "high",
-      output_format: "jpeg",
-      number_of_images: 1,
-      output_compression: 95,
-    },
+    ...predictionTarget,
+    input: buildReplicateImageInput(
+      generationModel,
+      buildMvpPrompt(photoshoot, options.scenePrompt),
+      referenceUrls,
+    ),
     ...(shouldWaitForCompletion
       ? {}
       : {
@@ -1783,7 +1764,7 @@ export async function startMvpGenerationForPhotoshoot(
     throw new Error(completedPrediction.error || `Prediction ${completedPrediction.status}`);
   }
 
-  const outputUrls = getOutputUrls(completedPrediction.output);
+  const outputUrls = normalizeReplicateOutputUrls(completedPrediction.output);
 
   if (!outputUrls.length) {
     await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
