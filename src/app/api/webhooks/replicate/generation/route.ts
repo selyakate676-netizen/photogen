@@ -6,6 +6,10 @@ import {
   downloadReplicateImage,
   normalizeReplicateOutputUrls,
 } from "@/lib/ai/image-generation-provider";
+import {
+  getRequestedImageCount,
+  isExactInternalGenerationResultSet,
+} from "@/lib/ai/generation-count-contract";
 import { updatePhotoshootGenerationStatus } from "@/lib/photoshoots/status";
 import type { Database, PhotoshootStatus } from "@/types/database";
 
@@ -32,19 +36,6 @@ function getGenerationIds(generationId: string | null | undefined): string[] {
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean);
-}
-
-function getCompletedImagesThreshold(generationId: string | null | undefined): number {
-  const ids = getGenerationIds(generationId);
-  if (ids.length <= 1) return 1;
-
-  // Hero Composition sets should complete with one tolerated provider failure instead of leaving the UI stuck forever.
-  return Math.max(1, ids.length - 1);
-}
-
-function getRequiredImagesCount(generationId: string | null | undefined): number {
-  const ids = getGenerationIds(generationId);
-  return ids.length || 1;
 }
 
 function sortImagesByGenerationOrder(images: string[], generationId: string | null | undefined): string[] {
@@ -93,7 +84,7 @@ export async function POST(request: Request) {
 
     const { data: currentShoot, error: currentShootError } = await supabase
       .from("photoshoots")
-      .select("result_images,status,generation_id")
+      .select("result_images,status,generation_id,requested_images_count")
       .eq("id", photoshootId)
       .single();
 
@@ -119,16 +110,12 @@ export async function POST(request: Request) {
 
     // Р•СЃР»Рё РіРµРЅРµСЂР°С†РёСЏ Р·Р°РІРµСЂС€РёР»Р°СЃСЊ СЃ РѕС€РёР±РєРѕР№
     if (payload.status === "failed" || payload.status === "canceled") {
-      const existingCount = (currentShoot?.result_images || []).length;
-      const expectedCount = getCompletedImagesThreshold(currentShoot?.generation_id);
-      const nextStatus: PhotoshootStatus = existingCount >= expectedCount ? 'completed' : 'failed';
-
-      const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus);
+      const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
       if (!updated) {
-        return NextResponse.json({ message: `Generation failed/canceled. Status transition to ${nextStatus} was ignored.` });
+        return NextResponse.json({ message: "Generation failed/canceled. Failed transition was ignored." });
       }
 
-      return NextResponse.json({ message: `Generation failed/canceled. Status updated to ${nextStatus}.` });
+      return NextResponse.json({ message: "Generation failed/canceled. Status updated to failed." });
     }
 
     // 3. РЈСЃРїРµС€РЅР°СЏ РіРµРЅРµСЂР°С†РёСЏ
@@ -150,7 +137,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Generation output is unavailable." }, { status: 400 });
       }
 
-      if (images.length === 0) {
+      if (images.length !== 1) {
         await updatePhotoshootGenerationStatus(supabase, photoshootId, 'failed');
         return NextResponse.json({ error: "Generation output is unavailable." }, { status: 400 });
       }
@@ -202,7 +189,7 @@ export async function POST(request: Request) {
       
       const { data: latestShoot } = await supabase
           .from('photoshoots')
-          .select('result_images, status, generation_id')
+          .select('result_images, status, generation_id, requested_images_count')
           .eq('id', photoshootId)
           .single();
           
@@ -212,14 +199,28 @@ export async function POST(request: Request) {
         uniqueStrings([...(latestShoot?.result_images || []), ...savedS3Keys]),
         latestShoot?.generation_id,
       );
-      // Successful runs wait for every Hero Composition; error recovery allows one provider failure.
-      const expectedCount =
-        latestShoot?.status === 'failed'
-          ? getCompletedImagesThreshold(latestShoot?.generation_id)
-          : getRequiredImagesCount(latestShoot?.generation_id);
-      const isCompleted = newImages.length >= expectedCount;
+      let expectedCount: number;
+      try {
+        expectedCount = getRequestedImageCount(latestShoot?.requested_images_count);
+      } catch {
+        console.error("[generation-webhook] Invalid requested image count", {
+          photoshootId,
+          predictionId: payload.id,
+          errorCode: "GENERATION_COUNT_CONFIGURATION_ERROR",
+        });
+        await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
+        return NextResponse.json({ error: "Generation configuration is invalid." }, { status: 500 });
+      }
 
-      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : latestShoot?.status === 'failed' ? 'failed' : 'generating';
+      if (newImages.length > expectedCount) {
+        await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
+        return NextResponse.json({ error: "Generation result count is invalid." }, { status: 409 });
+      }
+
+      const isCompleted = newImages.length === expectedCount
+        && isExactInternalGenerationResultSet(photoshootId, newImages, expectedCount);
+
+      const nextStatus: PhotoshootStatus = isCompleted ? 'completed' : 'generating';
       const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, nextStatus, newImages);
       if (!updated) {
         return NextResponse.json({ message: `Image saved, but status transition to ${nextStatus} was ignored. Total: ${newImages.length}` });

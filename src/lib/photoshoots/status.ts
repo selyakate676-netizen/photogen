@@ -1,6 +1,8 @@
 ﻿import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, PhotoshootStatus } from "@/types/database";
 
+import { isExactInternalGenerationResultSet } from "@/lib/ai/generation-count-contract";
+
 type PhotoshootSupabaseClient = SupabaseClient<Database>;
 
 export const PHOTOSHOOT_STATUSES = [
@@ -79,6 +81,34 @@ export async function updatePhotoshootGenerationStatus(
   nextStatus: PhotoshootStatus,
   resultImages?: string[],
 ): Promise<boolean> {
+  if (nextStatus === "completed") {
+    const { data: photoshoot, error: photoshootError } = await supabase
+      .from("photoshoots")
+      .select("requested_images_count,result_images")
+      .eq("id", photoshootId)
+      .single();
+    const finalImages = resultImages ?? photoshoot?.result_images ?? [];
+
+    if (photoshootError || !photoshoot) {
+      console.error("Could not validate photoshoot generation result count:", photoshootError);
+      return false;
+    }
+
+    try {
+      if (!isExactInternalGenerationResultSet(
+        photoshootId,
+        finalImages,
+        photoshoot.requested_images_count,
+      )) {
+        console.warn("Blocked photoshoot completion with an incomplete generation result set.");
+        return false;
+      }
+    } catch (error) {
+      console.warn("Blocked photoshoot completion with invalid requested_images_count:", error);
+      return false;
+    }
+  }
+
   if (resultImages?.length) {
     const { error: resultError } = await supabase.rpc("record_photoshoot_result_images", {
       p_photoshoot_id: photoshootId,
