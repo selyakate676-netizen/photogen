@@ -182,3 +182,48 @@ Stop rule:
 - Model comparison, provider smoke testing and prompt iteration are closed.
 - Do not run new models, provider tests, retries or additional prompt iterations without a new explicit product decision.
 - Do not adopt face-centric crops or alter references, production crops, Hero Compositions, anatomy safety, lifecycle, payment, Persona, SQL or frontend as part of this baseline decision.
+
+
+## 2026-08-03: Birthday Editorial HC-001 approved golden reference
+
+- status: `APPROVED_GOLDEN_REFERENCE`;
+- role: `Nano Banana 2 visual and prompt baseline for future pack development`;
+- pack / anchor: `SP-BIRTHDAY-EDITORIAL-001 / HC-001`;
+- prediction ID: `97bzqpbpa1rmt0czs1zvf4dhng`;
+- prompt SHA-256: `4e7180be5307aa536305445bfab98460c4eb9e4f15ce23b3419fc2db962f0e9d`;
+- provider configuration: `google/nano-banana-2`, version `d1be8b5fc0931a253d417e12a484ac01ee9ccbc6daffd4792151377d5e5ff55f`, `1K`, `2:3`, `jpg`, two reference images in the recorded A1 then A2 order;
+- approval criteria: identity fidelity, facial-feature preservation, hair-color fidelity, realistic age and natural proportions.
+
+Rejected experimental variant:
+
+- the later experimental line `high realism, natural skin, professional photographer work, no AI image look` is not part of the golden prompt or shared baseline;
+- observed result: skin texture improved, identity fidelity decreased and hair became lighter than the references.
+
+Frozen identity-first shared template, using the existing blocks without text changes:
+
+1. `GENERATION_TASK`
+2. `IDENTITY_V2`
+3. `IDENTITY PRESERVATION`
+4. `PERSONA_APPEARANCE`
+5. `AGE_V1`
+6. `REALISM_V1`
+7. `STYLE_MVP`
+8. `SHORT_CONSTRAINTS`
+
+The existing matching conditional `POSE_ANATOMY_SAFETY` block remains part of the template when applicable. Its text is not edited, shortened or merged with another block.
+
+Future pack contract:
+
+- frozen shared core;
+- current Persona data and the first two unique references in order;
+- package `SERIES_AND_SCENE`;
+- `CURRENT_HERO_COMPOSITION`;
+- matching conditional `POSE_ANATOMY_SAFETY`;
+- a new pack may change only scene, wardrobe, props, lighting, mood, HC pose, gaze, expression and framing.
+
+Development rule:
+
+- test one anchor HC first;
+- do not change shared blocks during pack development;
+- create the remaining HC only after visual approval of the anchor;
+- use the golden reference to compare identity, skin, hair, anatomy and photographic realism, but never as provider input.
