@@ -29,12 +29,6 @@ export default function SubmitPayButton({ packageSlug }: SubmitPayButtonProps) {
       className="btn btn-primary btn-lg"
       style={{ minWidth: '250px', cursor: pending ? 'wait' : 'pointer', opacity: pending ? 0.7 : 1 }}
       disabled={pending}
-      onClick={() => trackAnalyticsGoal('mock_payment_click', {
-        package_slug: packageSlug,
-        order_status: 'pending',
-        source_page: 'checkout',
-        is_test_mode: true,
-      })}
     >
       {pending ? 'Запуск генерации...' : 'Оплатить (эмуляция)'}
     </button>

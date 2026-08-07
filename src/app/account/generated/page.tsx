@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { getPhotoPack } from '@/lib/photoPacks';
 import { retryTraining } from '@/app/dashboard/actions';
+import AnalyticsEvent from '@/components/AnalyticsEvent';
 import styles from '../account.module.css';
 
 const statusLabels: Record<string, string> = {
@@ -13,7 +14,12 @@ const statusLabels: Record<string, string> = {
   error: 'Ошибка',
 };
 
-export default async function GeneratedPage() {
+type GeneratedPageProps = {
+  searchParams: Promise<{ payment_completed?: string; package_slug?: string }>;
+};
+
+export default async function GeneratedPage({ searchParams }: GeneratedPageProps) {
+  const query = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,6 +46,18 @@ export default async function GeneratedPage() {
 
   return (
     <>
+      {query.payment_completed ? (
+        <AnalyticsEvent
+          goal="payment_completed"
+          dedupeKey={`payment-completed:${query.payment_completed}`}
+          params={{
+            package_slug: query.package_slug,
+            order_status: 'queued',
+            source_page: 'generated',
+            is_test_mode: true,
+          }}
+        />
+      ) : null}
       <header className={`${styles.sectionHeader} ${styles.generatedPageHeader}`}>
         <div>
           <h2>Мои генерации</h2>

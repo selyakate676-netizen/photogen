@@ -31,6 +31,10 @@ export async function mockPayment(formData: FormData) {
 
   // Refresh the current generations list and return to its polling flow.
   revalidatePath('/account/generated');
-  redirect('/account/generated');
+  const query = new URLSearchParams({
+    payment_completed: photoshootId,
+    package_slug: payment.photoshoot.style_id,
+  });
+  redirect(`/account/generated?${query.toString()}`);
 }
 

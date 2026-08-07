@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import type { BodyBuild, BustSize, FigureType, HeightProfile, Physique } from '@/lib/personas/appearance';
+import { trackAnalyticsGoal } from '@/lib/analytics';
 import styles from '../account.module.css';
 
 type ProfileWorkspaceProps = {
@@ -224,6 +225,7 @@ export default function ProfileWorkspace({
       });
       if (!response.ok) throw new Error(await responseError(response, 'Не удалось создать персону.'));
       const payload = await response.json() as { persona: Persona };
+      trackAnalyticsGoal('persona_created', { source_page: 'account_profile' });
       await loadPersonas(payload.persona.id, false);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Не удалось создать персону.');
