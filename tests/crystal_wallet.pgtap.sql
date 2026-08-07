@@ -98,9 +98,10 @@ select throws_ok(
   'zero credit is rejected'
 );
 
-select like(
-  pg_get_functiondef('public.debit_wallet(uuid,bigint,text,text,text,jsonb)'::regprocedure),
-  '%for update%',
+select ok(
+  position(
+    'for update' in lower(pg_get_functiondef('public.debit_wallet(uuid,bigint,text,text,text,jsonb)'::regprocedure))
+  ) > 0,
   'debit locks the wallet row for concurrent safety'
 );
 
