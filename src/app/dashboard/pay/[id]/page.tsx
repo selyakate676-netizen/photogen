@@ -31,7 +31,7 @@ export default async function MockPaymentPage({ params }: { params: Promise<{ id
   }
 
   // Если статус уже не pending (уже оплачено или ошибка)
-  if (photoshoot.status !== 'pending') {
+  if (photoshoot.status !== 'pending' && photoshoot.status !== 'awaiting_payment') {
     return redirect('/account/generated');
   }
 
