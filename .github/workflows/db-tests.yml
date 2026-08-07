@@ -40,6 +40,8 @@ jobs:
         run: |
           set -euo pipefail
           cat supabase_photoshoot_crystal_charge.sql > tests/crystal_wallet_ci.pgtap.sql
+          printf '\ngrant insert on table public.photoshoots to service_role;\n' \
+            >> tests/crystal_wallet_ci.pgtap.sql
           grep -v '^\\ir ../supabase_photoshoot_crystal_charge.sql$' tests/crystal_wallet.pgtap.sql \
             >> tests/crystal_wallet_ci.pgtap.sql
           supabase test db tests/crystal_wallet_ci.pgtap.sql
