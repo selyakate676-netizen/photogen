@@ -36,7 +36,13 @@ jobs:
         run: supabase start
 
       - name: Run crystal wallet pgTAP tests
-        run: supabase test db tests/crystal_wallet.pgtap.sql
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat supabase_photoshoot_crystal_charge.sql > tests/crystal_wallet_ci.pgtap.sql
+          grep -v '^\\ir ../supabase_photoshoot_crystal_charge.sql$' tests/crystal_wallet.pgtap.sql \
+            >> tests/crystal_wallet_ci.pgtap.sql
+          supabase test db tests/crystal_wallet_ci.pgtap.sql
 
       - name: Stop ephemeral Supabase
         if: always()
