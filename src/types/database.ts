@@ -100,6 +100,80 @@ export interface Database {
           },
         ];
       };
+      wallets: {
+        Row: {
+          user_id: string;
+          balance_crystals: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          balance_crystals?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          balance_crystals?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wallets_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wallet_transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          delta_crystals: number;
+          balance_after_crystals: number;
+          transaction_type: string;
+          idempotency_key: string;
+          reference_type: string | null;
+          reference_id: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          delta_crystals: number;
+          balance_after_crystals: number;
+          transaction_type: string;
+          idempotency_key: string;
+          reference_type?: string | null;
+          reference_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          delta_crystals?: number;
+          balance_after_crystals?: number;
+          transaction_type?: string;
+          idempotency_key?: string;
+          reference_type?: string | null;
+          reference_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
