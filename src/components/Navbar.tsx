@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Gem, Settings } from 'lucide-react';
-import type { User } from '@supabase/supabase-js';
-import { createClient } from '@/utils/supabase/client';
+import { useCrystalWallet } from '@/lib/wallet/useCrystalWallet';
 import PhotoGenLogo from './PhotoGenLogo';
 import ThemeToggle from './ThemeToggle';
 import styles from './Navbar.module.css';
@@ -28,29 +27,7 @@ const userLinks = [
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const supabase = useMemo(() => createClient(), []);
-
-  useEffect(() => {
-    let isMounted = true;
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (isMounted) {
-        setUser(data.user);
-        setIsAuthLoading(false);
-      }
-    };
-    getUser();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setIsAuthLoading(false);
-    });
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
+  const { user, balance, isLoading: isAuthLoading } = useCrystalWallet();
 
   const closeMenu = () => setIsMenuOpen(false);
   const accountLinks = user ? userLinks : guestLinks;
@@ -63,7 +40,8 @@ export default function Navbar() {
       {user ? (
         <Link href="/account/wallet" className={styles.balanceCta} onClick={closeMenu} aria-label="Баланс кристаллов">
           <Gem aria-hidden="true" />
-          <span>Баланс</span>
+          <strong>{balance ?? 0}</strong>
+          <span>кристаллов</span>
         </Link>
       ) : null}
     </>

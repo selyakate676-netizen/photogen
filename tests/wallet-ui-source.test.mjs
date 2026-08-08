@@ -4,6 +4,8 @@ import test from 'node:test';
 
 const pagePath = new URL('../src/app/account/wallet/page.tsx', import.meta.url);
 const navbarPath = new URL('../src/components/Navbar.tsx', import.meta.url);
+const detailsPath = new URL('../src/components/PhotoPackDetails.tsx', import.meta.url);
+const hookPath = new URL('../src/lib/wallet/useCrystalWallet.ts', import.meta.url);
 
 test('wallet page reads only the authenticated user wallet and ledger through RLS', async () => {
   const source = await readFile(pagePath, 'utf8');
@@ -36,10 +38,24 @@ test('wallet UI does not select or render private ledger internals', async () =>
   assert.doesNotMatch(source, /transaction\.id\b/);
 });
 
-test('authenticated navigation links to the real wallet instead of mock top-up data', async () => {
-  const source = await readFile(navbarPath, 'utf8');
+test('navbar and catalog use the same real RLS wallet balance without fake fallback', async () => {
+  const [navbar, details, hook] = await Promise.all([
+    readFile(navbarPath, 'utf8'),
+    readFile(detailsPath, 'utf8'),
+    readFile(hookPath, 'utf8'),
+  ]);
 
-  assert.match(source, /href: '\/account\/wallet', label: 'Кристаллы'/);
-  assert.match(source, /href="\/account\/wallet"/);
-  assert.doesNotMatch(source, /accountTokenBalance|\/#pricing/);
+  assert.match(navbar, /useCrystalWallet\(\)/);
+  assert.match(navbar, /\{balance \?\? 0\}/);
+  assert.match(details, /useCrystalWallet\(\)/);
+  assert.match(details, /crystalBalance !== null && crystalBalance >= pack\.priceCrystals/);
+  assert.match(hook, /from\('wallets'\)/);
+  assert.match(hook, /select\('balance_crystals'\)/);
+  assert.match(hook, /data\?\.balance_crystals \?\? 0/);
+  assert.doesNotMatch(`${navbar}\n${details}\n${hook}`, /accountTokenBalance|const crystalBalance = 40/);
+});
+
+test('package crystal prices remain unchanged and separate from user balance', async () => {
+  const packs = await readFile(new URL('../src/lib/photoPacks.ts', import.meta.url), 'utf8');
+  assert.match(packs, /priceCrystals: 40/);
 });

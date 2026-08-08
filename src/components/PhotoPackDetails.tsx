@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Gem } from 'lucide-react';
 import type { PhotoPack } from '@/lib/photoPacks';
 import { trackAnalyticsGoal } from '@/lib/analytics';
+import { useCrystalWallet } from '@/lib/wallet/useCrystalWallet';
 import styles from './PhotoPackDetails.module.css';
 
 type PhotoPackDetailsProps = {
@@ -18,7 +19,6 @@ type PhotoPackDetailsProps = {
 };
 
 type Quality = 'hd' | 'fullHd';
-const crystalBalance = 40;
 
 const labels = {
   navigation: '\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',
@@ -104,6 +104,7 @@ export default function PhotoPackDetails({
   const trackedPackSlugRef = useRef<string | null>(null);
   const relatedRailRef = useRef<HTMLDivElement>(null);
   const isModal = mode === 'modal';
+  const { balance: crystalBalance } = useCrystalWallet();
 
   useEffect(() => {
     if (trackedPackSlugRef.current === pack.slug) return;
@@ -156,7 +157,7 @@ export default function PhotoPackDetails({
   const startHref = `/dashboard/new?style=${pack.id}`;
   const visibleRelated = relatedPacks.slice(0, isModal ? 8 : 6);
   const currentLightboxImage = lightboxIndex === null ? null : gallery[lightboxIndex];
-  const canPayWithCrystals = crystalBalance >= pack.priceCrystals;
+  const canPayWithCrystals = crystalBalance !== null && crystalBalance >= pack.priceCrystals;
   const crystalPaymentHref = `${startHref}&payment=crystals`;
 
   const updateRelatedScrollState = useCallback(() => {
