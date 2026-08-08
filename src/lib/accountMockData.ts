@@ -16,9 +16,6 @@ export type AccountPersona = {
   };
 };
 
-export const crystalBalance = 40;
-export const accountTokenBalance = crystalBalance;
-
 export const accountPersonas: AccountPersona[] = [
   {
     id: 'ekaterina',

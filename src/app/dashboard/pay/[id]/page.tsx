@@ -38,7 +38,8 @@ export default async function MockPaymentPage({ params }: { params: Promise<{ id
   return (
     <>
       <AnalyticsEvent
-        goal="checkout_view"
+        goal="payment_started"
+        dedupeKey={`payment-started:${photoshoot.id}`}
         params={{
           package_slug: photoshoot.style_id,
           order_status: photoshoot.status,

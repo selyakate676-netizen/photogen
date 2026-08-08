@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
 import { getPhotoPack, type PhotoPack } from '@/lib/photoPacks';
+import { trackAnalyticsGoal } from '@/lib/analytics';
 import StylesGrid from './StylesGrid';
 import styles from './NewPhotoshoot.module.css';
 import { createPhotoshoot } from './actions';
@@ -112,6 +113,11 @@ export default function NewPhotoshootPage() {
       });
       if (result.error) throw new Error(result.error);
       if (!result.data?.id) throw new Error('Не удалось получить номер заказа.');
+      trackAnalyticsGoal('photoshoot_created', {
+        package_slug: selectedPack.slug,
+        requested_images_count: selectedPack.photoCount,
+        source_page: 'new_photoshoot',
+      });
       router.push(`/dashboard/pay/${result.data.id}`);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Не удалось создать фотосессию.');

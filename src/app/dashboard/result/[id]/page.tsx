@@ -42,6 +42,16 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   return (
     <>
       <AnalyticsEvent
+        goal="generation_completed"
+        dedupeKey={`generation-completed:${photoshoot.id}`}
+        params={{
+          package_slug: photoshoot.style_id,
+          requested_images_count: photoshoot.result_images?.length ?? 0,
+          order_status: photoshoot.status,
+          source_page: 'result',
+        }}
+      />
+      <AnalyticsEvent
         goal="generation_result_view"
         params={{
           package_slug: photoshoot.style_id,

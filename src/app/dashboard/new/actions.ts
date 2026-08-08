@@ -44,6 +44,7 @@ export async function createPhotoshoot({ personaId, styleId }: CreatePhotoshootP
       id: pack.id,
       slug: pack.slug,
       name: pack.title,
+      price_crystals: pack.priceCrystals,
     },
   }).single();
 

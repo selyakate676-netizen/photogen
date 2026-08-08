@@ -1,0 +1,51 @@
+name: Crystal Wallet DB Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/crystal-wallet-ledger
+
+permissions:
+  contents: read
+
+jobs:
+  wallet-pgtap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Prepare ephemeral Supabase migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase init
+          mkdir -p supabase/migrations
+          cp supabase_schema.sql supabase/migrations/20260807000100_base_schema.sql
+          cp supabase_crystal_wallet.sql supabase/migrations/20260807000200_crystal_wallet.sql
+
+      - name: Start ephemeral Supabase
+        run: supabase start
+
+      - name: Run crystal wallet pgTAP tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat supabase_photoshoot_crystal_charge.sql > tests/crystal_wallet_ci.pgtap.sql
+          printf '\ngrant select, insert on table public.photoshoots to service_role;\n' \
+            >> tests/crystal_wallet_ci.pgtap.sql
+          grep -v '^\\ir ../supabase_photoshoot_crystal_charge.sql$' tests/crystal_wallet.pgtap.sql \
+            >> tests/crystal_wallet_ci.pgtap.sql
+          supabase test db tests/crystal_wallet_ci.pgtap.sql
+
+      - name: Stop ephemeral Supabase
+        if: always()
+        run: supabase stop --no-backup

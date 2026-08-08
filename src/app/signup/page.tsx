@@ -40,6 +40,7 @@ export default function SignupPage() {
       });
 
       if (error) throw error;
+      trackAnalyticsGoal('registration_completed', { source_page: 'signup' });
       setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка при регистрации');
