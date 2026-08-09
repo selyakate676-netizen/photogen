@@ -54,13 +54,24 @@ jobs:
             grep -R -q "$NEXT_PUBLIC_YANDEX_METRIKA_ID" .next/static/chunks
 
             # 4. Restart app
-            canonical_daemon_pid=$(cat "$PM2_HOME/pm2.pid")
             pm2_daemon_pids() {
               for process_path in /proc/[0-9]*; do
                 process_name=$(cat "$process_path/comm" 2>/dev/null || true)
                 if [[ "$process_name" == PM2* ]]; then basename "$process_path"; fi
               done
             }
+            canonical_daemon_pid=""
+            canonical_daemon_count=0
+            for daemon_pid in $(pm2_daemon_pids); do
+              daemon_pm2_home=$(tr '\0' '\n' < "/proc/$daemon_pid/environ" | sed -n 's/^PM2_HOME=//p' | head -n 1)
+              daemon_command=$(tr '\0' ' ' < "/proc/$daemon_pid/cmdline")
+              if [ "$daemon_pm2_home" = "$PM2_HOME" ] || [[ "$daemon_command" == *"($PM2_HOME)"* ]]; then
+                canonical_daemon_pid="$daemon_pid"
+                canonical_daemon_count=$((canonical_daemon_count + 1))
+              fi
+            done
+            test "$canonical_daemon_count" -eq 1
+            printf '%s\n' "$canonical_daemon_pid" > "$PM2_HOME/pm2.pid"
             collect_descendants() {
               for child_pid in $(pgrep -P "$1" || true); do
                 echo "$child_pid"
