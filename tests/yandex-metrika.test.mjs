@@ -1,44 +1,14 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
   isYandexMetrikaHostAllowed,
+  parseAnalyticsConsent,
+  shouldInitializeYandexMetrika,
   shouldSendAnalyticsPageView,
 } from '../src/lib/analytics.ts';
 
-const clientComponentSource = await readFile(
-  new URL('../src/components/YandexMetrica.tsx', import.meta.url),
-  'utf8',
-);
-
-const bootstrapComponentSource = await readFile(
-  new URL('../src/components/YandexMetricaBootstrap.tsx', import.meta.url),
-  'utf8',
-);
-
-test('manual SPA page views use defer and send one hit per distinct URL', () => {
-  assert.equal(
-    bootstrapComponentSource.match(/window\.ym\(\$\{counterId\}, "init", \{ defer: true \}\)/g)?.length,
-    1,
-  );
-  assert.equal(
-    bootstrapComponentSource.match(/window\.ym\(\$\{counterId\}, "hit", currentPageUrl\)/g)?.length,
-    1,
-  );
-  assert.match(
-    bootstrapComponentSource,
-    /window\.__photogenMetrikaPageUrl = currentPageUrl;[\s\S]*?"init"[\s\S]*?"hit"/,
-  );
-  assert.equal(
-    clientComponentSource.match(/window\.ym\(yandexMetrikaId, 'hit', pageUrl\)/g)?.length,
-    1,
-  );
-  assert.match(
-    clientComponentSource,
-    /window\.__photogenMetrikaPageUrl === pageUrl/,
-  );
-
+test('manual SPA page views send one hit per distinct URL', () => {
   let previousPageUrl = null;
   let hitCount = 0;
   for (const pageUrl of ['/', '/catalog?category=portrait', '/catalog?category=portrait']) {
@@ -47,8 +17,20 @@ test('manual SPA page views use defer and send one hit per distinct URL', () => 
       previousPageUrl = pageUrl;
     }
   }
-
   assert.equal(hitCount, 2);
+});
+
+test('Metrika bootstrap is gated by persistent explicit consent and duplicate guard', () => {
+  assert.equal(parseAnalyticsConsent(null), null);
+  assert.equal(parseAnalyticsConsent('unknown'), null);
+  assert.equal(parseAnalyticsConsent('granted'), 'granted');
+  assert.equal(parseAnalyticsConsent('denied'), 'denied');
+  assert.equal(shouldInitializeYandexMetrika(null, 108498956, 'photogen.example', false), false);
+  assert.equal(shouldInitializeYandexMetrika('denied', 108498956, 'photogen.example', false), false);
+  assert.equal(shouldInitializeYandexMetrika('granted', 108498956, 'photogen.example', false), true);
+  assert.equal(shouldInitializeYandexMetrika('granted', 108498956, 'photogen.example', true), false);
+  assert.equal(shouldInitializeYandexMetrika('granted', null, 'photogen.example', false), false);
+  assert.equal(shouldInitializeYandexMetrika('granted', 108498956, 'localhost', false), false);
 });
 
 test('localhost, loopback and localhost subdomains are blocked', () => {

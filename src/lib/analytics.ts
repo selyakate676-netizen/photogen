@@ -29,19 +29,23 @@ export type AnalyticsParams = Partial<{
   is_test_mode: boolean;
 }>;
 
-type MetrikaFunction = (
-  counterId: number,
-  action: 'hit' | 'reachGoal',
-  target: string,
-  params?: { params: AnalyticsParams },
-) => void;
+export type MetrikaFunction = {
+  (counterId: number, action: 'init', settings: { defer: boolean }): void;
+  (counterId: number, action: 'hit' | 'reachGoal', target: string, params?: { params: AnalyticsParams }): void;
+  a?: unknown[];
+  l?: number;
+};
 
 declare global {
   interface Window {
     ym?: MetrikaFunction;
     __photogenMetrikaPageUrl?: string;
+    __photogenMetrikaInitialized?: boolean;
   }
 }
+
+export const ANALYTICS_CONSENT_STORAGE_KEY = 'photogen-analytics-consent';
+export type AnalyticsConsent = 'granted' | 'denied';
 
 const rawCounterId = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID;
 export const yandexMetrikaId = process.env.NODE_ENV === 'production'
@@ -62,12 +66,47 @@ export function isYandexMetrikaHostAllowed(hostname: string): boolean {
     && normalizedHostname !== '[::1]';
 }
 
+export function shouldInitializeYandexMetrika(
+  consent: AnalyticsConsent | null,
+  counterId: number | null,
+  hostname: string,
+  initialized: boolean,
+): boolean {
+  return consent === 'granted'
+    && Boolean(counterId)
+    && isYandexMetrikaHostAllowed(hostname)
+    && !initialized;
+}
+
 export function canUseYandexMetrika(): boolean {
   return Boolean(
     yandexMetrikaId
     && typeof window !== 'undefined'
+    && getAnalyticsConsent() === 'granted'
     && isYandexMetrikaHostAllowed(window.location.hostname),
   );
+}
+
+export function parseAnalyticsConsent(value: string | null): AnalyticsConsent | null {
+  return value === 'granted' || value === 'denied' ? value : null;
+}
+
+export function getAnalyticsConsent(): AnalyticsConsent | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    return parseAnalyticsConsent(window.localStorage.getItem(ANALYTICS_CONSENT_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+export function setAnalyticsConsent(consent: AnalyticsConsent): void {
+  try {
+    window.localStorage.setItem(ANALYTICS_CONSENT_STORAGE_KEY, consent);
+  } catch {
+    // Blocked storage keeps analytics disabled for the next visit.
+  }
 }
 
 export function shouldSendAnalyticsPageView(

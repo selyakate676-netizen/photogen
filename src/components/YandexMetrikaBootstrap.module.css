@@ -1,0 +1,19 @@
+.banner {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  width: min(440px, calc(100vw - 32px));
+  padding: 16px;
+  color: var(--text-on-dark);
+  background: rgba(20, 20, 24, 0.96);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+.banner p { margin: 0 0 14px; font-size: var(--font-size-sm); line-height: 1.5; }
+.actions { display: flex; gap: 10px; justify-content: flex-end; }
+.allowButton, .rejectButton { min-height: 38px; padding: 8px 14px; border-radius: var(--radius-sm); font: inherit; font-weight: 600; cursor: pointer; }
+.allowButton { color: var(--text-on-light); background: var(--accent-primary); border: 1px solid var(--accent-primary); }
+.rejectButton { color: var(--text-on-dark); background: transparent; border: 1px solid var(--border-dark); }
+@media (max-width: 520px) { .banner { right: 16px; bottom: 16px; } }
