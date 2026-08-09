@@ -71,8 +71,18 @@ jobs:
                 fi
               done
               if [[ "$daemon_tree_commands" == *"hello-world"* ]]; then
-                echo "Refusing to stop non-canonical PM2 daemon $daemon_pid because it owns hello-world"
-                exit 1
+                legacy_pm2_home=$(tr '\0' '\n' < "/proc/$daemon_pid/environ" | sed -n 's/^PM2_HOME=//p' | head -n 1)
+                if [ -z "$legacy_pm2_home" ] || [ "$legacy_pm2_home" = "$PM2_HOME" ] || [ ! -S "$legacy_pm2_home/rpc.sock" ]; then
+                  echo "Cannot safely attach to legacy hello-world PM2 daemon $daemon_pid"
+                  exit 1
+                fi
+                PM2_HOME="$legacy_pm2_home" "$PM2_BIN" delete photogen || true
+                legacy_process_list=$(PM2_HOME="$legacy_pm2_home" "$PM2_BIN" jlist)
+                if [[ "$legacy_process_list" != *'"name":"hello-world"'* ]]; then
+                  echo "hello-world is not healthy after removing legacy photogen"
+                  exit 1
+                fi
+                continue
               fi
               if [ -n "$daemon_tree_commands" ] && [[ "$daemon_tree_commands" != *"npm run start"* ]] && [[ "$daemon_tree_commands" != *"npm -- run start"* ]] && [[ "$daemon_tree_commands" != *"next start"* ]] && [[ "$daemon_tree_commands" != *"next-server"* ]]; then
                 echo "Refusing to stop non-canonical PM2 daemon $daemon_pid with unknown process tree"
@@ -129,7 +139,8 @@ jobs:
             certbot --nginx -d photogenlab.ru -d www.photogenlab.ru --non-interactive --agree-tos -m selyakate676@gmail.com --redirect || true
 
             # 7. Status
-            daemon_count=$(pgrep -f '[P]M2.*God Daemon' | wc -l)
-            test "$daemon_count" -eq 1
+            test "$(cat "$PM2_HOME/pm2.pid")" = "$canonical_daemon_pid"
+            canonical_photogen_count=$("$PM2_BIN" jlist | grep -o '"name":"photogen"' | wc -l)
+            test "$canonical_photogen_count" -eq 1
             "$PM2_BIN" status
             netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"
