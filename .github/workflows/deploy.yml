@@ -21,6 +21,10 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
+            set -euo pipefail
+            export PM2_HOME=/root/.pm2
+            PM2_BIN=/usr/bin/pm2
+
             # 1. Swap setup
             if ! grep -q "/swapfile" /etc/fstab; then
               fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
@@ -31,10 +35,12 @@ jobs:
             fi
 
             # 2. Update code
+            test -d "$PM2_HOME"
+            "$PM2_BIN" status
             cd /root
             git fetch origin
             git checkout -f origin/main -B main
-            git clean -fd
+            git clean -fd -e .pm2/ -e .cache/ -e .config/ -e .npm/ -e .bash_history
 
             # 3. Install & Build
             : "${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL is required}"
@@ -48,10 +54,33 @@ jobs:
             grep -R -q "$NEXT_PUBLIC_YANDEX_METRIKA_ID" .next/static/chunks
 
             # 4. Restart app
-            pm2 delete photogen || true
-            fuser -k 3001/tcp || true
-            pm2 start npm --name "photogen" -- run start
-            pm2 save
+            "$PM2_BIN" delete photogen || true
+            for listener_pid in $(fuser 3001/tcp 2>/dev/null || true); do
+              listener_cwd=$(readlink -f "/proc/$listener_pid/cwd")
+              listener_command=$(tr '\0' ' ' < "/proc/$listener_pid/cmdline")
+              if [ "$listener_cwd" != "/root" ] || [[ "$listener_command" != *"next-server"* ]]; then
+                echo "Refusing to stop unexpected port 3001 listener: pid=$listener_pid cwd=$listener_cwd command=$listener_command"
+                exit 1
+              fi
+              kill "$listener_pid"
+            done
+            for wait_attempt in 1 2 3 4 5; do
+              if ! fuser 3001/tcp >/dev/null 2>&1; then break; fi
+              sleep 1
+            done
+            if fuser 3001/tcp >/dev/null 2>&1; then
+              echo "Port 3001 is still occupied after stopping stale PhotoGen listener"
+              exit 1
+            fi
+            "$PM2_BIN" start /usr/bin/npm --name "photogen" -- run start
+            "$PM2_BIN" save
+            listener_count=0
+            for wait_attempt in 1 2 3 4 5 6 7 8 9 10; do
+              listener_count=$(fuser 3001/tcp 2>/dev/null | wc -w)
+              if [ "$listener_count" -eq 1 ]; then break; fi
+              sleep 1
+            done
+            test "$listener_count" -eq 1
 
             # 5. Configure Nginx for photogenlab.ru
             printf 'server {\n    listen 80;\n    server_name photogenlab.ru www.photogenlab.ru;\n    location / {\n        proxy_pass http://localhost:3001;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection upgrade;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_cache_bypass $http_upgrade;\n    }\n}\n' > /etc/nginx/sites-available/photogenlab.ru
@@ -66,5 +95,5 @@ jobs:
             certbot --nginx -d photogenlab.ru -d www.photogenlab.ru --non-interactive --agree-tos -m selyakate676@gmail.com --redirect || true
 
             # 7. Status
-            pm2 status
+            "$PM2_BIN" status
             netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"
