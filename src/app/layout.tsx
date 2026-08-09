@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   },
 };
 
-import YandexMetricaBootstrap from '@/components/YandexMetricaBootstrap';
+import YandexMetrikaBootstrap from '@/components/YandexMetrikaBootstrap';
 import YandexMetrica from '@/components/YandexMetrica';
 import Navbar from '@/components/Navbar';
 
@@ -55,7 +55,7 @@ export default function RootLayout({
       </head>
       <body>
         <Navbar />
-        <YandexMetricaBootstrap />
+        <YandexMetrikaBootstrap />
         <Suspense fallback={null}>
           <YandexMetrica />
         </Suspense>
