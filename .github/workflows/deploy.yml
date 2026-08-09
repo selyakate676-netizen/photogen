@@ -55,13 +55,19 @@ jobs:
 
             # 4. Restart app
             canonical_daemon_pid=$(cat "$PM2_HOME/pm2.pid")
+            pm2_daemon_pids() {
+              for process_path in /proc/[0-9]*; do
+                process_name=$(cat "$process_path/comm" 2>/dev/null || true)
+                if [[ "$process_name" == PM2* ]]; then basename "$process_path"; fi
+              done
+            }
             collect_descendants() {
               for child_pid in $(pgrep -P "$1" || true); do
                 echo "$child_pid"
                 collect_descendants "$child_pid"
               done
             }
-            for daemon_pid in $(pgrep -f '[P]M2.*God Daemon' || true); do
+            for daemon_pid in $(pm2_daemon_pids); do
               if [ "$daemon_pid" = "$canonical_daemon_pid" ]; then continue; fi
               descendant_pids=$(collect_descendants "$daemon_pid")
               daemon_tree_commands=""
