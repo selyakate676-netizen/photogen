@@ -54,6 +54,40 @@ jobs:
             grep -R -q "$NEXT_PUBLIC_YANDEX_METRIKA_ID" .next/static/chunks
 
             # 4. Restart app
+            canonical_daemon_pid=$(cat "$PM2_HOME/pm2.pid")
+            collect_descendants() {
+              for child_pid in $(pgrep -P "$1" || true); do
+                echo "$child_pid"
+                collect_descendants "$child_pid"
+              done
+            }
+            for daemon_pid in $(pgrep -f '[P]M2.*God Daemon' || true); do
+              if [ "$daemon_pid" = "$canonical_daemon_pid" ]; then continue; fi
+              descendant_pids=$(collect_descendants "$daemon_pid")
+              daemon_tree_commands=""
+              for tree_pid in $descendant_pids; do
+                if [ -r "/proc/$tree_pid/cmdline" ]; then
+                  daemon_tree_commands="$daemon_tree_commands $(tr '\0' ' ' < "/proc/$tree_pid/cmdline")"
+                fi
+              done
+              if [[ "$daemon_tree_commands" == *"hello-world"* ]]; then
+                echo "Refusing to stop non-canonical PM2 daemon $daemon_pid because it owns hello-world"
+                exit 1
+              fi
+              if [ -n "$daemon_tree_commands" ] && [[ "$daemon_tree_commands" != *"npm run start"* ]] && [[ "$daemon_tree_commands" != *"npm -- run start"* ]] && [[ "$daemon_tree_commands" != *"next start"* ]] && [[ "$daemon_tree_commands" != *"next-server"* ]]; then
+                echo "Refusing to stop non-canonical PM2 daemon $daemon_pid with unknown process tree"
+                exit 1
+              fi
+              kill "$daemon_pid"
+              for wait_attempt in 1 2 3 4 5; do
+                if ! kill -0 "$daemon_pid" 2>/dev/null; then break; fi
+                sleep 1
+              done
+              if kill -0 "$daemon_pid" 2>/dev/null; then
+                echo "Non-canonical PM2 daemon $daemon_pid did not stop"
+                exit 1
+              fi
+            done
             "$PM2_BIN" delete photogen || true
             for listener_pid in $(fuser 3001/tcp 2>/dev/null || true); do
               listener_cwd=$(readlink -f "/proc/$listener_pid/cwd")
@@ -95,5 +129,7 @@ jobs:
             certbot --nginx -d photogenlab.ru -d www.photogenlab.ru --non-interactive --agree-tos -m selyakate676@gmail.com --redirect || true
 
             # 7. Status
+            daemon_count=$(pgrep -f '[P]M2.*God Daemon' | wc -l)
+            test "$daemon_count" -eq 1
             "$PM2_BIN" status
             netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"
