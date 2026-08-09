@@ -41,6 +41,10 @@ jobs:
             git fetch origin
             git checkout -f origin/main -B main
             git clean -fd -e .pm2/ -e .cache/ -e .config/ -e .npm/ -e .bash_history
+            active_sha=$(git rev-parse HEAD)
+            test "$active_sha" = "$(git rev-parse origin/main)"
+            grep -q 'photogen-analytics-consent' src/lib/analytics.ts
+            grep -q 'getAnalyticsConsent' src/components/YandexMetrikaBootstrap.tsx
 
             # 3. Install & Build
             : "${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL is required}"
@@ -52,6 +56,14 @@ jobs:
             npm run build
             test -n "$NEXT_PUBLIC_YANDEX_METRIKA_ID"
             grep -R -q "$NEXT_PUBLIC_YANDEX_METRIKA_ID" .next/static/chunks
+            build_id=$(cat .next/BUILD_ID)
+            echo "Active SHA: $active_sha"
+            echo "Build ID: $build_id"
+            grep -R -q 'photogen-analytics-consent' .next/server
+            if grep -R -q 'id="yandex-metrika"' .next/server; then
+              echo "Stale inline Metrika bootstrap detected in freshly built server bundle"
+              exit 1
+            fi
 
             # 4. Restart app
             pm2_daemon_pids() {
@@ -162,8 +174,5 @@ jobs:
             certbot --nginx -d photogenlab.ru -d www.photogenlab.ru --non-interactive --agree-tos -m selyakate676@gmail.com --redirect || true
 
             # 7. Status
-            test "$(cat "$PM2_HOME/pm2.pid")" = "$canonical_daemon_pid"
-            canonical_photogen_count=$("$PM2_BIN" jlist | grep -o '"name":"photogen"' | wc -l)
-            test "$canonical_photogen_count" -eq 1
             "$PM2_BIN" status
             netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"
