@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/crystal-wallet-ledger
+      - fix/failed-generation-refund
 
 permissions:
   contents: read
