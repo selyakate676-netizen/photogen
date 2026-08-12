@@ -170,6 +170,18 @@ select ok(
   'concurrent claims serialize on the photoshoot row'
 );
 
+select * from public.finish_photoshoot_generation(current_setting('photogen.wallet_charge_order')::uuid, false, 'safe failure');
+select is((select balance_crystals from public.wallets where user_id = '95000000-0000-4000-8000-000000000095'), 100::bigint, 'failed generation restores the charged price');
+select is((select count(*) from public.wallet_transactions where idempotency_key = 'photoshoot:' || current_setting('photogen.wallet_charge_order') || ':refund'), 1::bigint, 'failed generation records one refund');
+select * from public.finish_photoshoot_generation(current_setting('photogen.wallet_charge_order')::uuid, false, 'duplicate failure');
+select is((select count(*) from public.wallet_transactions where idempotency_key = 'photoshoot:' || current_setting('photogen.wallet_charge_order') || ':refund'), 1::bigint, 'repeated failed handling does not refund twice');
+select is((select balance_crystals from public.wallets where user_id = '95000000-0000-4000-8000-000000000095'), 100::bigint, 'charge then failure restores original balance');
+insert into public.photoshoots(user_id, style_id, status, package_snapshot) values ('95000000-0000-4000-8000-000000000095', 'completed-fixture', 'generating', '{"id":"completed-fixture","price_crystals":30}'::jsonb);
+select * from public.finish_photoshoot_generation((select id from public.photoshoots where style_id = 'completed-fixture'), true, null);
+select is((select count(*) from public.wallet_transactions where idempotency_key = 'photoshoot:' || (select id::text from public.photoshoots where style_id = 'completed-fixture') || ':refund'), 0::bigint, 'completed generation receives no refund');
+insert into public.photoshoots(user_id, style_id, status, package_snapshot) values ('95000000-0000-4000-8000-000000000095', 'uncharged-failure', 'generating', '{"id":"uncharged-failure","price_crystals":40}'::jsonb);
+select * from public.finish_photoshoot_generation((select id from public.photoshoots where style_id = 'uncharged-failure'), false, 'safe failure');
+select is((select count(*) from public.wallet_transactions where idempotency_key = 'photoshoot:' || (select id::text from public.photoshoots where style_id = 'uncharged-failure') || ':refund'), 0::bigint, 'failure without charge receives no refund');
 insert into public.photoshoots(user_id, style_id, status, package_snapshot)
 values (
   '94000000-0000-4000-8000-000000000094',
