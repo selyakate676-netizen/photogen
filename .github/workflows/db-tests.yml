@@ -40,6 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           cat supabase_photoshoot_crystal_charge.sql > tests/crystal_wallet_ci.pgtap.sql
+          cat supabase_failed_generation_refund.sql >> tests/crystal_wallet_ci.pgtap.sql
           printf '\ngrant select, insert on table public.photoshoots to service_role;\n' \
             >> tests/crystal_wallet_ci.pgtap.sql
           grep -v '^\\ir ../supabase_photoshoot_crystal_charge.sql$' tests/crystal_wallet.pgtap.sql \
