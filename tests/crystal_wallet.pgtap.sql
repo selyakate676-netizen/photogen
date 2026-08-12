@@ -1,5 +1,6 @@
 alter table public.photoshoots
-  add column if not exists package_snapshot jsonb;
+  add column if not exists package_snapshot jsonb,
+  add column if not exists safe_error text;
 alter table public.photoshoots
   drop constraint if exists photoshoots_status_check;
 alter table public.photoshoots
