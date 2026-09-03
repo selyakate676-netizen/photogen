@@ -39,7 +39,7 @@ const sharedFeatures = [
   'реалистичная обработка',
 ];
 
-const basePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRub' | 'priceCrystals'>[] = [
+const legacyBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRub' | 'priceCrystals'>[] = [
   {
     id: 'career',
     slug: 'career',
@@ -234,9 +234,78 @@ const basePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRub' | 'p
   },
 ];
 
+const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRub' | 'priceCrystals'>[] = [
+  {
+    id: 'autumn-promenade',
+    slug: 'autumn-promenade',
+    title: 'Осенний променад',
+    description: 'Кинематографичная прогулка в золотом осеннем парке',
+    summary: 'Четыре связанных fashion-кадра в чёрном пальто среди золотой листвы: прогулка, портрет на скамье, живой поворот и спокойный финал.',
+    photos: 4,
+    price: '189 ₽',
+    category: 'lifestyle',
+    categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp011-autumn-promenade-model-a-hc001.jpg',
+    gallery: [
+      '/package-previews/sp011-autumn-promenade-model-a-hc001.jpg',
+      '/package-previews/sp011-autumn-promenade-model-a-hc002.jpg',
+      '/package-previews/sp011-autumn-promenade-model-a-hc003.jpg',
+      '/package-previews/sp011-autumn-promenade-model-a-hc004.jpg',
+    ],
+    suitableFor: ['Соцсети', 'Личный бренд', 'Осенний контент', 'Профиль'],
+    features: ['4 профессиональных фото', 'Один цельный образ', 'Живая осенняя серия', 'Сохранение внешности'],
+    deliverables: ['Прогулочный кадр', 'Портрет на скамье', 'Поворот через плечо', 'Стоящий портрет'],
+  },
+  {
+    id: 'misty-morning',
+    slug: 'misty-morning',
+    title: 'Туманное утро',
+    description: 'Тихая полевая серия в прохладном рассеянном свете',
+    summary: 'Мягкая кинематографичная фотосессия в поле: спокойный портрет, близкий кадр, ветер в волосах и естественная поза среди трав.',
+    photos: 4,
+    price: '189 ₽',
+    category: 'lifestyle',
+    categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp012-misty-morning-model-a-hc001.jpg',
+    gallery: [
+      '/package-previews/sp012-misty-morning-model-a-hc001.jpg',
+      '/package-previews/sp012-misty-morning-model-a-hc002.jpg',
+      '/package-previews/sp012-misty-morning-model-a-hc003.jpg',
+      '/package-previews/sp012-misty-morning-model-a-hc004.jpg',
+    ],
+    suitableFor: ['Соцсети', 'Личный архив', 'Личный бренд', 'Спокойный lifestyle'],
+    features: ['4 профессиональных фото', 'Один цельный образ', 'Мягкая естественная мимика', 'Сохранение внешности'],
+    deliverables: ['Главный портрет', 'Крупный портрет', 'Кадр с ветром', 'Портрет среди трав'],
+  },
+  {
+    id: 'golden-field',
+    slug: 'golden-field',
+    title: 'Золотое поле',
+    description: 'Тёплая фотосессия в поле на закатном солнце',
+    summary: 'Четыре тёплых кадра в едином образе: сидячий портрет, солнечный крупный план, взгляд назад и выразительный финальный кадр.',
+    photos: 4,
+    price: '189 ₽',
+    category: 'lifestyle',
+    categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp013-golden-field-model-a-hc001.jpg',
+    gallery: [
+      '/package-previews/sp013-golden-field-model-a-hc001.jpg',
+      '/package-previews/sp013-golden-field-model-a-hc002.jpg',
+      '/package-previews/sp013-golden-field-model-a-hc003.jpg',
+      '/package-previews/sp013-golden-field-model-a-hc004.jpg',
+    ],
+    suitableFor: ['Соцсети', 'Личный бренд', 'Летний контент', 'Профиль'],
+    features: ['4 профессиональных фото', 'Один цельный образ', 'Тёплый направленный свет', 'Сохранение внешности'],
+    deliverables: ['Сидячий портрет', 'Солнечный крупный план', 'Взгляд назад', 'Финальный портрет'],
+  },
+];
+
 type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
 
 const economyByPack: Record<string, PhotoPackEconomy> = {
+  'autumn-promenade': { photoCount: 4, priceRub: 189, priceCrystals: 38 },
+  'misty-morning': { photoCount: 4, priceRub: 189, priceCrystals: 38 },
+  'golden-field': { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },
@@ -251,9 +320,9 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   bw: { photoCount: 4, priceRub: 199, priceCrystals: 40 },
 };
 
-const productionPhotoPackIds = new Set(['career', 'dating', 'social', 'studio', 'neon', 'bw']);
-
-export const photoPacks: PhotoPack[] = basePhotoPacks.filter((pack) => productionPhotoPackIds.has(pack.id)).map((pack) => {
+function applyPackEconomy(
+  pack: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRub' | 'priceCrystals'>,
+): PhotoPack {
   const economy = economyByPack[pack.id] ?? { photoCount: 4, priceRub: 189, priceCrystals: 38 };
 
   return {
@@ -266,9 +335,17 @@ export const photoPacks: PhotoPack[] = basePhotoPacks.filter((pack) => productio
       fullHd: { tokens: economy.priceCrystals, rubles: economy.priceRub },
     },
   };
-});
+}
+
+export const photoPacks: PhotoPack[] = currentBasePhotoPacks.map(applyPackEconomy);
+const archivedPhotoPacks: PhotoPack[] = legacyBasePhotoPacks.map(applyPackEconomy);
+
 export function getPhotoPack(slug: string) {
   return photoPacks.find((pack) => pack.slug === slug || pack.id === slug);
+}
+
+export function getPhotoPackForHistory(slug: string) {
+  return getPhotoPack(slug) ?? archivedPhotoPacks.find((pack) => pack.slug === slug || pack.id === slug);
 }
 
 export function getRelatedPhotoPacks(slug: string, limit = 6) {

@@ -67,18 +67,8 @@ const labels = {
 
 const filters: Array<{ id: FilterId; label: string }> = [
   { id: 'all', label: labels.popular },
-  { id: 'social', label: labels.social },
-  { id: 'business', label: labels.work },
-  { id: 'dating', label: labels.dating },
-  { id: 'travel', label: labels.travel },
-  { id: 'fashion', label: labels.fashion },
   { id: 'lifestyle', label: labels.lifestyle },
   { id: 'women', label: '\u0414\u043b\u044f \u0436\u0435\u043d\u0449\u0438\u043d' },
-  { id: 'men', label: '\u0414\u043b\u044f \u043c\u0443\u0436\u0447\u0438\u043d' },
-  { id: 'family', label: '\u0421\u0435\u043c\u0435\u0439\u043d\u044b\u0435' },
-  { id: 'holiday', label: '\u041f\u0440\u0430\u0437\u0434\u043d\u0438\u043a\u0438' },
-  { id: 'creative', label: '\u041a\u0440\u0435\u0430\u0442\u0438\u0432' },
-  { id: 'sport', label: '\u0421\u043f\u043e\u0440\u0442' },
   { id: 'new', label: '\u041d\u043e\u0432\u0438\u043d\u043a\u0438' },
 ];
 
@@ -94,60 +84,17 @@ const realCards: CatalogCard[] = photoPacks.map((pack) => ({
   image: pack.image,
   real: true,
 }));
-const placeholderCards: CatalogCard[] = [
-  ['old-money', 'Old Money', 'Quiet luxury \u0438 \u0441\u0434\u0435\u0440\u0436\u0430\u043d\u043d\u044b\u0439 \u043f\u0440\u0435\u043c\u0438\u0443\u043c', 'fashion', labels.fashion, '/ref-golden.png'],
-  ['wedding', 'Wedding', '\u041d\u0435\u0436\u043d\u0430\u044f \u0441\u0432\u0430\u0434\u0435\u0431\u043d\u0430\u044f \u0441\u0435\u0440\u0438\u044f', 'dating', '\u0421\u0432\u0438\u0434\u0430\u043d\u0438\u044f', '/dating-woman-1.png'],
-  ['fashion-editorial', 'Fashion Editorial', '\u041e\u0431\u043b\u043e\u0436\u043a\u0430 \u043c\u043e\u0434\u043d\u043e\u0433\u043e \u0436\u0443\u0440\u043d\u0430\u043b\u0430', 'fashion', labels.fashion, '/studio-fashion.png'],
-  ['linkedin-pro', 'LinkedIn Pro', '\u0423\u0432\u0435\u0440\u0435\u043d\u043d\u044b\u0439 \u0434\u0435\u043b\u043e\u0432\u043e\u0439 \u043f\u043e\u0440\u0442\u0440\u0435\u0442', 'business', labels.business, '/career-woman-1.png'],
-  ['street-style', 'Street Style', '\u0413\u043e\u0440\u043e\u0434\u0441\u043a\u0430\u044f \u0441\u0435\u0440\u0438\u044f \u0434\u043b\u044f \u043b\u0435\u043d\u0442\u044b', 'social', labels.social, '/social-woman-car.png'],
-  ['ceo-portrait', 'CEO Portrait', '\u0421\u0442\u0440\u043e\u0433\u0438\u0439 \u0438 \u0434\u043e\u0440\u043e\u0433\u043e\u0439 \u0431\u0438\u0437\u043d\u0435\u0441-\u043a\u0430\u0434\u0440', 'business', labels.business, '/career-man-1.png'],
-  ['coffee-shop', 'Coffee Shop', '\u0422\u0435\u043f\u043b\u044b\u0439 lifestyle \u0432 \u043a\u0430\u0444\u0435', 'lifestyle', labels.lifestyle, '/social-woman-cafe.png'],
-  ['autumn-walk', 'Autumn Walk', '\u041f\u0440\u043e\u0433\u0443\u043b\u043a\u0430 \u0432 \u0437\u043e\u043b\u043e\u0442\u043e\u043c \u0441\u0432\u0435\u0442\u0435', 'lifestyle', labels.lifestyle, '/studio-nature.png'],
-  ['summer-linen', 'Summer Linen', '\u041b\u0435\u0433\u043a\u0438\u0435 \u043b\u0435\u0442\u043d\u0438\u0435 \u043e\u0431\u0440\u0430\u0437\u044b', 'travel', labels.travel, '/package-previews/sp005-sup-editorial-lifestyle.jpg'],
-  ['luxury-hotel', 'Luxury Hotel', '\u0424\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u044f \u0432 \u0430\u0442\u043c\u043e\u0441\u0444\u0435\u0440\u0435 \u043e\u0442\u0435\u043b\u044f', 'travel', labels.travel, '/review-avatar-1.png'],
-  ['black-white', 'Black & White', '\u041a\u043e\u043d\u0442\u0440\u0430\u0441\u0442\u043d\u0430\u044f \u0447\u0435\u0440\u043d\u043e-\u0431\u0435\u043b\u0430\u044f \u0441\u0435\u0440\u0438\u044f', 'fashion', labels.fashion, '/studio-bw-man.png'],
-  ['vacation', 'Vacation', '\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0435 \u043a\u0430\u0434\u0440\u044b \u0438\u0437 \u043e\u0442\u043f\u0443\u0441\u043a\u0430', 'travel', labels.travel, '/package-previews/sp005-sup-editorial-board.jpg'],
-  ['fitness', 'Fitness', '\u0421\u043f\u043e\u0440\u0442\u0438\u0432\u043d\u0430\u044f \u0441\u0435\u0440\u0438\u044f \u0441 \u044d\u043d\u0435\u0440\u0433\u0438\u0435\u0439', 'lifestyle', labels.lifestyle, '/dating-man-outdoor.png'],
-  ['creative-studio', 'Creative Studio', '\u041d\u0435\u043e\u0431\u044b\u0447\u043d\u044b\u0439 \u0441\u0432\u0435\u0442 \u0438 \u0440\u0430\u043a\u0443\u0440\u0441\u044b', 'fashion', labels.fashion, '/studio-red-light-v2.png'],
-  ['paris-morning', 'Paris Morning', '\u0421\u043f\u043e\u043a\u043e\u0439\u043d\u044b\u0439 \u0443\u0442\u0440\u0435\u043d\u043d\u0438\u0439 editorial', 'travel', labels.travel, '/review-avatar-2.png'],
-  ['night-city', 'Night City', '\u0412\u0435\u0447\u0435\u0440\u043d\u0438\u0439 \u0433\u043e\u0440\u043e\u0434 \u0438 \u0441\u0438\u043d\u0435\u043c\u0430\u0442\u0438\u0447\u043d\u044b\u0439 \u0441\u0432\u0435\u0442', 'social', labels.social, '/ref-neon.png'],
-  ['magazine-cover', 'Magazine Cover', '\u041a\u0430\u0434\u0440\u044b \u043a\u0430\u043a \u0434\u043b\u044f \u043e\u0431\u043b\u043e\u0436\u043a\u0438', 'fashion', labels.fashion, '/studio-glamour.png'],
-  ['casual-lifestyle', 'Casual Lifestyle', '\u0416\u0438\u0432\u044b\u0435 \u043a\u0430\u0434\u0440\u044b \u043d\u0430 \u043a\u0430\u0436\u0434\u044b\u0439 \u0434\u0435\u043d\u044c', 'lifestyle', labels.lifestyle, '/social-woman-2.png'],
-  ['art-gallery', 'Art Gallery', '\u0421\u043f\u043e\u043a\u043e\u0439\u043d\u044b\u0439 \u0430\u0440\u0442-\u043a\u0430\u0434\u0440 \u0434\u043b\u044f \u043b\u0438\u0447\u043d\u043e\u0433\u043e \u0431\u0440\u0435\u043d\u0434\u0430', 'social', labels.social, '/studio-stool-woman.png'],
-  ['winter-mood', 'Winter Mood', '\u0423\u044e\u0442\u043d\u0430\u044f \u0437\u0438\u043c\u043d\u044f\u044f \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u044f', 'lifestyle', labels.lifestyle, '/review-avatar-3.png'],
-  ['business-travel', 'Business Travel', '\u0414\u0435\u043b\u043e\u0432\u0430\u044f \u043f\u043e\u0435\u0437\u0434\u043a\u0430 \u0438 \u043e\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u0441\u0442\u0438\u043b\u044c', 'business', labels.business, '/career-woman-2.png'],
-  ['date-night', 'Date Night', '\u0412\u0435\u0447\u0435\u0440\u043d\u0438\u0439 \u043e\u0431\u0440\u0430\u0437 \u0434\u043b\u044f \u0430\u043d\u043a\u0435\u0442\u044b', 'dating', '\u0421\u0432\u0438\u0434\u0430\u043d\u0438\u044f', '/dating-woman-2.png'],
-].map(([id, title, description, category, categoryLabel, image]) => ({
-  id,
-  title,
-  description,
-  category: category as CatalogCard['category'],
-  categoryLabel,
-  image,
-  photos: 20,
-}));
-
-const catalogCards = [...realCards, ...placeholderCards];
+const catalogCards = realCards;
 
 const collections: Collection[] = [
-  { id: 'popular', title: labels.popular, cardIds: ['career', 'dating', 'studio-elegance', 'social', 'old-money', 'lakeside-walk', 'fashion-editorial'] },
-  { id: 'social-row', title: labels.social, category: 'social', cardIds: ['social', 'street-style', 'night-city', 'art-gallery', 'casual-lifestyle', 'dating', 'coffee-shop'] },
-  { id: 'work', title: '\u0414\u043b\u044f \u0440\u0430\u0431\u043e\u0442\u044b', category: 'business', cardIds: ['career', 'minimal-black-studio', 'studio', 'linkedin-pro', 'ceo-portrait', 'business-travel', 'studio-elegance'] },
-  { id: 'dating-row', title: '\u0414\u043b\u044f \u0437\u043d\u0430\u043a\u043e\u043c\u0441\u0442\u0432', category: 'dating', cardIds: ['dating', 'lakeside-walk', 'wedding', 'date-night', 'coffee-shop', 'old-money'] },
-  { id: 'travel-row', title: labels.travel, category: 'travel', cardIds: ['sup', 'lakeside-walk', 'summer-linen', 'luxury-hotel', 'vacation', 'paris-morning'] },
-  { id: 'fashion-row', title: labels.fashion, category: 'fashion', cardIds: ['studio-elegance', 'russian-editorial', 'neon', 'bw', 'old-money', 'fashion-editorial', 'magazine-cover', 'creative-studio'] },
-  { id: 'lifestyle-row', title: labels.lifestyle, category: 'lifestyle', cardIds: ['casual-park', 'social', 'coffee-shop', 'autumn-walk', 'casual-lifestyle', 'fitness', 'winter-mood'] },
+  { id: 'popular', title: labels.popular, cardIds: ['autumn-promenade', 'misty-morning', 'golden-field'] },
+  { id: 'lifestyle-row', title: labels.lifestyle, category: 'lifestyle', cardIds: ['autumn-promenade', 'misty-morning', 'golden-field'] },
 ];
 
 
 const filterCardIds: Partial<Record<FilterId, string[]>> = {
-  women: ['dating', 'studio-elegance', 'lakeside-walk', 'casual-park', 'social', 'wedding', 'old-money', 'coffee-shop', 'autumn-walk', 'date-night'],
-  men: ['minimal-black-studio', 'ceo-portrait', 'fitness', 'business-travel', 'black-white'],
-  family: ['wedding', 'casual-park', 'winter-mood', 'coffee-shop'],
-  holiday: ['wedding', 'luxury-hotel', 'winter-mood', 'date-night'],
-  creative: ['neon', 'russian-editorial', 'creative-studio', 'magazine-cover', 'art-gallery', 'night-city'],
-  sport: ['fitness', 'sup', 'vacation'],
-  new: ['studio-elegance', 'lakeside-walk', 'casual-park', 'sup', 'russian-editorial', 'social'],
+  women: ['autumn-promenade', 'misty-morning', 'golden-field'],
+  new: ['autumn-promenade', 'misty-morning', 'golden-field'],
 };
 function matchesSearch(card: CatalogCard, query: string) {
   const haystack = `${card.title} ${card.description} ${card.categoryLabel}`.toLowerCase();

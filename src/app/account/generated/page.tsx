@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { getPhotoPack } from '@/lib/photoPacks';
+import { getPhotoPackForHistory } from '@/lib/photoPacks';
 import { retryTraining } from '@/app/dashboard/actions';
 import AnalyticsEvent from '@/components/AnalyticsEvent';
 import styles from '../account.module.css';
@@ -77,7 +77,7 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
       ) : (
         <div className={styles.generationGrid}>
           {photoshoots.map((shoot) => {
-            const pack = getPhotoPack(shoot.style_id);
+            const pack = getPhotoPackForHistory(shoot.style_id);
             const resultImages = Array.isArray(shoot.result_images)
               ? shoot.result_images.filter((image: unknown): image is string => typeof image === 'string').slice(0, 4)
               : [];
