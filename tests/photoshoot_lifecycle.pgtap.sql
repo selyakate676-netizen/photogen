@@ -7,6 +7,16 @@ values
   ('91000000-0000-4000-8000-000000000091', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'lifecycle-a@example.test', '', now(), now()),
   ('92000000-0000-4000-8000-000000000092', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'lifecycle-b@example.test', '', now(), now());
 
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
+select public.credit_wallet(
+  '91000000-0000-4000-8000-000000000091',
+  2,
+  'test:lifecycle:wallet-credit'
+);
+
+reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
 select set_config('request.jwt.claim.role', 'authenticated', true);
@@ -21,7 +31,7 @@ select public.create_photoshoot_with_persona(
   (select id from public.personas where user_id = auth.uid() and is_default),
   'dating', '{}', 'woman', 'average', 'green', '',
   null, null, null, null, null,
-  4, '{"id":"dating","slug":"dating","name":"Знакомства"}'::jsonb
+  4, '{"id":"dating","slug":"dating","name":"Знакомства","price_crystals":1}'::jsonb
 );
 select set_config(
   'photogen.lifecycle_order_one',
@@ -158,7 +168,7 @@ select public.create_photoshoot_with_persona(
   (select id from public.personas where user_id = auth.uid() and is_default),
   'career', '{}', 'woman', 'average', 'green', '',
   null, null, null, null, null,
-  4, '{"id":"career","slug":"career","name":"Бизнес-портрет"}'::jsonb
+  4, '{"id":"career","slug":"career","name":"Бизнес-портрет","price_crystals":1}'::jsonb
 );
 select set_config(
   'photogen.lifecycle_order_two',
