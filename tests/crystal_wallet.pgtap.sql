@@ -17,6 +17,24 @@ insert into auth.users(id, instance_id, aud, role, email, encrypted_password, cr
 values
   ('94000000-0000-4000-8000-000000000094', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'wallet-a@example.test', '', now(), now()),
   ('95000000-0000-4000-8000-000000000095', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'wallet-b@example.test', '', now(), now());
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000094', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
+select public.create_persona(null, null, null, 'woman', 'green');
+select public.add_persona_photo(
+  (select id from public.personas where user_id = auth.uid() and is_default),
+  'personas/94000000-0000-4000-8000-000000000094/' ||
+    (select id from public.personas where user_id = auth.uid() and is_default) || '/one.jpg'
+);
+
+select set_config('request.jwt.claim.sub', '95000000-0000-4000-8000-000000000095', true);
+select public.create_persona(null, null, null, 'woman', 'green');
+select public.add_persona_photo(
+  (select id from public.personas where user_id = auth.uid() and is_default),
+  'personas/95000000-0000-4000-8000-000000000095/' ||
+    (select id from public.personas where user_id = auth.uid() and is_default) || '/one.jpg'
+);
+reset role;
 
 select is(
   (select balance_crystals from public.wallets where user_id = '94000000-0000-4000-8000-000000000094'),
@@ -121,13 +139,13 @@ select is(
   100::bigint,
   'charge fixture funds the wallet'
 );
-insert into public.photoshoots(user_id, style_id, status, package_snapshot)
-values (
-  '95000000-0000-4000-8000-000000000095',
-  'social',
-  'queued',
-  '{"id":"social","price_crystals":30}'::jsonb
-);
+insert into public.photoshoots(user_id, persona_id, persona_snapshot, style_id, status, package_snapshot)
+select p.user_id, p.id, jsonb_build_object(
+  'name', p.name, 'gender', p.gender, 'height', p.height, 'weight', p.weight,
+  'eyeColor', p.eye_color, 'photos', to_jsonb(array[pp.storage_path])
+), 'social', 'queued', '{"id":"social","price_crystals":30}'::jsonb
+from public.personas p join public.persona_photos pp on pp.persona_id = p.id
+where p.user_id = '95000000-0000-4000-8000-000000000095' and p.is_default;
 select set_config(
   'photogen.wallet_charge_order',
   (select id::text from public.photoshoots where style_id = 'social'),
@@ -177,19 +195,31 @@ select is((select count(*) from public.wallet_transactions where idempotency_key
 select * from public.finish_photoshoot_generation(current_setting('photogen.wallet_charge_order')::uuid, false, 'duplicate failure');
 select is((select count(*) from public.wallet_transactions where idempotency_key = 'photoshoot:' || current_setting('photogen.wallet_charge_order') || ':refund'), 1::bigint, 'repeated failed handling does not refund twice');
 select is((select balance_crystals from public.wallets where user_id = '95000000-0000-4000-8000-000000000095'), 100::bigint, 'charge then failure restores original balance');
-insert into public.photoshoots(user_id, style_id, status, package_snapshot) values ('95000000-0000-4000-8000-000000000095', 'completed-fixture', 'generating', '{"id":"completed-fixture","price_crystals":30}'::jsonb);
+insert into public.photoshoots(user_id, persona_id, persona_snapshot, style_id, status, package_snapshot)
+select p.user_id, p.id, jsonb_build_object(
+  'name', p.name, 'gender', p.gender, 'height', p.height, 'weight', p.weight,
+  'eyeColor', p.eye_color, 'photos', to_jsonb(array[pp.storage_path])
+), 'completed-fixture', 'generating', '{"id":"completed-fixture","price_crystals":30}'::jsonb
+from public.personas p join public.persona_photos pp on pp.persona_id = p.id
+where p.user_id = '95000000-0000-4000-8000-000000000095' and p.is_default;
 select * from public.finish_photoshoot_generation((select id from public.photoshoots where style_id = 'completed-fixture'), true, null);
 select is((select count(*) from public.wallet_transactions where idempotency_key = 'photoshoot:' || (select id::text from public.photoshoots where style_id = 'completed-fixture') || ':refund'), 0::bigint, 'completed generation receives no refund');
-insert into public.photoshoots(user_id, style_id, status, package_snapshot) values ('95000000-0000-4000-8000-000000000095', 'uncharged-failure', 'generating', '{"id":"uncharged-failure","price_crystals":40}'::jsonb);
+insert into public.photoshoots(user_id, persona_id, persona_snapshot, style_id, status, package_snapshot)
+select p.user_id, p.id, jsonb_build_object(
+  'name', p.name, 'gender', p.gender, 'height', p.height, 'weight', p.weight,
+  'eyeColor', p.eye_color, 'photos', to_jsonb(array[pp.storage_path])
+), 'uncharged-failure', 'generating', '{"id":"uncharged-failure","price_crystals":40}'::jsonb
+from public.personas p join public.persona_photos pp on pp.persona_id = p.id
+where p.user_id = '95000000-0000-4000-8000-000000000095' and p.is_default;
 select * from public.finish_photoshoot_generation((select id from public.photoshoots where style_id = 'uncharged-failure'), false, 'safe failure');
 select is((select count(*) from public.wallet_transactions where idempotency_key = 'photoshoot:' || (select id::text from public.photoshoots where style_id = 'uncharged-failure') || ':refund'), 0::bigint, 'failure without charge receives no refund');
-insert into public.photoshoots(user_id, style_id, status, package_snapshot)
-values (
-  '94000000-0000-4000-8000-000000000094',
-  'career',
-  'queued',
-  '{"id":"career","price_crystals":80}'::jsonb
-);
+insert into public.photoshoots(user_id, persona_id, persona_snapshot, style_id, status, package_snapshot)
+select p.user_id, p.id, jsonb_build_object(
+  'name', p.name, 'gender', p.gender, 'height', p.height, 'weight', p.weight,
+  'eyeColor', p.eye_color, 'photos', to_jsonb(array[pp.storage_path])
+), 'career', 'queued', '{"id":"career","price_crystals":80}'::jsonb
+from public.personas p join public.persona_photos pp on pp.persona_id = p.id
+where p.user_id = '94000000-0000-4000-8000-000000000094' and p.is_default;
 select set_config(
   'photogen.wallet_insufficient_order',
   (select id::text from public.photoshoots where style_id = 'career'),
