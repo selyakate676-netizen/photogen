@@ -30,7 +30,14 @@ jobs:
           supabase init
           mkdir -p supabase/migrations
           cp supabase_schema.sql supabase/migrations/20260807000100_base_schema.sql
-          cp supabase_crystal_wallet.sql supabase/migrations/20260807000200_crystal_wallet.sql
+          cp supabase_personas_migration.sql supabase/migrations/20260807000200_personas.sql
+          cp supabase_personas_hardening.sql supabase/migrations/20260807000300_personas_hardening.sql
+          cp supabase_personas_guard_fix.sql supabase/migrations/20260807000400_personas_guard_fix.sql
+          cp supabase_photoshoot_persona.sql supabase/migrations/20260807000500_photoshoot_persona.sql
+          cp supabase_photoshoot_persona_rpc_fix.sql supabase/migrations/20260807000600_photoshoot_persona_rpc_fix.sql
+          cp supabase_persona_appearance.sql supabase/migrations/20260807000700_persona_appearance.sql
+          cp supabase_photoshoot_lifecycle.sql supabase/migrations/20260807000800_photoshoot_lifecycle.sql
+          cp supabase_crystal_wallet.sql supabase/migrations/20260807000900_crystal_wallet.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
@@ -40,11 +47,15 @@ jobs:
         run: |
           set -euo pipefail
           cat supabase_photoshoot_crystal_charge.sql > tests/crystal_wallet_ci.pgtap.sql
+          cat supabase_failed_generation_refund.sql >> tests/crystal_wallet_ci.pgtap.sql
           printf '\ngrant select, insert on table public.photoshoots to service_role;\n' \
             >> tests/crystal_wallet_ci.pgtap.sql
           grep -v '^\\ir ../supabase_photoshoot_crystal_charge.sql$' tests/crystal_wallet.pgtap.sql \
             >> tests/crystal_wallet_ci.pgtap.sql
           supabase test db tests/crystal_wallet_ci.pgtap.sql
+
+      - name: Run photoshoot lifecycle pgTAP tests
+        run: supabase test db tests/photoshoot_lifecycle.pgtap.sql
 
       - name: Stop ephemeral Supabase
         if: always()
