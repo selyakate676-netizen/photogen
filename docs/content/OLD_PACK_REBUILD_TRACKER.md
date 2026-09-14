@@ -4,6 +4,26 @@ Scope: the seven legacy commercial packs `SP-004` through `SP-010`.
 
 The original prompt baseline is preserved in `docs/content/archive/legacy-packs-sp004-sp010-2026-09-02/`. The legacy runtime definitions remain available only for historical records; all seven packs are removed from the orderable catalog.
 
+## Product decisions for SP-014 through SP-026
+
+Product status records the content decision for final catalog selection. It is independent from runtime or orderable status; this section does not activate, deactivate or otherwise change runtime availability.
+
+| Pack ID | Product status | Required product work |
+| --- | --- | --- |
+| `SP-014` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-015` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-016` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-017` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-018` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-019` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-020` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-021` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-022` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-023` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-024` | `KEEP / PRODUCT_APPROVED` | None |
+| `SP-025` | `REWORK` | Preserve `HC-001` and `HC-002`; add distinct `HC-003` and `HC-004`. New prompts are `PROMPT READY / PREVIEW PENDING`. |
+| `SP-026` | `REWORK_MINOR` | Align `HC-002` with the light knitted knee-high socks used by the other three compositions. |
+
 ## Rebuild status
 
 | Pack ID | Legacy pack | Current catalog mapping | Rebuild status | Next required input |
