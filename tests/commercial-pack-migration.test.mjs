@@ -89,8 +89,6 @@ const expectedPromptHashes = {
   "autumn-route": [
     "a989b1179e586aa360565c4fbb10a20f318b26bd762a664621e4b319b2d3ac51",
     "cec2d5e9a7f2c64ade2d6c1c8b3c3a6d5c1efbcbf77dbf92f12aab88e4d67351",
-    "d77447417aefbfda53da9a7b3fa93825a04ee6da12fb7dbdcf824693938a4eba",
-    "9965ad0e9d9ec704df7f1e13110bc5ac2246a063bf1e65dc7c52e71eb1e79961",
   ],
   "misty-cabin": [
     "b21d447fd9b8c1c8e0926dc9ff150260dd4fa6a81d4ee2e579d9d2432edd18db",
@@ -107,9 +105,9 @@ test("only the sixteen visually accepted packs are orderable", () => {
   );
 
   for (const pack of photoPacks) {
-    const expectedCount = pack.id === "golden-reflection" ? 8 : pack.id === "autumn-lake" ? 5 : 4;
+    const expectedCount = pack.id === "golden-reflection" ? 8 : pack.id === "autumn-lake" ? 5 : pack.id === "autumn-route" ? 2 : 4;
     assert.equal(pack.photoCount, expectedCount);
-    assert.equal(pack.gallery.length, pack.id === "autumn-route" ? 2 : expectedCount);
+    assert.equal(pack.gallery.length, expectedCount);
     const expectedModel = ["black-minimalism", "first-impression", "quiet-confidence", "autumn-lake"].includes(pack.id)
       ? "model-c"
       : ["scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "golden-reflection", "scarlet-accent-2", "autumn-route", "misty-cabin"].includes(pack.id)
@@ -129,7 +127,7 @@ test("legacy packs are hidden from ordering but remain resolvable for history", 
   assert.equal(getPhotoPackForHistory("neon")?.id, "neon");
 });
 
-test("short Nano packs preserve all sixty-one approved prompts byte-for-byte", () => {
+test("short Nano packs preserve all recorded approved prompts byte-for-byte", () => {
   assert.equal(SHORT_NANO_PACK_REFERENCE_COUNT, 1);
   assert.equal(shortNanoPackDefinitions.length, 16);
 
@@ -160,18 +158,18 @@ test("accepted birthday pack keeps one ordinary candle without age markers", () 
 });
 
 
-test("SP-025 extends to four prompts while preserving its approved first two HCs", () => {
+test("SP-025 keeps its approved two-frame contract", () => {
   const pack = getShortNanoPackDefinition("autumn-route");
   assert.ok(pack);
-  assert.equal(pack.heroCompositions.length, 4);
-  assert.deepEqual(pack.heroCompositions.map(({ heroCompositionId }) => heroCompositionId), ["HC-001", "HC-002", "HC-003", "HC-004"]);
+  assert.equal(pack.heroCompositions.length, 2);
+  assert.deepEqual(pack.heroCompositions.map(({ heroCompositionId }) => heroCompositionId), ["HC-001", "HC-002"]);
   assert.equal(pack.heroCompositions[0].promptSha256, "a989b1179e586aa360565c4fbb10a20f318b26bd762a664621e4b319b2d3ac51");
   assert.equal(pack.heroCompositions[1].promptSha256, "cec2d5e9a7f2c64ade2d6c1c8b3c3a6d5c1efbcbf77dbf92f12aab88e4d67351");
-  assert.match(pack.heroCompositions[2].prompt, /пойманный в спокойном движении/);
-  assert.match(pack.heroCompositions[3].prompt, /спокойный городской portrait по пояс/);
+  assert.equal(pack.heroCompositions.some(({ heroCompositionId }) => heroCompositionId === "HC-003"), false);
+  assert.equal(pack.heroCompositions.some(({ heroCompositionId }) => heroCompositionId === "HC-004"), false);
   const metadata = photoPacks.find(({ id }) => id === "autumn-route");
-  assert.equal(metadata?.photoCount, 4);
-  assert.equal(metadata?.gallery.length, 2, "new SP-025 previews remain pending visual review");
+  assert.equal(metadata?.photoCount, 2);
+  assert.equal(metadata?.gallery.length, 2);
 });
 
 test("SP-026 keeps knitted knee-high socks in every HC", () => {

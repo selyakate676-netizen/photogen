@@ -21,7 +21,7 @@ Product status records the content decision for final catalog selection. It is i
 | `SP-022` | `KEEP / PRODUCT_APPROVED` | None |
 | `SP-023` | `KEEP / PRODUCT_APPROVED` | None |
 | `SP-024` | `KEEP / PRODUCT_APPROVED` | None |
-| `SP-025` | `REWORK` | Preserve `HC-001` and `HC-002`; add distinct `HC-003` and `HC-004`. New prompts are `PROMPT READY / PREVIEW PENDING`. |
+| `SP-025` | `KEEP / PRODUCT_APPROVED` | None; the intentional two-frame mini-pack is complete and release-ready. |
 | `SP-026` | `REWORK_MINOR` | Align `HC-002` with the light knitted knee-high socks used by the other three compositions. |
 
 ## Rebuild status
