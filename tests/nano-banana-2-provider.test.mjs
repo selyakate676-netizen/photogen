@@ -179,7 +179,7 @@ test("adapter preserves ownership, generation_id and one-prediction-per-HC contr
   assert.ok(ownerFilter >= 0 && ownerFilter < heroPrediction);
   assert.ok(generationPlan >= 0 && generationPlan < generationLoop);
   assert.ok(generationLoop < heroPrediction && heroPrediction < generationIdWrite);
-  assert.match(adapter, /selectPersonaReferenceKeys\(personaReferenceKeys, options\.referenceCount\)/);
+  assert.match(adapter, /selectPersonaReferenceKeys\([\s\S]*?personaReferenceKeys,[\s\S]*?options\.referenceCount/);
   assert.match(adapter, /buildMvpPromptWithScenePackage\(photoshoot, generation\.scenePackage\)/);
   assert.match(adapter, /buildReplicateImageInput\(generationModel, finalPrompt, referenceUrls\)/);
 });

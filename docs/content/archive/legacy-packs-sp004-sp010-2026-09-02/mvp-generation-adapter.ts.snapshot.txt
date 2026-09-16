@@ -3,32 +3,9 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import Replicate from "replicate";
 import sharp from "sharp";
 
-import {
-  getAiGenerationModel,
-  getReplicateApiToken,
-  getS3BucketName,
-  getSiteUrl,
-  getWebhookSecret,
-} from "@/lib/env";
+import { getReplicateApiToken, getS3BucketName, getSiteUrl, getWebhookSecret } from "@/lib/env";
 import { renderHeroCompositionContract } from "@/lib/ai/hero-composition-catalog";
-import {
-  GPT_IMAGE_MODEL_ID,
-  NANO_BANANA_2_MODEL_ID,
-  buildReplicateImageInput,
-  downloadReplicateImage,
-  normalizeReplicateOutputUrls,
-} from "@/lib/ai/image-generation-provider";
-import {
-  createGenerationPlan,
-  getRequestedImageCount,
-  isExactInternalGenerationResultSet,
-} from "@/lib/ai/generation-count-contract";
 import { IDENTITY_REFERENCE_POLICY, selectPersonaReferenceKeys } from "@/lib/ai/persona-reference-policy";
-import {
-  SHORT_NANO_PACK_REFERENCE_COUNT,
-  getShortNanoPackPrompts,
-  isShortNanoPackStyle,
-} from "@/lib/ai/short-pack-prompts";
 import {
   CURRENT_HERO_COMPOSITION_MARKER,
   IDENTITY_AND_COMPOSITION_CONTRACT,
@@ -37,10 +14,10 @@ import {
 } from "@/lib/ai/prompt-system-quality";
 import { s3Client } from "@/lib/s3";
 import { claimPhotoshootGeneration, updatePhotoshootGenerationStatus, updatePhotoshootStatus } from "@/lib/photoshoots/status";
-import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import type { Photoshoot } from "@/types/database";
 
+const MODEL_ID = "openai/gpt-image-2";
 const ENABLE_SP004_HERO_COMPOSITION_SET_EXPERIMENT = true;
 
 const DEFAULT_SCENE_PACKAGE_ID = "dating";
@@ -566,6 +543,30 @@ interface MvpGenerationResult {
   resultImages: string[];
 }
 
+function getOutputUrls(output: unknown): string[] {
+  if (typeof output === "string") {
+    return [output];
+  }
+
+  if (Array.isArray(output)) {
+    return output
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object" && "url" in item && typeof item.url === "string") {
+          return item.url;
+        }
+        return null;
+      })
+      .filter((value): value is string => Boolean(value));
+  }
+
+  if (output && typeof output === "object" && "url" in output && typeof output.url === "string") {
+    return [output.url];
+  }
+
+  return [];
+}
+
 async function streamToBuffer(stream: unknown): Promise<Buffer> {
   const chunks: Buffer[] = [];
 
@@ -627,7 +628,13 @@ async function createSignedReadUrl(key: string): Promise<string> {
 }
 
 async function saveGeneratedImage(photoshootId: string, url: string, index: number): Promise<string> {
-  const { buffer, contentType } = await downloadReplicateImage(url);
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to download generated image: ${response.status}`);
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
   const key = `photoshoots/generations/${photoshootId}/mvp_gpt_image2/result_${Date.now()}_${index}.jpg`;
 
   await s3Client.send(
@@ -635,15 +642,15 @@ async function saveGeneratedImage(photoshootId: string, url: string, index: numb
       Bucket: getS3BucketName(),
       Key: key,
       Body: buffer,
-      ContentType: contentType,
+      ContentType: "image/jpeg",
     }),
   );
 
   return key;
 }
 
-async function getLatestModelVersion(modelId: string): Promise<string> {
-  const response = await fetch(`https://api.replicate.com/v1/models/${modelId}`, {
+async function getLatestModelVersion(): Promise<string> {
+  const response = await fetch(`https://api.replicate.com/v1/models/${MODEL_ID}`, {
     headers: {
       Authorization: `Bearer ${getReplicateApiToken()}`,
     },
@@ -652,7 +659,7 @@ async function getLatestModelVersion(modelId: string): Promise<string> {
   const json = (await response.json().catch(() => ({}))) as ReplicateModelResponse;
 
   if (!response.ok || !json.latest_version?.id) {
-    throw new Error(`Could not load latest Replicate version for ${modelId}`);
+    throw new Error(`Could not load latest Replicate version for ${MODEL_ID}`);
   }
 
   return json.latest_version.id;
@@ -1453,8 +1460,6 @@ function getSp010HeroScenePackages(): string[] {
   return heroes.map((hero) => [shared, renderHeroComposition("SP-010", hero)].join(" "));
 }
 function getHeroScenePackagesForPhotoshoot(photoshoot: Photoshoot): string[] {
-  const shortNanoPackPrompts = getShortNanoPackPrompts(photoshoot.style_id);
-  if (shortNanoPackPrompts) return shortNanoPackPrompts;
   if (isSp005Style(photoshoot.style_id)) return getSp005HeroScenePackages();
   if (isSp006Style(photoshoot.style_id)) return getSp006HeroScenePackages();
   if (isSp007Style(photoshoot.style_id)) return getSp007HeroScenePackages();
@@ -1465,9 +1470,7 @@ function getHeroScenePackagesForPhotoshoot(photoshoot: Photoshoot): string[] {
 }
 
 function shouldRunHeroCompositionSet(photoshoot: Photoshoot, options: MvpGenerationOptions): boolean {
-  if (isShortNanoPackStyle(photoshoot.style_id)) return true;
-  if (options.scenePrompt) return false;
-  return ENABLE_SP004_HERO_COMPOSITION_SET_EXPERIMENT && (photoshoot.style_id === "dating" || isSp005Style(photoshoot.style_id) || isSp006Style(photoshoot.style_id) || isSp007Style(photoshoot.style_id) || isSp008Style(photoshoot.style_id) || isSp009Style(photoshoot.style_id) || isSp010Style(photoshoot.style_id));
+  return ENABLE_SP004_HERO_COMPOSITION_SET_EXPERIMENT && !options.scenePrompt && (photoshoot.style_id === "dating" || isSp005Style(photoshoot.style_id) || isSp006Style(photoshoot.style_id) || isSp007Style(photoshoot.style_id) || isSp008Style(photoshoot.style_id) || isSp009Style(photoshoot.style_id) || isSp010Style(photoshoot.style_id));
 }
 function buildBodyLayer(photoshoot: Photoshoot): string {
   const snapshotGender = getPersonaSnapshotString(photoshoot, "gender");
@@ -1588,18 +1591,18 @@ export async function startMvpGenerationForPhotoshoot(
   photoshootId: string,
   options: MvpGenerationOptions = {},
 ): Promise<MvpGenerationResult> {
-  const sessionClient = await createClient();
+  const supabase = await createClient();
   const userId = options.userId;
   const {
     data: { user },
-  } = userId ? { data: { user: null } } : await sessionClient.auth.getUser();
+  } = userId ? { data: { user: null } } : await supabase.auth.getUser();
   const ownerId = userId || user?.id;
 
   if (!ownerId) {
     throw new Error("Authentication required.");
   }
 
-  const { data: photoshoot, error } = await sessionClient
+  const { data: photoshoot, error } = await supabase
     .from("photoshoots")
     .select("*")
     .eq("id", photoshootId)
@@ -1626,10 +1629,9 @@ export async function startMvpGenerationForPhotoshoot(
     throw new Error("PHOTOSHOOT_NOT_QUEUED");
   }
 
-  const serviceClient = createServiceRoleClient();
-  const claimed = await claimPhotoshootGeneration(serviceClient, photoshoot.id);
+  const claimed = await claimPhotoshootGeneration(supabase, photoshoot.id);
   if (!claimed) {
-    const { data: current } = await serviceClient
+    const { data: current } = await supabase
       .from("photoshoots")
       .select("generation_id,result_images")
       .eq("id", photoshoot.id)
@@ -1640,20 +1642,7 @@ export async function startMvpGenerationForPhotoshoot(
     };
   }
 
-  const requestedImageCount = getRequestedImageCount(photoshoot.requested_images_count);
-  const isShortNanoPack = isShortNanoPackStyle(photoshoot.style_id);
-  const shouldRunHeroSet = shouldRunHeroCompositionSet(photoshoot, options);
-  const generationPlan = createGenerationPlan(
-    requestedImageCount,
-    shouldRunHeroSet ? getHeroScenePackagesForPhotoshoot(photoshoot) : null,
-  );
-  const legacyPrompt = shouldRunHeroSet ? null : buildMvpPrompt(photoshoot, options.scenePrompt);
-
-  const generationModel = isShortNanoPack ? NANO_BANANA_2_MODEL_ID : getAiGenerationModel();
-  const referenceKeys = selectPersonaReferenceKeys(
-    personaReferenceKeys,
-    isShortNanoPack ? SHORT_NANO_PACK_REFERENCE_COUNT : options.referenceCount,
-  );
+  const referenceKeys = selectPersonaReferenceKeys(personaReferenceKeys, options.referenceCount);
   const referenceUrls: string[] = [];
 
   if (process.env.NODE_ENV !== "production") {
@@ -1678,87 +1667,136 @@ export async function startMvpGenerationForPhotoshoot(
   }
 
   const replicate = new Replicate({ auth: getReplicateApiToken() });
-  const predictionTarget: { version: string } | { model: string } =
-    generationModel === GPT_IMAGE_MODEL_ID
-      ? { version: await getLatestModelVersion(GPT_IMAGE_MODEL_ID) }
-      : { model: generationModel };
+  const version = await getLatestModelVersion();
 
   const shouldWaitForCompletion = options.waitForCompletion ?? true;
   const webhookUrl = `${getSiteUrl()}/api/webhooks/replicate/generation?secret=${getWebhookSecret()}&photoshootId=${photoshoot.id}`;
 
-  const predictionIds: string[] = [];
-  const resultImages: string[] = [];
+  const shouldRunHeroSet = shouldRunHeroCompositionSet(photoshoot, options);
 
-  for (const [generationIndex, generation] of generationPlan.entries()) {
-    const finalPrompt = generation.scenePackage === null
-      ? legacyPrompt as string
-      : isShortNanoPack
-        ? generation.scenePackage
-        : buildMvpPromptWithScenePackage(photoshoot, generation.scenePackage);
-    const prediction = (await createPredictionWithRateLimit(replicate, {
-      ...predictionTarget,
-      input: buildReplicateImageInput(generationModel, finalPrompt, referenceUrls),
-      ...(shouldWaitForCompletion
-        ? {}
-        : {
-            webhook: webhookUrl,
-            webhook_events_filter: ["completed"],
-          }),
-    })) as ReplicatePredictionResponse;
+  if (shouldRunHeroSet) {
+    const heroScenePackages = getHeroScenePackagesForPhotoshoot(photoshoot);
+    const predictionIds: string[] = [];
+    const resultImages: string[] = [];
 
-    predictionIds.push(prediction.id);
+    for (const [heroIndex, heroScenePackage] of heroScenePackages.entries()) {
+      const prediction = (await createPredictionWithRateLimit(replicate, {
+        version,
+        input: {
+          prompt: buildMvpPromptWithScenePackage(photoshoot, heroScenePackage),
+          input_images: referenceUrls,
+          aspect_ratio: "2:3",
+          quality: "high",
+          output_format: "jpeg",
+          number_of_images: 1,
+          output_compression: 95,
+        },
+        ...(shouldWaitForCompletion
+          ? {}
+          : {
+              webhook: webhookUrl,
+              webhook_events_filter: ["completed"],
+            }),
+      })) as ReplicatePredictionResponse;
 
-    await serviceClient
-      .from("photoshoots")
-      .update({ generation_id: predictionIds.join(",") })
-      .eq("id", photoshoot.id);
+      predictionIds.push(prediction.id);
+
+      await supabase
+        .from("photoshoots")
+        .update({ generation_id: predictionIds.join(",") })
+        .eq("id", photoshoot.id);
+
+      if (!shouldWaitForCompletion) {
+        continue;
+      }
+
+      const completedPrediction = await waitForPrediction(replicate, prediction.id);
+
+      if (completedPrediction.status !== "succeeded") {
+        if (resultImages.length === 0) {
+          await updatePhotoshootStatus(supabase, photoshoot.id, "failed");
+          throw new Error(completedPrediction.error || `Prediction ${completedPrediction.status}`);
+        }
+
+        continue;
+      }
+
+      const outputUrls = getOutputUrls(completedPrediction.output);
+
+      for (const [outputIndex, url] of outputUrls.entries()) {
+        resultImages.push(await saveGeneratedImage(photoshoot.id, url, heroIndex + outputIndex + 1));
+      }
+    }
 
     if (!shouldWaitForCompletion) {
-      continue;
+      return {
+        predictionId: predictionIds.join(","),
+        resultImages: [],
+      };
     }
 
-    const completedPrediction = await waitForPrediction(replicate, prediction.id);
+    await updatePhotoshootGenerationStatus(supabase, photoshoot.id, "completed", resultImages);
 
-    if (completedPrediction.status !== "succeeded") {
-      await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
-      throw new Error(completedPrediction.error || `Prediction ${completedPrediction.status}`);
-    }
-
-    const outputUrls = normalizeReplicateOutputUrls(completedPrediction.output);
-    if (outputUrls.length !== 1) {
-      await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
-      throw new Error("Prediction must produce exactly one output image.");
-    }
-
-    resultImages.push(
-      await saveGeneratedImage(photoshoot.id, outputUrls[0], generationIndex + 1),
-    );
+    return {
+      predictionId: predictionIds.join(","),
+      resultImages,
+    };
   }
+
+  const prediction = (await createPredictionWithRateLimit(replicate, {
+    version,
+    input: {
+      prompt: buildMvpPrompt(photoshoot, options.scenePrompt),
+      input_images: referenceUrls,
+      aspect_ratio: "2:3",
+      quality: "high",
+      output_format: "jpeg",
+      number_of_images: 1,
+      output_compression: 95,
+    },
+    ...(shouldWaitForCompletion
+      ? {}
+      : {
+          webhook: webhookUrl,
+          webhook_events_filter: ["completed"],
+        }),
+  })) as ReplicatePredictionResponse;
+
+  await supabase
+    .from("photoshoots")
+    .update({ generation_id: prediction.id })
+    .eq("id", photoshoot.id);
 
   if (!shouldWaitForCompletion) {
     return {
-      predictionId: predictionIds.join(","),
+      predictionId: prediction.id,
       resultImages: [],
     };
   }
 
-  if (!isExactInternalGenerationResultSet(photoshoot.id, resultImages, requestedImageCount)) {
-    await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
-    throw new Error("Generation did not produce the exact requested image set.");
+  const completedPrediction = await waitForPrediction(replicate, prediction.id);
+
+  if (completedPrediction.status !== "succeeded") {
+    await updatePhotoshootStatus(supabase, photoshoot.id, "failed");
+    throw new Error(completedPrediction.error || `Prediction ${completedPrediction.status}`);
   }
 
-  const completed = await updatePhotoshootGenerationStatus(
-    serviceClient,
-    photoshoot.id,
-    "completed",
-    resultImages,
-  );
-  if (!completed) {
-    throw new Error("Could not complete photoshoot generation.");
+  const outputUrls = getOutputUrls(completedPrediction.output);
+
+  if (!outputUrls.length) {
+    await updatePhotoshootStatus(supabase, photoshoot.id, "failed");
+    throw new Error("Prediction succeeded without output images.");
   }
+
+  const resultImages: string[] = [];
+  for (const [index, url] of outputUrls.entries()) {
+    resultImages.push(await saveGeneratedImage(photoshoot.id, url, index + 1));
+  }
+
+  await updatePhotoshootGenerationStatus(supabase, photoshoot.id, "completed", resultImages);
 
   return {
-    predictionId: predictionIds.join(","),
+    predictionId: completedPrediction.id,
     resultImages,
   };
 }

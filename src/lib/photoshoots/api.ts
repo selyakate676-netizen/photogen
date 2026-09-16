@@ -1,7 +1,7 @@
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getS3BucketName } from "@/lib/env";
-import { getPhotoPack } from "@/lib/photoPacks";
+import { getPhotoPackForHistory } from "@/lib/photoPacks";
 import { SAFE_GENERATION_ERROR } from "@/lib/photoshoots/status";
 import { s3Client } from "@/lib/s3";
 import type { Json, Photoshoot } from "@/types/database";
@@ -46,7 +46,7 @@ async function resultImageUrls(photoshootId: string, keys: string[]): Promise<st
 export async function photoshootHistoryJson(row: Photoshoot) {
   const packageSnapshot = objectSnapshot(row.package_snapshot);
   const personaSnapshot = objectSnapshot(row.persona_snapshot);
-  const fallbackPack = getPhotoPack(row.style_id);
+  const fallbackPack = getPhotoPackForHistory(row.style_id);
 
   return {
     id: row.id,
