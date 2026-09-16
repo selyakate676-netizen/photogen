@@ -52,9 +52,8 @@ jobs:
           set -euo pipefail
           cat supabase_photoshoot_crystal_charge.sql > tests/crystal_wallet_ci.pgtap.sql
           cat supabase_failed_generation_refund.sql >> tests/crystal_wallet_ci.pgtap.sql
-          printf '\ngrant select, insert on table public.photoshoots to service_role;\n' \
-            >> tests/crystal_wallet_ci.pgtap.sql
           grep -v '^\\ir ../supabase_photoshoot_crystal_charge.sql$' tests/crystal_wallet.pgtap.sql \
+            | sed '0,/^begin;$/s||begin;\\ngrant select on table public.personas, public.persona_photos to service_role;\\ngrant select, insert on table public.photoshoots to service_role;|' \
             >> tests/crystal_wallet_ci.pgtap.sql
           supabase test db tests/crystal_wallet_ci.pgtap.sql
 
