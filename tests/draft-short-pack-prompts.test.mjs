@@ -63,4 +63,3 @@ test("draft packs cannot be ordered and are not wired into the production adapte
   );
   assert.doesNotMatch(adapterSource, /draft-short-pack-prompts/);
 });
-
