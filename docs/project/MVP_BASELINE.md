@@ -82,9 +82,9 @@ The short Facekeep content and the new catalog are release-candidate work until 
 
 ## NEW PHOTO PACK CATALOG — KEEP
 
-The current product catalog consists of 16 factually present packs, `SP-011` through `SP-026`. The canonical committed source is `release/new-photo-pack-catalog` at `102b5c0e4fe2691783f1e790644646043119c38b`, which is newer than preservation snapshot `9329b7b25a23b85f1c79c52b7c98b5793330dde5`.
+The current product catalog consists of 20 factually present packs, `SP-011` through `SP-030`. The current release candidate is `release/final-photo-pack-catalog`, based on the corrected SP-025 release chain at `dd523900cf03935d575772063cb0c24e4d17ed6b`.
 
-The release branch contains 67 HC/prompt definitions and 67 preview files. `SP-025` is intentionally a complete two-frame mini-pack with two accepted prompts and two accepted previews.
+The release branch contains 77 HC/prompt definitions and 77 preview files. Mini packs are a valid final catalog format: a two- or three-image mini-pack is COMPLETE when its HC, prompt and preview counts match. `SP-025`, `SP-027` and `SP-029` are intentional two-frame packs; `SP-028` and `SP-030` are intentional three-frame packs.
 
 | Pack | Name | HC / prompts | Previews | Model | Product status | Main preview | Canonical source |
 |---|---|---:|---:|---|---|---|---|
@@ -104,6 +104,10 @@ The release branch contains 67 HC/prompt definitions and 67 preview files. `SP-0
 | `SP-024` | Осеннее отражение | 5 | 5 | C | visually accepted / orderable candidate | `sp024-autumn-lake-model-c-hc001.jpg` | `102b5c0` release chain |
 | `SP-025` | Осенний маршрут | 2 | 2 | B | PRODUCT_APPROVED / COMPLETE / RELEASE_READY | `sp025-autumn-route-model-b-hc001.jpg` | `fix/sp025-two-frame-contract` |
 | `SP-026` | Дом в тумане | 4 | 4 | B | visually accepted / orderable candidate | `sp026-misty-cabin-model-b-hc001.jpg` | `102b5c0` |
+| `SP-027` | Листопад | 2 | 2 | B | visually accepted / orderable candidate | `sp027-leaf-fall-model-b-hc001.jpg` | `release/final-photo-pack-catalog` |
+| `SP-028` | Осеннее тепло | 3 | 3 | B | visually accepted / orderable candidate | `sp028-autumn-warmth-model-b-hc002.jpg` | `release/final-photo-pack-catalog` |
+| `SP-029` | Осень на Красной площади | 2 | 2 | B | visually accepted / orderable candidate | `sp029-red-square-autumn-model-b-hc002.jpg` | `release/final-photo-pack-catalog` |
+| `SP-030` | Чёрно-белый характер | 3 | 3 | C | visually accepted / orderable candidate | `sp030-monochrome-character-model-c-hc002.jpg` | `release/final-photo-pack-catalog` |
 
 Pack evidence and mappings:
 
@@ -113,7 +117,7 @@ Pack evidence and mappings:
 - product decisions and model assignments: `docs/content/OLD_PACK_REBUILD_TRACKER.md`;
 - catalog and prompt assertions: `tests/commercial-pack-migration.test.mjs` and `tests/draft-short-pack-prompts.test.mjs`.
 
-The 16-pack catalog is a preserved product asset. It must not be replaced with legacy packs from an older worktree. It is not yet part of GitHub `main`; integration and final catalog QA remain IN PROGRESS.
+The 20-pack catalog is a preserved product asset. It must not be replaced with legacy packs from an older worktree. It is not yet part of GitHub `main`; integration and final catalog QA remain IN PROGRESS.
 
 ## IN PROGRESS
 
@@ -195,7 +199,7 @@ Already completed but still described there as missing, partial or risky include
 - Crystal Wallet, generation debit and failed-generation refund;
 - current generation-count contract;
 - consent-gated Yandex Metrika;
-- the 16-pack catalog release candidate.
+- the 20-pack catalog release candidate.
 
 Still relevant roadmap themes include real payments, retention/deletion, final E2E, operational visibility, accessibility/UX hardening and limited cleanup of legacy code. Update `ROADMAP.md` in a separate task; do not rewrite it as part of this freeze.
 

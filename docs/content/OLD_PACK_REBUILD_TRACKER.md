@@ -4,7 +4,7 @@ Scope: the seven legacy commercial packs `SP-004` through `SP-010`.
 
 The original prompt baseline is preserved in `docs/content/archive/legacy-packs-sp004-sp010-2026-09-02/`. The legacy runtime definitions remain available only for historical records; all seven packs are removed from the orderable catalog.
 
-## Product decisions for SP-014 through SP-026
+## Product decisions for SP-014 through SP-030
 
 Product status records the content decision for final catalog selection. It is independent from runtime or orderable status; this section does not activate, deactivate or otherwise change runtime availability.
 
@@ -23,6 +23,10 @@ Product status records the content decision for final catalog selection. It is i
 | `SP-024` | `KEEP / PRODUCT_APPROVED` | None |
 | `SP-025` | `KEEP / PRODUCT_APPROVED` | None; the intentional two-frame mini-pack is complete and release-ready. |
 | `SP-026` | `REWORK_MINOR` | Align `HC-002` with the light knitted knee-high socks used by the other three compositions. |
+| `SP-027` | `KEEP / PRODUCT_APPROVED` | None; intentional two-frame mini-pack. |
+| `SP-028` | `KEEP / PRODUCT_APPROVED` | None; intentional three-frame mini-pack. |
+| `SP-029` | `KEEP / PRODUCT_APPROVED` | None; intentional two-frame mini-pack. |
+| `SP-030` | `KEEP / PRODUCT_APPROVED` | None; intentional three-frame mini-pack. |
 
 ## Rebuild status
 
@@ -66,18 +70,18 @@ The two-image mini-pack `SP-025` «Осенний маршрут» is `VISUALLY_
 ## Preview model allocation
 
 - Model A: approved `SP-011`, `SP-012`, `SP-013`, `SP-018`.
-- Model B: approved `SP-015`, `SP-016`, `SP-019`, `SP-021`, `SP-022`, `SP-023`, `SP-025`, `SP-026`.
-- Model C: approved `SP-014`, `SP-017`, `SP-020`, `SP-024`.
+- Model B: approved `SP-015`, `SP-016`, `SP-019`, `SP-021`, `SP-022`, `SP-023`, `SP-025`, `SP-026`, `SP-027`, `SP-028`, `SP-029`.
+- Model C: approved `SP-014`, `SP-017`, `SP-020`, `SP-024`, `SP-030`.
 
 - All candidates use `NB2_FACEKEEP_V1.1_SHORT_WITH_WARM_EXPRESSION` (codeword «ЯКОРЬ»).
 - Every candidate uses standalone frame prompts and expects one first unique frontal Persona reference.
 - Each frame follows the expression visible in its authoring reference: use a light or warm half-smile by default; request visible teeth, a broad smile or laughter only when the specific source frame clearly contains it.
 - Stable outfit, hairstyle, makeup and environment are repeated concisely inside every standalone frame prompt.
 - The supplied photoshoot collages are authoring references only and are not provider `image_input`.
-- Draft candidates are intentionally absent from `photoPacks` and from the production adapter until visual approval and preview generation. Accepted `SP-014`, `SP-015`, `SP-016`, `SP-017`, `SP-019`, `SP-020`, `SP-021`, `SP-022`, `SP-023`, `SP-024`, `SP-025` and `SP-026` are now present in both.
+- Draft candidates are intentionally absent from `photoPacks` and from the production adapter until visual approval and preview generation. Accepted `SP-014` through `SP-030` are now present in both where assigned to the current catalog.
 - The legacy prompts and historical resolution remain unchanged.
 
-Accepted `SP-014`, `SP-017`, `SP-018` and `SP-020` contain four frames each. Accepted `SP-021` and `SP-023` contain four frames each. Accepted `SP-022` intentionally contains eight frames. Accepted `SP-024` contains five frames. Accepted `SP-026` contains four frames. Accepted `SP-025` contains two frames.
+Accepted `SP-014`, `SP-017`, `SP-018` and `SP-020` contain four frames each. Accepted `SP-021` and `SP-023` contain four frames each. Accepted `SP-022` intentionally contains eight frames. Accepted `SP-024` contains five frames. Accepted `SP-026` contains four frames. Accepted `SP-025`, `SP-027` and `SP-029` contain two frames each. Accepted `SP-028` and `SP-030` contain three frames each.
 
 ## Visual validation order
 

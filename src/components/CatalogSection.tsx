@@ -87,14 +87,14 @@ const realCards: CatalogCard[] = photoPacks.map((pack) => ({
 const catalogCards = realCards;
 
 const collections: Collection[] = [
-  { id: 'popular', title: labels.popular, cardIds: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin'] },
-  { id: 'lifestyle-row', title: labels.lifestyle, category: 'lifestyle', cardIds: ['autumn-promenade', 'misty-morning', 'golden-field', 'autumn-lake', 'autumn-route', 'misty-cabin'] },
+  { id: 'popular', title: labels.popular, cardIds: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character'] },
+  { id: 'lifestyle-row', title: labels.lifestyle, category: 'lifestyle', cardIds: ['autumn-promenade', 'misty-morning', 'golden-field', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth'] },
 ];
 
 
 const filterCardIds: Partial<Record<FilterId, string[]>> = {
-  women: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin'],
-  new: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin'],
+  women: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character'],
+  new: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character'],
 };
 function matchesSearch(card: CatalogCard, query: string) {
   const haystack = `${card.title} ${card.description} ${card.categoryLabel}`.toLowerCase();

@@ -19,7 +19,7 @@ export type PhotoPack = {
   summary: string;
   photos: number;
   price: string;
-  photoCount: 2 | 4 | 5 | 6 | 8;
+  photoCount: 2 | 3 | 4 | 5 | 6 | 8;
   priceRub: number;
   priceCrystals: number;
   pricing: PhotoPackPricing;
@@ -573,6 +573,50 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     features: ['4 профессиональных фото', 'Единый уютный образ', 'Современный загородный дом', 'Лес и мягкий туман'],
     deliverables: ['Сидячий портрет на террасе', 'Портрет с чашкой', 'Портрет у перил', 'Спокойный кадр на ступенях'],
   },
+  {
+    id: 'leaf-fall', slug: 'leaf-fall', title: 'Листопад',
+    description: 'Два живых осенних портрета среди золотых листьев',
+    summary: 'Камерный мини-пак: изящный портрет лёжа с кленовым листом и радостный кадр в движении.',
+    photos: 2, price: '99 ₽', category: 'lifestyle', categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp027-leaf-fall-model-b-hc001.jpg',
+    gallery: ['/package-previews/sp027-leaf-fall-model-b-hc001.jpg', '/package-previews/sp027-leaf-fall-model-b-hc002.jpg'],
+    suitableFor: ['Соцсети', 'Lifestyle', 'Сезонный контент'],
+    features: ['2 профессиональных фото', 'Единый осенний образ'],
+    deliverables: ['Портрет лёжа с листом', 'Живой кадр с листопадом'],
+  },
+  {
+    id: 'autumn-warmth', slug: 'autumn-warmth', title: 'Осеннее тепло',
+    description: 'Тёплая прогулочная серия в уютном трикотаже среди осенней природы',
+    summary: 'Три связанных кадра в едином образе: у дерева, на деревянном настиле и у озера.',
+    photos: 3, price: '139 ₽', category: 'lifestyle', categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp028-autumn-warmth-model-b-hc002.jpg',
+    gallery: ['/package-previews/sp028-autumn-warmth-model-b-hc002.jpg', '/package-previews/sp028-autumn-warmth-model-b-hc001.jpg', '/package-previews/sp028-autumn-warmth-model-b-hc003.jpg'],
+    suitableFor: ['Соцсети', 'Lifestyle', 'Сезонный контент'],
+    features: ['3 профессиональных фото', 'Единый уютный образ'],
+    deliverables: ['Портрет у дерева', 'Кадр на настиле', 'Портрет у озера'],
+  },
+  {
+    id: 'red-square-autumn', slug: 'red-square-autumn', title: 'Осень на Красной площади',
+    description: 'Стильная городская фотосессия в историческом центре Москвы',
+    summary: 'Два динамичных городских кадра с архитектурой Красной площади и живым взглядом через плечо.',
+    photos: 2, price: '99 ₽', category: 'travel', categoryLabel: 'Путешествия',
+    image: '/package-previews/sp029-red-square-autumn-model-b-hc002.jpg',
+    gallery: ['/package-previews/sp029-red-square-autumn-model-b-hc002.jpg', '/package-previews/sp029-red-square-autumn-model-b-hc001.jpg'],
+    suitableFor: ['Соцсети', 'Путешествия', 'Городской контент'],
+    features: ['2 профессиональных фото', 'Единый городской образ'],
+    deliverables: ['Прогулочный кадр', 'Портрет через плечо'],
+  },
+  {
+    id: 'monochrome-character', slug: 'monochrome-character', title: 'Чёрно-белый характер',
+    description: 'Выразительная монохромная серия в современном городском стиле',
+    summary: 'Три лаконичных чёрно-белых портрета: у окна, с чашкой и на городской скамье.',
+    photos: 3, price: '139 ₽', category: 'business', categoryLabel: 'Работа',
+    image: '/package-previews/sp030-monochrome-character-model-c-hc002.jpg',
+    gallery: ['/package-previews/sp030-monochrome-character-model-c-hc002.jpg', '/package-previews/sp030-monochrome-character-model-c-hc001.jpg', '/package-previews/sp030-monochrome-character-model-c-hc003.jpg'],
+    suitableFor: ['Личный бренд', 'Соцсети', 'Портфолио'],
+    features: ['3 профессиональных фото', 'Единая монохромная серия'],
+    deliverables: ['Портрет у окна', 'Портрет с чашкой', 'Городской портрет'],
+  },
 ];
 
 type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
@@ -594,6 +638,10 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   'autumn-lake': { photoCount: 5, priceRub: 229, priceCrystals: 46 },
   'autumn-route': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   'misty-cabin': { photoCount: 4, priceRub: 189, priceCrystals: 38 },
+  'leaf-fall': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
+  'autumn-warmth': { photoCount: 3, priceRub: 139, priceCrystals: 28 },
+  'red-square-autumn': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
+  'monochrome-character': { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },

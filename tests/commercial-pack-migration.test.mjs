@@ -96,21 +96,39 @@ const expectedPromptHashes = {
     "6d42156455748472b70bcee68c56fdc9262290e3a677d5dab46007a6aae5e88c",
     "5bf354dd427a94901c576cb475d27453060e15f24be7e3e74892ccd82069166a",
   ],
+  "leaf-fall": [
+    "5a1d18936652f430a1dfbcb969ad046d449bb7f94e4dd9a0346be9440ec9eb6e",
+    "63fdf4627f016e103d19bde9e9cf3f87f6cc1f488bbb13ed682e0fa837925048",
+  ],
+  "autumn-warmth": [
+    "95e2a46d8912e1d49285da54079473f7a884636c227c3c5399649367111df690",
+    "8514ba072cfced5bb305642ad2ead03edbece57f51976dc3d5f8e63d29c63a92",
+    "fb9350e39da0670caa097e72179100253196b125c6d2c5cc00cb3a2e2ae828f3",
+  ],
+  "red-square-autumn": [
+    "cf293ed9fcba146e5f10b01bdc05596126677c781d7b48ac30578721c3bffd55",
+    "d1633467c0e8f7df9c8ae7dda76b4b10b89303daf212e26f781f763d7dcce80a",
+  ],
+  "monochrome-character": [
+    "277ded2f271bb8181f6079439f902df7d5b7619f6797a5cf461c1e949fc9cba1",
+    "f13837b23716ed0f797e1320d80dca3af6c7eb57ae1452330951373242370e65",
+    "33ae2fc1557e3deb948b9d2bd74f478b078381aa7ebffe874c4d111203193193",
+  ],
 };
 
-test("only the sixteen visually accepted packs are orderable", () => {
+test("only the twenty visually accepted packs are orderable", () => {
   assert.deepEqual(
     photoPacks.map((pack) => pack.id),
-    ["autumn-promenade", "misty-morning", "golden-field", "black-minimalism", "scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "first-impression", "quiet-confidence", "petersburg-walk-v2", "golden-reflection", "scarlet-accent-2", "autumn-lake", "autumn-route", "misty-cabin"],
+    ["autumn-promenade", "misty-morning", "golden-field", "black-minimalism", "scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "first-impression", "quiet-confidence", "petersburg-walk-v2", "golden-reflection", "scarlet-accent-2", "autumn-lake", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn", "monochrome-character"],
   );
 
   for (const pack of photoPacks) {
-    const expectedCount = pack.id === "golden-reflection" ? 8 : pack.id === "autumn-lake" ? 5 : pack.id === "autumn-route" ? 2 : 4;
+    const expectedCount = { "golden-reflection": 8, "autumn-lake": 5, "autumn-route": 2, "leaf-fall": 2, "autumn-warmth": 3, "red-square-autumn": 2, "monochrome-character": 3 }[pack.id] ?? 4;
     assert.equal(pack.photoCount, expectedCount);
     assert.equal(pack.gallery.length, expectedCount);
-    const expectedModel = ["black-minimalism", "first-impression", "quiet-confidence", "autumn-lake"].includes(pack.id)
+    const expectedModel = ["black-minimalism", "first-impression", "quiet-confidence", "autumn-lake", "monochrome-character"].includes(pack.id)
       ? "model-c"
-      : ["scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "golden-reflection", "scarlet-accent-2", "autumn-route", "misty-cabin"].includes(pack.id)
+      : ["scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "golden-reflection", "scarlet-accent-2", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn"].includes(pack.id)
         ? "model-b"
         : "model-a";
     assert.ok(pack.gallery.every((path) => path.includes(`-${expectedModel}-hc00`)));
@@ -118,6 +136,27 @@ test("only the sixteen visually accepted packs are orderable", () => {
   }
 });
 
+test("new mini packs keep approved counts, covers and economy", () => {
+  const expected = {
+    "leaf-fall": { count: 2, rubles: 99, crystals: 20, cover: "sp027-leaf-fall-model-b-hc001.jpg" },
+    "autumn-warmth": { count: 3, rubles: 139, crystals: 28, cover: "sp028-autumn-warmth-model-b-hc002.jpg" },
+    "red-square-autumn": { count: 2, rubles: 99, crystals: 20, cover: "sp029-red-square-autumn-model-b-hc002.jpg" },
+    "monochrome-character": { count: 3, rubles: 139, crystals: 28, cover: "sp030-monochrome-character-model-c-hc002.jpg" },
+  };
+
+  for (const [styleId, contract] of Object.entries(expected)) {
+    const metadata = photoPacks.find((pack) => pack.id === styleId);
+    const prompts = getShortNanoPackDefinition(styleId);
+    assert.ok(metadata);
+    assert.ok(prompts);
+    assert.equal(metadata.photoCount, contract.count);
+    assert.equal(metadata.gallery.length, contract.count);
+    assert.equal(prompts.heroCompositions.length, contract.count);
+    assert.equal(metadata.priceRub, contract.rubles);
+    assert.equal(metadata.priceCrystals, contract.crystals);
+    assert.ok(metadata.image.endsWith(contract.cover));
+  }
+});
 test("legacy packs are hidden from ordering but remain resolvable for history", () => {
   assert.equal(getPhotoPack("dating"), undefined);
   assert.equal(getPhotoPack("studio"), undefined);
@@ -129,7 +168,7 @@ test("legacy packs are hidden from ordering but remain resolvable for history", 
 
 test("short Nano packs preserve all recorded approved prompts byte-for-byte", () => {
   assert.equal(SHORT_NANO_PACK_REFERENCE_COUNT, 1);
-  assert.equal(shortNanoPackDefinitions.length, 16);
+  assert.equal(shortNanoPackDefinitions.length, 20);
 
   for (const [styleId, hashes] of Object.entries(expectedPromptHashes)) {
     const pack = getShortNanoPackDefinition(styleId);
@@ -217,4 +256,8 @@ test("catalog contains no placeholder or archived cards", async () => {
   assert.match(source, /autumn-lake/);
   assert.match(source, /autumn-route/);
   assert.match(source, /misty-cabin/);
+  assert.match(source, /leaf-fall/);
+  assert.match(source, /autumn-warmth/);
+  assert.match(source, /red-square-autumn/);
+  assert.match(source, /monochrome-character/);
 });
