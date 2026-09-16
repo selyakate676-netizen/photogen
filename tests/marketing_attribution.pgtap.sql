@@ -31,10 +31,18 @@ select is(
   (select attribution_snapshot->'last'->>'source' from public.photoshoots where style_id = 'attributed'),
   'telegram', 'last-touch attribution is stored on the photoshoot'
 );
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select throws_ok(
   $$update public.photoshoots set attribution_snapshot = '{"first":{"source":"changed"}}'::jsonb where style_id = 'attributed'$$,
-  '42501', 'PHOTOSHOOT_ATTRIBUTION_IMMUTABLE', 'authenticated users cannot rewrite attribution snapshots'
+  '42501', 'PHOTOSHOOT_ATTRIBUTION_IMMUTABLE', 'attribution snapshots remain immutable behind table ACLs'
 );
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '93000000-0000-4000-8000-000000000093', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 
 select public.create_photoshoot_with_persona(
   (select id from public.personas where user_id = auth.uid() and is_default),
@@ -46,10 +54,18 @@ select is(
   (select attribution_snapshot from public.photoshoots where style_id = 'legacy-null'),
   null::jsonb, 'legacy create RPC remains compatible with null attribution'
 );
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select lives_ok(
   $$select public.transition_photoshoot_status((select id from public.photoshoots where style_id = 'legacy-null'), 'cancelled')$$,
   'orders with null attribution continue through the lifecycle'
 );
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '93000000-0000-4000-8000-000000000093', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 
 select throws_ok(
   $$select public.create_photoshoot_with_persona(
