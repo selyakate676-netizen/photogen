@@ -36,10 +36,12 @@ jobs:
           cp supabase_photoshoot_persona.sql supabase/migrations/20260807000500_photoshoot_persona.sql
           cp supabase_photoshoot_persona_rpc_fix.sql supabase/migrations/20260807000600_photoshoot_persona_rpc_fix.sql
           cp supabase_persona_appearance.sql supabase/migrations/20260807000700_persona_appearance.sql
-          cp supabase_photoshoot_lifecycle.sql supabase/migrations/20260807000800_photoshoot_lifecycle.sql
-          cp supabase_rpc_acl_hardening.sql supabase/migrations/20260807000900_rpc_acl_hardening.sql
-          cp supabase_crystal_wallet.sql supabase/migrations/20260807001000_crystal_wallet.sql
-          cp supabase_marketing_attribution.sql supabase/migrations/20260807001100_marketing_attribution.sql
+          cp supabase_persona_photos_v2.sql supabase/migrations/20260807000800_persona_photos_v2.sql
+          cp supabase_photoshoot_lifecycle.sql supabase/migrations/20260807000900_photoshoot_lifecycle.sql
+          cp supabase_persona_photos_v2_completion.sql supabase/migrations/20260807001000_persona_photos_v2_completion.sql
+          cp supabase_rpc_acl_hardening.sql supabase/migrations/20260807001100_rpc_acl_hardening.sql
+          cp supabase_crystal_wallet.sql supabase/migrations/20260807001200_crystal_wallet.sql
+          cp supabase_marketing_attribution.sql supabase/migrations/20260807001300_marketing_attribution.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
