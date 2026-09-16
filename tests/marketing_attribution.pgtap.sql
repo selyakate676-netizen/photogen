@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap;
-select plan(5);
+select plan(9);
 
 insert into auth.users(id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values ('93000000-0000-4000-8000-000000000093', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'attribution@example.test', '', now(), now());
@@ -49,6 +49,51 @@ select is(
 select lives_ok(
   $$select public.transition_photoshoot_status((select id from public.photoshoots where style_id = 'legacy-null'), 'cancelled')$$,
   'orders with null attribution continue through the lifecycle'
+);
+
+select throws_ok(
+  $$select public.create_photoshoot_with_persona(
+    (select id from public.personas where user_id = auth.uid() and is_default),
+    'invalid-top-level', '{}', 'woman', 'average', 'green', '',
+    null, null, null, null, null,
+    4, '{"id":"invalid-top-level","slug":"invalid-top-level","name":"Invalid"}'::jsonb,
+    '{"first":{},"last":{},"unexpected":"value"}'::jsonb
+  )$$,
+  '23514', 'INVALID_ATTRIBUTION_SNAPSHOT',
+  'unknown top-level attribution keys are rejected'
+);
+select throws_ok(
+  $$select public.create_photoshoot_with_persona(
+    (select id from public.personas where user_id = auth.uid() and is_default),
+    'invalid-touch-key', '{}', 'woman', 'average', 'green', '',
+    null, null, null, null, null,
+    4, '{"id":"invalid-touch-key","slug":"invalid-touch-key","name":"Invalid"}'::jsonb,
+    '{"first":{"source":"safe","email":"private@example.test"},"last":{}}'::jsonb
+  )$$,
+  '23514', 'INVALID_ATTRIBUTION_SNAPSHOT',
+  'unknown attribution touch keys are rejected'
+);
+select throws_ok(
+  $$select public.create_photoshoot_with_persona(
+    (select id from public.personas where user_id = auth.uid() and is_default),
+    'invalid-first-type', '{}', 'woman', 'average', 'green', '',
+    null, null, null, null, null,
+    4, '{"id":"invalid-first-type","slug":"invalid-first-type","name":"Invalid"}'::jsonb,
+    '{"first":[],"last":{}}'::jsonb
+  )$$,
+  '23514', 'INVALID_ATTRIBUTION_SNAPSHOT',
+  'non-object first-touch attribution is rejected'
+);
+select throws_ok(
+  $$select public.create_photoshoot_with_persona(
+    (select id from public.personas where user_id = auth.uid() and is_default),
+    'invalid-last-type', '{}', 'woman', 'average', 'green', '',
+    null, null, null, null, null,
+    4, '{"id":"invalid-last-type","slug":"invalid-last-type","name":"Invalid"}'::jsonb,
+    '{"first":{},"last":"arbitrary"}'::jsonb
+  )$$,
+  '23514', 'INVALID_ATTRIBUTION_SNAPSHOT',
+  'non-object last-touch attribution is rejected'
 );
 
 select * from finish();
