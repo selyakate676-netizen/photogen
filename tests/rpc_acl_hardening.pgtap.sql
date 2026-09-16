@@ -213,7 +213,7 @@ select lives_ok(
     (select id from public.personas where user_id = auth.uid() and is_default),
     'acl-test', '{}', 'woman', 'average', 'green', '',
     null, null, null, null, null,
-    2, '{"id":"acl-test","slug":"acl-test","name":"ACL test"}'::jsonb
+    2, '{"id":"acl-test","slug":"acl-test","name":"ACL test","price_crystals":1}'::jsonb
   )$$,
   'authenticated owner can create a photoshoot through RPC'
 );
@@ -315,6 +315,7 @@ revoke all privileges on function public.record_photoshoot_result_images(uuid, t
 set local role service_role;
 select set_config('request.jwt.claim.sub', '', true);
 select set_config('request.jwt.claim.role', 'service_role', true);
+select public.credit_wallet('93000000-0000-4000-8000-000000000093', 1, 'acl-test:fund');
 select ok(
   public.claim_photoshoot_generation(
     (select id from public.photoshoots where style_id = 'acl-test')
