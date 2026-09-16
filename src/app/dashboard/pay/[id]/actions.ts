@@ -22,7 +22,8 @@ export async function mockPayment(formData: FormData) {
 
   const payment = await confirmMockPaymentAndQueue(photoshootId, user.id);
   if (!payment.ok) {
-    redirect('/account/generated');
+    const query = new URLSearchParams({ payment_failed: photoshootId });
+    redirect(`/account/generated?${query.toString()}`);
   }
 
   if (payment.shouldStartGeneration) {
