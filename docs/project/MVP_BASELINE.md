@@ -76,7 +76,7 @@ The short Facekeep content and the new catalog are release-candidate work until 
 
 ## P0 MARKETING ATTRIBUTION
 
-Status: FROZEN / CI READY / PENDING PRODUCTION DEPLOY
+Status: DONE / PRODUCTION / KEEP
 
 - Canonical baseline: annotated tag `p0-attribution-v1` at `edee269ea3d1966e90c6cd3f7b2290d5f3a510f5`.
 - First touch records the first tagged acquisition visit and remains immutable.
@@ -85,6 +85,12 @@ Status: FROZEN / CI READY / PENDING PRODUCTION DEPLOY
 - Photoshoots receive a nullable, backward-compatible and immutable `attribution_snapshot` when they are created.
 - Attribution captures UTM parameters, `yclid` and a safe referrer. Analytics payloads exclude identity, Persona, photoshoot, image, storage, prompt and provider identifiers.
 - Database access is protected by the frozen RPC ACL contract, including explicit role privileges, `SECURITY DEFINER` ownership and a fixed `search_path`.
+- Production main: `e4d1027cd9cfb9af89fe6a7c3b3af941ffa5f411`.
+- Production migration: `supabase_marketing_attribution.sql` applied and verified on 2026-09-17.
+- Production deploy: GitHub Actions run `35216191953` completed successfully.
+- Production UTM smoke: consent gating and first/last touch capture passed; order snapshot smoke is pending a safe test-order path without provider calls.
+- The annotated tag `p0-attribution-v1` remains the immutable implementation reference.
+- REAL PAYMENT REVENUE ATTRIBUTION = PENDING until production acquiring is connected.
 
 ### Deployment
 
