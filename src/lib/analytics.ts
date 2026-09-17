@@ -13,8 +13,10 @@ export const ANALYTICS_GOALS = [
   'photoshoot_created',
   'payment_started',
   'payment_completed',
+  'payment_failed',
   'generation_started',
   'generation_completed',
+  'generation_failed',
   'generation_result_view',
   'image_download',
 ] as const;
@@ -27,6 +29,14 @@ export type AnalyticsParams = Partial<{
   order_status: string;
   source_page: string;
   is_test_mode: boolean;
+  amount: number;
+  currency: string;
+  payment_status: string;
+  lifecycle_status: string;
+  source: string;
+  medium: string;
+  campaign: string;
+  content: string;
 }>;
 
 export type MetrikaFunction = {
@@ -122,19 +132,21 @@ function cleanParams(params: AnalyticsParams): AnalyticsParams {
   ) as AnalyticsParams;
 }
 
-export function trackAnalyticsGoal(goal: AnalyticsGoal, params: AnalyticsParams = {}) {
-  if (!canUseYandexMetrika() || !yandexMetrikaId) return;
+export function trackAnalyticsGoal(goal: AnalyticsGoal, params: AnalyticsParams = {}): boolean {
+  if (!canUseYandexMetrika() || !yandexMetrikaId) return false;
 
   const clean = cleanParams(params);
   if (typeof window.ym !== 'function') {
     pendingGoals.push({ goal, params: clean });
-    return;
+    return true;
   }
 
   try {
     window.ym(yandexMetrikaId, 'reachGoal', goal, { params: clean });
+    return true;
   } catch {
     // Analytics must never affect the product flow.
+    return false;
   }
 }
 

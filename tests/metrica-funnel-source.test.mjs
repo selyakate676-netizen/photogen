@@ -41,6 +41,19 @@ test('completed DB status gates deduplicated generation completion observation',
   ]);
   assert.ok(result.indexOf("photoshoot.status !== 'completed'") < result.indexOf('goal="generation_completed"'));
   assert.match(result, /dedupeKey={`generation-completed:\${photoshoot.id}`}/);
-  assert.match(event, /window\.sessionStorage\.getItem\(storageKey\)/);
-  assert.match(event, /window\.sessionStorage\.setItem\(storageKey, 'sent'\)/);
+  assert.match(event, /window\.localStorage\.getItem\(storageKey\)/);
+  assert.match(event, /if \(!trackAnalyticsGoal\(goal, params\)\) return/);
+  assert.match(event, /photogen:analytics-consent/);
+  assert.match(event, /window\.localStorage\.setItem\(storageKey, 'sent'\)/);
+});
+
+test('terminal failure events are emitted only from confirmed frontend outcomes', async () => {
+  const [generated, paymentAction] = await Promise.all([
+    read('src/app/account/generated/page.tsx'),
+    read('src/app/dashboard/pay/[id]/actions.ts'),
+  ]);
+  assert.match(generated, /shoot\.status === 'completed' \|\| shoot\.status === 'failed'/);
+  assert.match(generated, /'generation_completed' : 'generation_failed'/);
+  assert.ok(paymentAction.indexOf('if (!payment.ok)') < paymentAction.indexOf('payment_failed: photoshootId'));
+  assert.match(generated, /goal="payment_failed"/);
 });

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { getPhotoPackForHistory } from '@/lib/photoPacks';
 import { retryTraining } from '@/app/dashboard/actions';
 import AnalyticsEvent from '@/components/AnalyticsEvent';
+import { attributionAnalyticsParams, sanitizeAttributionSnapshot } from '@/lib/marketingAttribution';
 import styles from '../account.module.css';
 
 const statusLabels: Record<string, string> = {
@@ -15,7 +16,7 @@ const statusLabels: Record<string, string> = {
 };
 
 type GeneratedPageProps = {
-  searchParams: Promise<{ payment_completed?: string; package_slug?: string }>;
+  searchParams: Promise<{ payment_completed?: string; payment_failed?: string; package_slug?: string }>;
 };
 
 export default async function GeneratedPage({ searchParams }: GeneratedPageProps) {
@@ -36,6 +37,12 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
     .order('created_at', { ascending: false });
 
   const photoshoots = data ?? [];
+  const paymentShoot = photoshoots.find((shoot) => shoot.id === (query.payment_completed ?? query.payment_failed));
+  const paymentAttribution = attributionAnalyticsParams(sanitizeAttributionSnapshot(paymentShoot?.attribution_snapshot));
+  const paymentSnapshot = paymentShoot?.package_snapshot && typeof paymentShoot.package_snapshot === 'object' && !Array.isArray(paymentShoot.package_snapshot)
+    ? paymentShoot.package_snapshot
+    : null;
+  const paymentAmount = paymentSnapshot && typeof paymentSnapshot.price_rub === 'number' ? paymentSnapshot.price_rub : undefined;
   const s3Endpoint = process.env.S3_ENDPOINT ?? 'https://s3.ru1.storage.beget.cloud';
   const bucket = process.env.S3_BUCKET_NAME;
   const getImageUrl = (key: string) => {
@@ -46,18 +53,53 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
 
   return (
     <>
-      {query.payment_completed ? (
+      {query.payment_completed && paymentShoot && ['paid', 'queued', 'generating', 'completed'].includes(paymentShoot.status) ? (
         <AnalyticsEvent
           goal="payment_completed"
-          dedupeKey={`payment-completed:${query.payment_completed}`}
+          dedupeKey={`payment-completed:${paymentShoot.id}`}
           params={{
-            package_slug: query.package_slug,
-            order_status: 'queued',
+            package_slug: paymentShoot.style_id,
+            order_status: paymentShoot.status,
+            payment_status: 'completed',
+            amount: paymentAmount,
+            currency: paymentAmount === undefined ? undefined : 'RUB',
             source_page: 'generated',
             is_test_mode: true,
+            ...paymentAttribution,
           }}
         />
       ) : null}
+      {query.payment_failed && paymentShoot ? (
+        <AnalyticsEvent
+          goal="payment_failed"
+          dedupeKey={`payment-failed:${paymentShoot.id}`}
+          params={{
+            package_slug: paymentShoot.style_id,
+            order_status: paymentShoot.status,
+            payment_status: 'failed',
+            amount: paymentAmount,
+            currency: paymentAmount === undefined ? undefined : 'RUB',
+            source_page: 'generated',
+            is_test_mode: true,
+            ...paymentAttribution,
+          }}
+        />
+      ) : null}
+      {photoshoots.filter((shoot) => shoot.status === 'completed' || shoot.status === 'failed').map((shoot) => (
+        <AnalyticsEvent
+          key={`lifecycle-analytics:${shoot.id}`}
+          goal={shoot.status === 'completed' ? 'generation_completed' : 'generation_failed'}
+          dedupeKey={`generation-${shoot.status}:${shoot.id}`}
+          params={{
+            package_slug: shoot.style_id,
+            requested_images_count: shoot.requested_images_count ?? undefined,
+            order_status: shoot.status,
+            lifecycle_status: shoot.status,
+            source_page: 'generated',
+            ...attributionAnalyticsParams(sanitizeAttributionSnapshot(shoot.attribution_snapshot)),
+          }}
+        />
+      ))}
       <header className={`${styles.sectionHeader} ${styles.generatedPageHeader}`}>
         <div>
           <h2>Мои генерации</h2>

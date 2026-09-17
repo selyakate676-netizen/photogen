@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
 import { getPhotoPack, type PhotoPack } from '@/lib/photoPacks';
 import { trackAnalyticsGoal } from '@/lib/analytics';
+import { attributionAnalyticsParams, getBrowserAttribution } from '@/lib/marketingAttribution';
 import StylesGrid from './StylesGrid';
 import styles from './NewPhotoshoot.module.css';
 import { createPhotoshoot } from './actions';
@@ -110,6 +111,7 @@ export default function NewPhotoshootPage() {
       const result = await createPhotoshoot({
         personaId: selectedPersona.id,
         styleId: selectedPack.id,
+        attribution: getBrowserAttribution(),
       });
       if (result.error) throw new Error(result.error);
       if (!result.data?.id) throw new Error('Не удалось получить номер заказа.');
@@ -117,6 +119,7 @@ export default function NewPhotoshootPage() {
         package_slug: selectedPack.slug,
         requested_images_count: selectedPack.photoCount,
         source_page: 'new_photoshoot',
+        ...attributionAnalyticsParams(getBrowserAttribution()),
       });
       router.push(`/dashboard/pay/${result.data.id}`);
     } catch (error) {

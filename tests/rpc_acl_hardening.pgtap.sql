@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap;
-select plan(41);
+select plan(51);
 
 select is(
   (select count(*) from unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) privilege
@@ -138,6 +138,33 @@ select is(
   0::bigint,
   'service_role has no owner-facing RPC grants'
 );
+select ok(not has_function_privilege('anon', 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb)', 'EXECUTE'), 'anon cannot execute the legacy create-photoshoot RPC');
+select ok(has_function_privilege('authenticated', 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb)', 'EXECUTE'), 'authenticated can execute the legacy create-photoshoot RPC');
+select ok(not has_function_privilege('service_role', 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb)', 'EXECUTE'), 'service_role cannot execute the legacy owner-facing create-photoshoot RPC');
+select ok(not has_function_privilege('anon', 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb,jsonb)', 'EXECUTE'), 'anon cannot execute the attribution create-photoshoot RPC');
+select ok(has_function_privilege('authenticated', 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb,jsonb)', 'EXECUTE'), 'authenticated can execute the attribution create-photoshoot RPC');
+select ok(not has_function_privilege('service_role', 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb,jsonb)', 'EXECUTE'), 'service_role cannot execute the attribution owner-facing create-photoshoot RPC');
+select ok(
+  (select p.prosecdef from pg_proc p where p.oid = 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb,jsonb)'::regprocedure),
+  'attribution create-photoshoot RPC is SECURITY DEFINER'
+);
+select ok(
+  (select coalesce(p.proconfig, '{}'::text[]) @> array['search_path=public'] from pg_proc p where p.oid = 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb,jsonb)'::regprocedure),
+  'attribution create-photoshoot RPC fixes search_path to public'
+);
+select ok(
+  (select pg_get_userbyid(p.proowner) in ('postgres', 'supabase_admin') from pg_proc p where p.oid = 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb,jsonb)'::regprocedure),
+  'attribution create-photoshoot RPC has a trusted administrative owner'
+);
+select ok(
+  not exists (
+    select 1 from pg_proc p,
+      lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) acl
+    where p.oid = 'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb,jsonb)'::regprocedure
+      and acl.grantee = 0 and acl.privilege_type = 'EXECUTE'
+  ),
+  'PUBLIC has no EXECUTE privilege on the attribution create-photoshoot RPC'
+);
 select is(
   (select count(*) from unnest(array[
     'public.update_persona(uuid,text,integer,integer,text,text)'
@@ -186,7 +213,7 @@ select lives_ok(
     (select id from public.personas where user_id = auth.uid() and is_default),
     'acl-test', '{}', 'woman', 'average', 'green', '',
     null, null, null, null, null,
-    2, '{"id":"acl-test","slug":"acl-test","name":"ACL test"}'::jsonb
+    2, '{"id":"acl-test","slug":"acl-test","name":"ACL test","price_crystals":1}'::jsonb
   )$$,
   'authenticated owner can create a photoshoot through RPC'
 );
@@ -288,6 +315,7 @@ revoke all privileges on function public.record_photoshoot_result_images(uuid, t
 set local role service_role;
 select set_config('request.jwt.claim.sub', '', true);
 select set_config('request.jwt.claim.role', 'service_role', true);
+select public.credit_wallet('93000000-0000-4000-8000-000000000093', 1, 'acl-test:fund');
 select ok(
   public.claim_photoshoot_generation(
     (select id from public.photoshoots where style_id = 'acl-test')
