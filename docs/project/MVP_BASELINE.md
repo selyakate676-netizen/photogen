@@ -74,6 +74,18 @@ The short Facekeep content and the new catalog are release-candidate work until 
 - Yandex Metrika, explicit consent gating, duplicate initialization protection and funnel goal helpers are KEEP.
 - Analytics must never block navigation or application runtime.
 
+## P0 MARKETING ATTRIBUTION
+
+Status: FROZEN / CI READY / PENDING PRODUCTION DEPLOY
+
+- Canonical baseline: annotated tag `p0-attribution-v1` at `edee269ea3d1966e90c6cd3f7b2290d5f3a510f5`.
+- First touch records the first tagged acquisition visit and remains immutable.
+- Last touch updates only on a new tagged acquisition visit; direct and internal navigation do not erase it.
+- Permanent attribution storage starts only after analytics consent. The initial landing candidate survives delayed consent, while rejection removes the temporary candidate.
+- Photoshoots receive a nullable, backward-compatible and immutable `attribution_snapshot` when they are created.
+- Attribution captures UTM parameters, `yclid` and a safe referrer. Analytics payloads exclude identity, Persona, photoshoot, image, storage, prompt and provider identifiers.
+- Database access is protected by the frozen RPC ACL contract, including explicit role privileges, `SECURITY DEFINER` ownership and a fixed `search_path`.
+
 ### Deployment
 
 - GitHub Actions → VPS → PM2/Nginx is the current deployment architecture.
