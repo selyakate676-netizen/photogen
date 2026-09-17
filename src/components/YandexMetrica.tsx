@@ -7,6 +7,7 @@ import {
   flushPendingAnalyticsGoals,
   yandexMetrikaId,
 } from '@/lib/analytics';
+import { captureBrowserAttribution } from '@/lib/marketingAttribution';
 
 export default function YandexMetrica() {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export default function YandexMetrica() {
   const pageUrl = query ? `${pathname}?${query}` : pathname;
 
   useEffect(() => {
+    if (canUseYandexMetrika()) captureBrowserAttribution();
     flushPendingAnalyticsGoals();
 
     if (

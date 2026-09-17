@@ -3,13 +3,15 @@
 import { revalidatePath } from 'next/cache';
 import { getPhotoPack } from '@/lib/photoPacks';
 import { authenticatedDb } from '@/lib/personas/api';
+import { sanitizeAttributionSnapshot, type AttributionSnapshot } from '@/lib/marketingAttribution';
 
 type CreatePhotoshootProps = {
   personaId: string;
   styleId: string;
+  attribution?: AttributionSnapshot | null;
 };
 
-export async function createPhotoshoot({ personaId, styleId }: CreatePhotoshootProps) {
+export async function createPhotoshoot({ personaId, styleId, attribution }: CreatePhotoshootProps) {
   const { db, user } = await authenticatedDb();
   if (!user) return { error: 'Нужно войти в систему', status: 401 };
   if (!personaId) return { error: 'Выберите Persona для фотосессии', status: 400 };
@@ -45,7 +47,9 @@ export async function createPhotoshoot({ personaId, styleId }: CreatePhotoshootP
       slug: pack.slug,
       name: pack.title,
       price_crystals: pack.priceCrystals,
+      price_rub: pack.priceRub,
     },
+    p_attribution_snapshot: sanitizeAttributionSnapshot(attribution),
   }).single();
 
   if (error) {

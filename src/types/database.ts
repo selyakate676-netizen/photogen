@@ -34,6 +34,7 @@ export interface Database {
           safe_error: string | null;
           requested_images_count: number | null;
           package_snapshot: Json | null;
+          attribution_snapshot: Json | null;
           completed_at: string | null;
           created_at: string;
         };
@@ -61,6 +62,7 @@ export interface Database {
           safe_error?: string | null;
           requested_images_count?: number | null;
           package_snapshot?: Json | null;
+          attribution_snapshot?: Json | null;
           completed_at?: string | null;
           created_at?: string;
         };
@@ -88,6 +90,7 @@ export interface Database {
           safe_error?: string | null;
           requested_images_count?: number | null;
           package_snapshot?: Json | null;
+          attribution_snapshot?: Json | null;
           completed_at?: string | null;
           created_at?: string;
         };
@@ -193,6 +196,7 @@ export interface Database {
           p_body_build: string | null;
           p_requested_images_count: number;
           p_package_snapshot: Json;
+          p_attribution_snapshot?: Json | null;
         };
         Returns: Database['public']['Tables']['photoshoots']['Row'][];
       };

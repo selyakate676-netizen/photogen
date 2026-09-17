@@ -7,6 +7,7 @@ import dashboardStyles from '../../dashboard.module.css';
 import { getEnv, getOptionalEnv } from '@/lib/env';
 import AnalyticsEvent from '@/components/AnalyticsEvent';
 import TrackedDownloadLink from '@/components/TrackedDownloadLink';
+import { attributionAnalyticsParams, sanitizeAttributionSnapshot } from '@/lib/marketingAttribution';
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -48,7 +49,9 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           package_slug: photoshoot.style_id,
           requested_images_count: photoshoot.result_images?.length ?? 0,
           order_status: photoshoot.status,
+          lifecycle_status: photoshoot.status,
           source_page: 'result',
+          ...attributionAnalyticsParams(sanitizeAttributionSnapshot(photoshoot.attribution_snapshot)),
         }}
       />
       <AnalyticsEvent
@@ -57,7 +60,9 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           package_slug: photoshoot.style_id,
           requested_images_count: photoshoot.result_images?.length ?? 0,
           order_status: photoshoot.status,
+          lifecycle_status: photoshoot.status,
           source_page: 'result',
+          ...attributionAnalyticsParams(sanitizeAttributionSnapshot(photoshoot.attribution_snapshot)),
         }}
       />
       <Navbar />
