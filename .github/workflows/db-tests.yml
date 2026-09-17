@@ -42,9 +42,13 @@ jobs:
           cp supabase_rpc_acl_hardening.sql supabase/migrations/20260807001100_rpc_acl_hardening.sql
           cp supabase_crystal_wallet.sql supabase/migrations/20260807001200_crystal_wallet.sql
           cp supabase_marketing_attribution.sql supabase/migrations/20260807001300_marketing_attribution.sql
+          cp supabase_yookassa_payments.sql supabase/migrations/20260807001400_yookassa_payments.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
+
+      - name: Run YooKassa payment pgTAP tests
+        run: supabase test db tests/yookassa_payments.pgtap.sql
 
       - name: Run crystal wallet pgTAP tests
         shell: bash

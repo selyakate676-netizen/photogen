@@ -5,6 +5,9 @@ export type PhotoshootGender = "woman" | "man";
 export type PhotoshootHeightClass = "petite" | "average" | "tall";
 export type PhotoshootBodyShape = "hourglass" | "rectangle" | "pear" | "inverted_triangle" | "oval";
 export type PhotoshootBodyBuild = "slim" | "average" | "full";
+export type PhotoshootPaymentSource = "crystals" | "rub";
+export type PaymentMethod = "bank_card" | "sbp";
+export type PaymentStatus = "pending" | "succeeded" | "canceled";
 
 export interface Database {
   public: {
@@ -35,6 +38,8 @@ export interface Database {
           requested_images_count: number | null;
           package_snapshot: Json | null;
           attribution_snapshot: Json | null;
+          payment_source: PhotoshootPaymentSource | null;
+          payment_id: string | null;
           completed_at: string | null;
           created_at: string;
         };
@@ -63,6 +68,8 @@ export interface Database {
           requested_images_count?: number | null;
           package_snapshot?: Json | null;
           attribution_snapshot?: Json | null;
+          payment_source?: PhotoshootPaymentSource | null;
+          payment_id?: string | null;
           completed_at?: string | null;
           created_at?: string;
         };
@@ -91,6 +98,8 @@ export interface Database {
           requested_images_count?: number | null;
           package_snapshot?: Json | null;
           attribution_snapshot?: Json | null;
+          payment_source?: PhotoshootPaymentSource | null;
+          payment_id?: string | null;
           completed_at?: string | null;
           created_at?: string;
         };
@@ -99,6 +108,76 @@ export interface Database {
             foreignKeyName: "photoshoots_user_id_fkey";
             columns: ["user_id"];
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "photoshoots_payment_id_fkey";
+            columns: ["payment_id"];
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payments: {
+        Row: {
+          id: string;
+          user_id: string;
+          photoshoot_id: string;
+          purpose: "photoshoot_purchase";
+          provider: "yookassa";
+          payment_method: PaymentMethod;
+          provider_payment_id: string | null;
+          amount_minor: number;
+          currency: "RUB";
+          status: PaymentStatus;
+          idempotency_key: string;
+          is_test_mode: boolean;
+          attribution_snapshot: Json | null;
+          provider_snapshot: Json | null;
+          failure_code: string | null;
+          created_at: string;
+          updated_at: string;
+          paid_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          photoshoot_id: string;
+          purpose?: "photoshoot_purchase";
+          provider?: "yookassa";
+          payment_method: PaymentMethod;
+          provider_payment_id?: string | null;
+          amount_minor: number;
+          currency?: "RUB";
+          status?: PaymentStatus;
+          idempotency_key: string;
+          is_test_mode: boolean;
+          attribution_snapshot?: Json | null;
+          provider_snapshot?: Json | null;
+          failure_code?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          paid_at?: string | null;
+        };
+        Update: {
+          provider_payment_id?: string | null;
+          status?: PaymentStatus;
+          provider_snapshot?: Json | null;
+          failure_code?: string | null;
+          updated_at?: string;
+          paid_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_photoshoot_id_fkey";
+            columns: ["photoshoot_id"];
+            referencedRelation: "photoshoots";
             referencedColumns: ["id"];
           },
         ];
@@ -178,7 +257,26 @@ export interface Database {
         ];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      payment_records: {
+        Row: {
+          id: string | null;
+          photoshoot_id: string | null;
+          purpose: string | null;
+          provider: string | null;
+          payment_method: string | null;
+          amount_minor: number | null;
+          currency: string | null;
+          status: string | null;
+          is_test_mode: boolean | null;
+          failure_code: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          paid_at: string | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       create_photoshoot_with_persona: {
         Args: {
@@ -210,6 +308,10 @@ export interface Database {
       };
       confirm_mock_photoshoot_payment: {
         Args: { p_photoshoot_id: string };
+        Returns: Database['public']['Tables']['photoshoots']['Row'][];
+      };
+      confirm_yookassa_photoshoot_payment: {
+        Args: { p_payment_id: string };
         Returns: Database['public']['Tables']['photoshoots']['Row'][];
       };
       finish_photoshoot_generation: {
