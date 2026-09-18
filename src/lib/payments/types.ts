@@ -12,6 +12,7 @@ export type YooKassaPayment = {
   created_at?: string;
   expires_at?: string;
   confirmation?: { type: "redirect"; confirmation_url?: string };
+  amount?: { value?: string; currency?: string };
   payment_method?: { type?: string };
 };
 export type YooKassaCreatePaymentInput = {
