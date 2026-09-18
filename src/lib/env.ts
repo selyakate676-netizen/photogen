@@ -1,4 +1,4 @@
-import type { AiPipelineVersion } from "@/lib/ai/pipeline/types";
+﻿import type { AiPipelineVersion } from "@/lib/ai/pipeline/types";
 import {
   DEFAULT_AI_GENERATION_MODEL,
   resolveAiGenerationModel,
@@ -21,7 +21,11 @@ type EnvName =
   | "AI_PIPELINE_MODE"
   | "AI_GENERATION_MODEL"
   | "OPENAI_API_KEY"
-  | "DATABASE_URL";
+  | "DATABASE_URL"
+  | "YOOKASSA_SHOP_ID"
+  | "YOOKASSA_SECRET_KEY"
+  | "YOOKASSA_TEST_MODE"
+  | "YOOKASSA_RETURN_URL";
 
 export const DEFAULT_AI_PIPELINE_MODE: AiPipelineVersion = "legacy-lora-v1";
 
@@ -91,5 +95,19 @@ export function getSupabasePublicConfig(): { url: string; anonKey: string } {
   return {
     url: getEnv("NEXT_PUBLIC_SUPABASE_URL"),
     anonKey: getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  };
+}
+
+export function getYooKassaConfig() {
+  const testMode = getOptionalEnv("YOOKASSA_TEST_MODE", "false")?.toLowerCase();
+  if (testMode !== "true" && testMode !== "false") {
+    throw new Error('[env] YOOKASSA_TEST_MODE must be "true" or "false"');
+  }
+
+  return {
+    shopId: getEnv("YOOKASSA_SHOP_ID"),
+    secretKey: getEnv("YOOKASSA_SECRET_KEY"),
+    isTestMode: testMode === "true",
+    returnUrl: getEnv("YOOKASSA_RETURN_URL"),
   };
 }
