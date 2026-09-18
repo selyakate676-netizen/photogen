@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/crystal-wallet-ledger
+      - feature/rub-generation-payment-gate
 
 permissions:
   contents: read
@@ -60,6 +61,16 @@ jobs:
             | awk '{ print } !injected && $0 == "begin;" { print "grant select on table public.personas, public.persona_photos to service_role;"; print "grant select, insert on table public.photoshoots to service_role;"; injected = 1 }' \
             >> tests/crystal_wallet_ci.pgtap.sql
           supabase test db tests/crystal_wallet_ci.pgtap.sql
+
+      - name: Run RUB generation payment gate pgTAP tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat supabase_photoshoot_crystal_charge.sql > tests/rub_generation_payment_gate_ci.pgtap.sql
+          cat supabase_failed_generation_refund.sql >> tests/rub_generation_payment_gate_ci.pgtap.sql
+          cat tests/rub_generation_payment_gate.pgtap.sql >> tests/rub_generation_payment_gate_ci.pgtap.sql
+          supabase test db tests/rub_generation_payment_gate_ci.pgtap.sql
+
 
       - name: Run photoshoot lifecycle pgTAP tests
         run: supabase test db tests/photoshoot_lifecycle.pgtap.sql
