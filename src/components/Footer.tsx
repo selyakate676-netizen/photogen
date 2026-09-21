@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -10,44 +12,42 @@ export default function Footer() {
               <span className="gradient-text">PhotoGen</span>
             </div>
             <p className={styles.brandDesc}>
-              Профессиональные фотографии с помощью искусственного интеллекта. 
-              Без фотографа, без камеры — только вы и AI.
+              Профессиональные AI-фотосессии на основе ваших фотографий.
             </p>
           </div>
 
-          <div className={styles.footerLinks}>
+          <nav className={styles.footerLinks} aria-label="Навигация в подвале">
             <div className={styles.footerCol}>
               <h4>Сервис</h4>
               <ul>
-                <li><a href="#how-it-works">Как это работает</a></li>
-                <li><a href="#catalog">Каталог</a></li>
+                <li><Link href="/#how-it-works">Как это работает</Link></li>
+                <li><Link href="/#catalog">Каталог</Link></li>
               </ul>
             </div>
-            <div className={styles.footerCol}>
-              <h4>Поддержка</h4>
-              <ul>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="#">Telegram</a></li>
-                <li><a href="#">Email</a></li>
-              </ul>
-            </div>
+
             <div className={styles.footerCol}>
               <h4>Документы</h4>
               <ul>
-                <li><a href="#">Политика конфиденциальности</a></li>
-                <li><a href="#">Оферта</a></li>
+                <li><Link href="/privacy">Политика обработки данных</Link></li>
+                <li><Link href="/offer">Публичная оферта</Link></li>
+                <li><Link href="/personal-data-consent">Согласие на обработку ПД</Link></li>
+                <li><Link href="/generation-consent">Согласие на генерацию изображений</Link></li>
               </ul>
             </div>
-          </div>
+
+            <div className={styles.footerCol} id="contacts">
+              <h4>Контакты</h4>
+              <ul>
+                <li><Link href="/#faq">Частые вопросы</Link></li>
+                <li className={styles.placeholder}>[TODO владельца: email поддержки]</li>
+              </ul>
+            </div>
+          </nav>
         </div>
 
         <div className={styles.footerBottom}>
-          <p className={styles.copyright}>
-            © 2026 PhotoGen. Все права защищены.
-          </p>
-          <p className={styles.footerNote}>
-            Сделано с ✨ и искусственным интеллектом
-          </p>
+          <p className={styles.copyright}>© 2026 PhotoGen. Все права защищены.</p>
+          <p className={styles.footerNote}>AI-фотосессии для личных и профессиональных задач</p>
         </div>
       </div>
     </footer>
