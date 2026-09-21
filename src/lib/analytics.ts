@@ -12,6 +12,7 @@ export const ANALYTICS_GOALS = [
   'photo_upload_complete',
   'photoshoot_created',
   'payment_started',
+  'payment_checkout_started',
   'payment_completed',
   'payment_failed',
   'generation_started',
@@ -32,6 +33,7 @@ export type AnalyticsParams = Partial<{
   amount: number;
   currency: string;
   payment_status: string;
+  payment_method: string;
   lifecycle_status: string;
   source: string;
   medium: string;

@@ -1,0 +1,321 @@
+.page {
+  min-height: 100vh;
+  padding: 116px 24px 72px;
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.container {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  margin-bottom: 28px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--accent);
+}
+
+.backLink:focus-visible,
+.primaryButton:focus-visible,
+.method:focus-within,
+.methodActive:focus-within,
+.insufficient a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.heading {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.heading h1 {
+  margin-bottom: 10px;
+  font-size: clamp(32px, 5vw, 48px);
+}
+
+.heading > p:last-child,
+.cardHeader p,
+.resultCard > p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.paymentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+.paymentCard,
+.resultCard {
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.paymentCard {
+  display: flex;
+  min-height: 480px;
+  flex-direction: column;
+}
+
+.cardHeader {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.cardHeader h2 {
+  margin-bottom: 4px;
+  font-size: 22px;
+}
+
+.cardHeader p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.iconBox {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--border-accent);
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--accent-gradient-subtle);
+}
+
+.iconBox svg {
+  width: 20px;
+  height: 20px;
+}
+
+.price {
+  margin: 28px 0 22px;
+  color: var(--text-primary);
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.methodFieldset {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.methodFieldset legend {
+  margin-bottom: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.method,
+.methodActive {
+  display: grid;
+  grid-template-columns: auto 22px 1fr;
+  gap: 12px;
+  min-height: 72px;
+  padding: 14px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.method:hover,
+.methodActive {
+  border-color: var(--accent);
+  background: var(--accent-gradient-subtle);
+}
+
+.method input,
+.methodActive input {
+  accent-color: var(--accent);
+}
+
+.method svg,
+.methodActive svg {
+  width: 20px;
+  color: var(--accent);
+}
+
+.method span,
+.methodActive span {
+  display: grid;
+  gap: 3px;
+}
+
+.method small,
+.methodActive small {
+  color: var(--text-secondary);
+}
+
+.primaryButton,
+.crystalForm :global(.btn) {
+  width: 100%;
+  min-height: 50px;
+  margin-top: auto;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--accent-contrast);
+  background: var(--accent-gradient);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryButton:disabled,
+.crystalForm :global(.btn):disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.error {
+  margin: 0 0 14px;
+  color: #ef7777;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.balanceRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.balanceRow strong {
+  color: var(--text-primary);
+}
+
+.insufficient {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(239, 119, 119, 0.35);
+  border-radius: var(--radius-md);
+  background: rgba(239, 119, 119, 0.08);
+}
+
+.insufficient p {
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.insufficient a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.crystalForm {
+  display: flex;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.resultWrap {
+  display: grid;
+  min-height: calc(100vh - 220px);
+  place-items: center;
+}
+
+.resultCard {
+  width: min(560px, 100%);
+  text-align: center;
+}
+
+.resultIcon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--accent-gradient-subtle);
+}
+
+.resultIcon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.resultCard h1 {
+  margin-bottom: 10px;
+  font-size: 32px;
+}
+
+.resultActions {
+  display: grid;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.secondaryLink {
+  display: grid;
+  min-height: 48px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 96px 16px 48px;
+  }
+
+  .paymentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .paymentCard {
+    min-height: auto;
+  }
+
+  .crystalForm,
+  .primaryButton {
+    margin-top: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

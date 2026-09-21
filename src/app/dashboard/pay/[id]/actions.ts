@@ -9,7 +9,7 @@ import {
   startQueuedPhotoshootGeneration,
 } from '@/lib/photoshoots/orchestration';
 
-export async function mockPayment(formData: FormData) {
+export async function payWithCrystals(formData: FormData) {
   const photoshootId = formData.get('photoshootId') as string;
   if (!photoshootId) return;
 

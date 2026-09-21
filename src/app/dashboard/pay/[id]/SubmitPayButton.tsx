@@ -1,36 +1,22 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { trackAnalyticsGoal } from '@/lib/analytics';
 
 type SubmitPayButtonProps = {
-  packageSlug: string;
+  disabled: boolean;
+  priceCrystals: number;
 };
 
-export default function SubmitPayButton({ packageSlug }: SubmitPayButtonProps) {
+export default function SubmitPayButton({ disabled, priceCrystals }: SubmitPayButtonProps) {
   const { pending } = useFormStatus();
-  const generationStartedSentRef = useRef(false);
-
-  useEffect(() => {
-    if (!pending || generationStartedSentRef.current) return;
-    generationStartedSentRef.current = true;
-    trackAnalyticsGoal('generation_started', {
-      package_slug: packageSlug,
-      order_status: 'starting',
-      source_page: 'checkout',
-      is_test_mode: true,
-    });
-  }, [packageSlug, pending]);
 
   return (
     <button
       type="submit"
       className="btn btn-primary btn-lg"
-      style={{ minWidth: '250px', cursor: pending ? 'wait' : 'pointer', opacity: pending ? 0.7 : 1 }}
-      disabled={pending}
+      disabled={disabled || pending}
     >
-      {pending ? 'Запуск генерации...' : 'Оплатить (эмуляция)'}
+      {pending ? 'Проверяем баланс...' : `Оплатить ${priceCrystals} кристаллами`}
     </button>
   );
 }

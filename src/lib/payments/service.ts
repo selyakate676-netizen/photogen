@@ -1,7 +1,7 @@
-﻿import "server-only";
+import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { getYooKassaConfig } from "@/lib/env";
+import { getSiteUrl, getYooKassaConfig } from "@/lib/env";
 import type { PaymentMethod, YooKassaPayment } from "@/lib/payments/types";
 import { getYooKassaClient, YooKassaError } from "@/lib/payments/yookassa";
 import type { Database, Json } from "@/types/database";
@@ -39,6 +39,14 @@ function safeProviderSnapshot(payment: YooKassaPayment) {
     payment_method: payment.payment_method?.type ?? null,
     confirmation_type: payment.confirmation?.type ?? null,
   };
+}
+
+function paymentReturnUrl(paymentId: string) {
+  const configured = new URL(getYooKassaConfig().returnUrl, getSiteUrl());
+  configured.pathname = `/dashboard/pay/${paymentId}/result`;
+  configured.search = "";
+  configured.hash = "";
+  return configured.toString();
 }
 
 export async function createOrReuseYooKassaPayment(input: { userId: string; photoshootId: string; paymentMethod: PaymentMethod }) {
@@ -92,12 +100,11 @@ export async function createOrReuseYooKassaPayment(input: { userId: string; phot
     throw new PaymentRequestError("PAYMENT_ATTEMPT_MISMATCH", 409);
   }
 
-  const config = getYooKassaConfig();
   const provider = await getYooKassaClient().createPayment({
     amountMinor: internalPayment.amount_minor,
     idempotencyKey: internalPayment.idempotency_key,
     paymentMethod: internalPayment.payment_method,
-    returnUrl: config.returnUrl,
+    returnUrl: paymentReturnUrl(internalPayment.id),
     description: `PhotoGen: ${photoshoot.style_id}`,
     metadata: { payment_id: internalPayment.id, photoshoot_id: photoshoot.id },
   });
