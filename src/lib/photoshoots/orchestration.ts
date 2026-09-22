@@ -1,26 +1,10 @@
 import { startMvpGenerationForPhotoshoot } from "@/lib/ai/mvp-generation-adapter";
 import {
   SAFE_GENERATION_ERROR,
-  confirmMockPhotoshootPayment,
   updatePhotoshootStatus,
 } from "@/lib/photoshoots/status";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
-
-export async function confirmMockPaymentAndQueue(photoshootId: string, userId: string) {
-  const supabase = await createClient();
-  const photoshoot = await confirmMockPhotoshootPayment(supabase, photoshootId);
-
-  if (!photoshoot || photoshoot.user_id !== userId) {
-    return { ok: false as const, code: "PHOTOSHOOT_NOT_FOUND" as const };
-  }
-
-  return {
-    ok: true as const,
-    photoshoot,
-    shouldStartGeneration: photoshoot.status === "queued",
-  };
-}
 
 export async function startQueuedPhotoshootGeneration(photoshootId: string, userId?: string) {
   const sessionClient = await createClient();

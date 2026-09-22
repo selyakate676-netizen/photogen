@@ -2,6 +2,9 @@ begin;
 create extension if not exists pgtap;
 select plan(18);
 
+-- Test-only capability: production migrations grant this RPC to no API role.
+grant execute on function public.confirm_mock_photoshoot_payment(uuid) to service_role;
+
 insert into auth.users(id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values
   ('91000000-0000-4000-8000-000000000091', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'lifecycle-a@example.test', '', now(), now()),
@@ -74,22 +77,38 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
 select set_config('request.jwt.claim.role', 'authenticated', true);
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select public.confirm_mock_photoshoot_payment(
   current_setting('photogen.lifecycle_order_one')::uuid
 );
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select is(
   (select status from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
   'queued',
-  'mock payment atomically reaches queued'
+  'test-only service context atomically reaches queued'
 );
 
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select public.confirm_mock_photoshoot_payment(
   current_setting('photogen.lifecycle_order_one')::uuid
 );
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select is(
   (select status from public.photoshoots where user_id = auth.uid() order by created_at limit 1),
   'queued',
-  'repeated mock payment is a safe no-op'
+  'repeated test-only confirmation is a safe no-op'
 );
 
 reset role;
@@ -175,12 +194,14 @@ select set_config(
   (select id::text from public.photoshoots where user_id = auth.uid() and style_id = 'career' limit 1),
   true
 );
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '91000000-0000-4000-8000-000000000091', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select public.confirm_mock_photoshoot_payment(
   current_setting('photogen.lifecycle_order_two')::uuid
 );
 
-reset role;
-set local role service_role;
 select set_config('request.jwt.claim.sub', '', true);
 select set_config('request.jwt.claim.role', 'service_role', true);
 select ok(
@@ -217,8 +238,8 @@ select throws_ok(
   $$select public.confirm_mock_photoshoot_payment(
     current_setting('photogen.lifecycle_order_one')::uuid
   )$$,
-  'P0002', 'PHOTOSHOOT_NOT_FOUND',
-  'foreign order is hidden from owner-facing payment operations'
+  '42501', 'permission denied for function confirm_mock_photoshoot_payment',
+  'authenticated cannot execute mock payment confirmation'
 );
 
 reset role;

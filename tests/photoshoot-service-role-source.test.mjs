@@ -64,22 +64,23 @@ test("legacy training keeps authentication and owner lookup ahead of its service
   assert.match(source.slice(update), /\.update\(\{\s*training_id:/);
 });
 
-test("mock payment remains owner-facing and dashboard retry uses guarded orchestration", async () => {
-  const [orchestration, dashboardAction] = await Promise.all([
+test("production sources expose no mock payment action or client helper", async () => {
+  const [orchestration, status, paymentPage, acl] = await Promise.all([
     read("src/lib/photoshoots/orchestration.ts"),
-    read("src/app/dashboard/actions.ts"),
+    read("src/lib/photoshoots/status.ts"),
+    read("src/app/dashboard/pay/[id]/page.tsx"),
+    read("supabase_rpc_acl_hardening.sql"),
   ]);
 
-  const confirmBlock = orchestration.match(
-    /export async function confirmMockPaymentAndQueue[\s\S]*?^\}/m,
-  )?.[0] ?? "";
-  assert.match(confirmBlock, /await createClient\(\)/);
-  assert.match(confirmBlock, /confirmMockPhotoshootPayment\(supabase/);
-  assert.doesNotMatch(confirmBlock, /createServiceRoleClient/);
-  assert.match(dashboardAction, /startQueuedPhotoshootGeneration\(photoshootId, user\.id\)/);
-  assert.doesNotMatch(dashboardAction, /startMvpGenerationForPhotoshoot/);
+  assert.doesNotMatch(orchestration, /confirmMock|confirm_mock/);
+  assert.doesNotMatch(status, /confirmMock|confirm_mock/);
+  assert.doesNotMatch(paymentPage, /mockPayment|confirmMock|confirm_mock/);
+  assert.match(paymentPage, /redirect\('\/account\/generated'\)/);
+  assert.doesNotMatch(
+    acl,
+    /grant execute on function public\.confirm_mock_photoshoot_payment\(uuid\)[\s\S]*?to authenticated/i,
+  );
 });
-
 test("ACL migration guards exactly the four internal lifecycle RPCs", async () => {
   const source = await read("supabase_rpc_acl_hardening.sql");
   const guards = source.match(/message = 'SERVICE_ROLE_REQUIRED'/g) ?? [];

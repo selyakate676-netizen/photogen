@@ -146,10 +146,15 @@ set search_path = public
 as $$
 declare
   v_user uuid := auth.uid();
+  v_role text := auth.role();
   v_photoshoot public.photoshoots;
 begin
+  if coalesce(v_role, '') <> 'service_role' then
+    raise exception using errcode = '42501', message = 'SERVICE_ROLE_REQUIRED';
+  end if;
+
   if v_user is null then
-    raise exception using errcode = '42501', message = 'AUTH_REQUIRED';
+    raise exception using errcode = '42501', message = 'USER_CONTEXT_REQUIRED';
   end if;
 
   select * into v_photoshoot
@@ -383,7 +388,6 @@ revoke all on function public.create_photoshoot_with_persona(uuid, text, text[],
 
 grant execute on function public.transition_photoshoot_status(uuid, text, text) to service_role;
 grant execute on function public.finish_photoshoot_generation(uuid, boolean, text) to authenticated, service_role;
-grant execute on function public.confirm_mock_photoshoot_payment(uuid) to authenticated;
 grant execute on function public.claim_photoshoot_generation(uuid) to authenticated, service_role;
 grant execute on function public.record_photoshoot_result_images(uuid, text[]) to authenticated, service_role;
 grant execute on function public.create_photoshoot_with_persona(uuid, text, text[], text, text, text, text, integer, integer, text, text, text, integer, jsonb) to authenticated;

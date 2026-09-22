@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap;
-select plan(41);
+select plan(42);
 
 select is(
   (select count(*) from unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) privilege
@@ -97,11 +97,10 @@ select is(
     'public.add_persona_photo(uuid,text)',
     'public.delete_persona_photo(uuid,uuid)',
     'public.reorder_persona_photos(uuid,uuid[])',
-    'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb)',
-    'public.confirm_mock_photoshoot_payment(uuid)'
+    'public.create_photoshoot_with_persona(uuid,text,text[],text,text,text,text,integer,integer,text,text,text,integer,jsonb)'
   ]) signature where has_function_privilege('authenticated', signature, 'EXECUTE')),
-  8::bigint,
-  'authenticated retains every required owner-facing RPC'
+  7::bigint,
+  'authenticated retains every required owner-facing RPC except mock payment'
 );
 select is(
   (select count(*) from unnest(array[
@@ -208,16 +207,17 @@ select is(
   'awaiting_payment',
   'blocked direct payment transition does not change status'
 );
-select lives_ok(
+select throws_ok(
   $$select public.confirm_mock_photoshoot_payment(
     (select id from public.photoshoots where user_id = auth.uid() and style_id = 'acl-test')
-  )$$,
-  'owner-facing mock payment RPC remains available'
+  )$,
+  '42501', 'permission denied for function confirm_mock_photoshoot_payment',
+  'authenticated cannot execute mock payment'
 );
 select is(
   (select status from public.photoshoots where user_id = auth.uid() and style_id = 'acl-test'),
-  'queued',
-  'mock payment still queues the owner order'
+  'awaiting_payment',
+  'blocked mock payment does not change order state'
 );
 select throws_ok(
   $$select public.claim_photoshoot_generation(
@@ -246,6 +246,7 @@ grant execute on function public.transition_photoshoot_status(uuid, text, text) 
 grant execute on function public.claim_photoshoot_generation(uuid) to authenticated;
 grant execute on function public.finish_photoshoot_generation(uuid, boolean, text) to authenticated;
 grant execute on function public.record_photoshoot_result_images(uuid, text[]) to authenticated;
+grant execute on function public.confirm_mock_photoshoot_payment(uuid) to authenticated;
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '93000000-0000-4000-8000-000000000093', true);
@@ -274,9 +275,16 @@ select throws_ok(
 select throws_ok(
   $$select public.record_photoshoot_result_images(
     (select id from public.photoshoots where user_id = auth.uid() and style_id = 'acl-test'), '{}'
-  )$$,
+  )$,
   '42501', 'SERVICE_ROLE_REQUIRED',
   'result RPC body rejects authenticated even after an accidental grant'
+);
+select throws_ok(
+  $$select public.confirm_mock_photoshoot_payment(
+    (select id from public.photoshoots where user_id = auth.uid() and style_id = 'acl-test')
+  )$,
+  '42501', 'SERVICE_ROLE_REQUIRED',
+  'mock payment body rejects authenticated even after an accidental grant'
 );
 
 reset role;
@@ -284,10 +292,16 @@ revoke all privileges on function public.transition_photoshoot_status(uuid, text
 revoke all privileges on function public.claim_photoshoot_generation(uuid) from authenticated;
 revoke all privileges on function public.finish_photoshoot_generation(uuid, boolean, text) from authenticated;
 revoke all privileges on function public.record_photoshoot_result_images(uuid, text[]) from authenticated;
+revoke all privileges on function public.confirm_mock_photoshoot_payment(uuid) from authenticated;
+grant execute on function public.confirm_mock_photoshoot_payment(uuid) to service_role;
 
 set local role service_role;
-select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.sub', '93000000-0000-4000-8000-000000000093', true);
 select set_config('request.jwt.claim.role', 'service_role', true);
+select public.confirm_mock_photoshoot_payment(
+  (select id from public.photoshoots where style_id = 'acl-test')
+);
+select set_config('request.jwt.claim.sub', '', true);
 select ok(
   public.claim_photoshoot_generation(
     (select id from public.photoshoots where style_id = 'acl-test')

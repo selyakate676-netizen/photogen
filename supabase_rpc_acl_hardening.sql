@@ -226,9 +226,6 @@ grant execute on function public.create_photoshoot_with_persona(
   uuid, text, text[], text, text, text, text,
   integer, integer, text, text, text, integer, jsonb
 ) to authenticated;
-grant execute on function public.confirm_mock_photoshoot_payment(uuid)
-  to authenticated;
-
 -- Internal lifecycle RPCs are callable only by the server-side service role.
 revoke all privileges on function public.transition_photoshoot_status(uuid, text, text)
   from public, anon, authenticated, service_role;

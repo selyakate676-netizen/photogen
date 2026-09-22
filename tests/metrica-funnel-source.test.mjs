@@ -23,15 +23,10 @@ test('registration, Persona and photoshoot events follow confirmed success', asy
   assert.ok(photoshoot.indexOf("if (!result.data?.id) throw") < photoshoot.indexOf("trackAnalyticsGoal('photoshoot_created'"));
 });
 
-test('payment events use eligible page entry and confirmed payment redirect', async () => {
-  const [page, action, button] = await Promise.all([
-    read('src/app/dashboard/pay/[id]/page.tsx'),
-    read('src/app/dashboard/pay/[id]/actions.ts'),
-    read('src/app/dashboard/pay/[id]/SubmitPayButton.tsx'),
-  ]);
-  assert.match(page, /goal="payment_started"/);
-  assert.ok(action.indexOf('if (!payment.ok)') < action.indexOf('payment_completed: photoshootId'));
-  assert.doesNotMatch(button, /mock_payment_click|payment_completed/);
+test('retired mock checkout emits no payment success events', async () => {
+  const page = await read('src/app/dashboard/pay/[id]/page.tsx');
+  assert.match(page, /redirect\('\/account\/generated'\)/);
+  assert.doesNotMatch(page, /payment_started|payment_completed|mockPayment/);
 });
 
 test('completed DB status gates deduplicated generation completion observation', async () => {

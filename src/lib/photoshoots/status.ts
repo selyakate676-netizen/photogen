@@ -159,20 +159,6 @@ export async function updatePhotoshootStatus(
   return true;
 }
 
-export async function confirmMockPhotoshootPayment(
-  supabase: PhotoshootSupabaseClient,
-  photoshootId: string,
-): Promise<Database["public"]["Tables"]["photoshoots"]["Row"] | null> {
-  const { data, error } = await supabase
-    .rpc("confirm_mock_photoshoot_payment", { p_photoshoot_id: photoshootId })
-    .single();
-  if (error) {
-    console.error("Could not confirm mock photoshoot payment:", error);
-    return null;
-  }
-  return data;
-}
-
 export async function claimPhotoshootGeneration(
   supabase: PhotoshootSupabaseClient,
   photoshootId: string,
