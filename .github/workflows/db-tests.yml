@@ -45,9 +45,23 @@ jobs:
           cp supabase_marketing_attribution.sql supabase/migrations/20260807001300_marketing_attribution.sql
           cp supabase_yookassa_payments.sql supabase/migrations/20260807001400_yookassa_payments.sql
           cp supabase_user_consents.sql supabase/migrations/20260807001500_user_consents.sql
+          cp supabase_persona_photo_safe_deletion.sql supabase/migrations/20260807001600_persona_photo_safe_deletion.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
+
+      - name: Run Persona pgTAP regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase test db tests/personas.pgtap.sql
+          supabase test db tests/personas_limits.pgtap.sql
+          supabase test db tests/persona_appearance.pgtap.sql
+          supabase test db tests/photoshoot_persona.pgtap.sql
+          supabase test db tests/persona_photos_completion.pgtap.sql
+
+      - name: Run Persona photo safe deletion pgTAP tests
+        run: supabase test db tests/persona_photo_safe_deletion.pgtap.sql
 
       - name: Run user consent pgTAP tests
         run: supabase test db tests/user_consents.pgtap.sql
