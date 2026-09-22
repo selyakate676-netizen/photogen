@@ -85,14 +85,8 @@ export async function deletePrivateObjects(paths: string[]) {
   if (failed.length) console.error("Persona storage cleanup failed", failed);
   return failed.length === 0;
 }
-export async function isPersonaPhotoReferencedBySnapshot(db: any, storagePath: string) {
-  const { data, error } = await db
-    .from("photoshoots")
-    .select("id")
-    .contains("persona_snapshot", { photos: [storagePath] })
-    .limit(1);
-  if (error) throw error;
-  return (data?.length ?? 0) > 0;
+export async function deletePrivateObject(path: string) {
+  await s3Client.send(new DeleteObjectCommand({ Bucket: getS3BucketName(), Key: path }));
 }
 
 export function invalidInput(error: unknown) {

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   authenticatedDb,
-  deletePrivateObjects,
-  isPersonaPhotoReferencedBySnapshot,
+  deletePrivateObject,
   jsonError,
   personaJson,
   PERSONA_SELECT,
@@ -16,16 +15,20 @@ export async function DELETE(_request: Request, { params }: PersonaPhotoRouteCon
   if (!UUID_RE.test(personaId) || !UUID_RE.test(photoId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();
   if (!user) return NextResponse.json({ error: "Auth required" }, { status: 401 });
-  const { data, error } = await db.rpc("delete_persona_photo", { p_persona_id: personaId, p_photo_id: photoId });
-  if (error) return jsonError(error, "Could not delete photo");
-  let storageRetained = false;
-  let storageCleaned = false;
+  const rpcArgs = { p_persona_id: personaId, p_photo_id: photoId };
+  const { data: storagePath, error: prepareError } = await db.rpc("prepare_persona_photo_deletion", rpcArgs);
+  if (prepareError) return jsonError(prepareError, "Could not prepare photo deletion");
   try {
-    storageRetained = await isPersonaPhotoReferencedBySnapshot(db, data);
-    storageCleaned = storageRetained ? false : await deletePrivateObjects([data]);
-  } catch (cleanupError) {
-    console.error("Persona photo storage retention check failed", cleanupError);
+    await deletePrivateObject(storagePath);
+  } catch (storageError) {
+    const { error: cancelError } = await db.rpc("cancel_persona_photo_deletion", rpcArgs);
+    if (cancelError) console.error("Could not cancel Persona photo deletion reservation", cancelError);
+    console.error("Persona photo storage cleanup failed", storageError);
+    return NextResponse.json({ error: "Could not delete photo from storage" }, { status: 502 });
   }
+
+  const { error: deleteError } = await db.rpc("delete_persona_photo", rpcArgs);
+  if (deleteError) return jsonError(deleteError, "Could not finalize photo deletion");
 
   const { data: persona, error: personaError } = await db
     .from("personas")
@@ -37,7 +40,6 @@ export async function DELETE(_request: Request, { params }: PersonaPhotoRouteCon
   return NextResponse.json({
     deleted: true,
     persona: personaJson(persona),
-    storageCleaned,
-    storageRetained,
+    storageCleaned: true,
   });
 }
