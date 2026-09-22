@@ -33,6 +33,8 @@ jobs:
           cp supabase_personas_migration.sql supabase/migrations/20260807000200_personas.sql
           cp supabase_personas_hardening.sql supabase/migrations/20260807000300_personas_hardening.sql
           cp supabase_personas_guard_fix.sql supabase/migrations/20260807000400_personas_guard_fix.sql
+          cp supabase_persona_photos_v2.sql supabase/migrations/20260807000450_persona_photos_v2.sql
+          cp supabase_persona_photos_v2_completion.sql supabase/migrations/20260807000460_persona_photos_v2_completion.sql
           cp supabase_photoshoot_persona.sql supabase/migrations/20260807000500_photoshoot_persona.sql
           cp supabase_photoshoot_persona_rpc_fix.sql supabase/migrations/20260807000600_photoshoot_persona_rpc_fix.sql
           cp supabase_persona_appearance.sql supabase/migrations/20260807000700_persona_appearance.sql
