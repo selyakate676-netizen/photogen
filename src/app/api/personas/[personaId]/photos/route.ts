@@ -3,6 +3,7 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sd
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { getS3BucketName } from "@/lib/env";
+import { requireGenerationConsent } from "@/lib/legal/server";
 import { authenticatedDb, jsonError, photoJson, PHOTO_SELECT, UUID_RE } from "@/lib/personas/api";
 import { s3Client } from "@/lib/s3";
 
@@ -19,7 +20,6 @@ export async function GET(_request: Request, { params }: PersonaRouteContext) {
   const { data: persona } = await db.from("personas").select("id").eq("id", personaId).single();
   if (!persona) return NextResponse.json({ error: "Not found" }, { status: 404 });
   let { data, error } = await db.from("persona_photos").select(PHOTO_SELECT).eq("persona_id", personaId).order("sort_order");
-  // Keep existing profiles readable until the additive Persona Photos 2.0 migration is applied.
   if (error?.code === "42703") {
     const legacy = await db.from("persona_photos").select("id,persona_id,storage_path,created_at").eq("persona_id", personaId).order("created_at");
     data = legacy.data;
@@ -45,6 +45,14 @@ export async function POST(request: Request, { params }: PersonaRouteContext) {
   if (!UUID_RE.test(personaId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { db, user } = await authenticatedDb();
   if (!user) return NextResponse.json({ error: "Auth required" }, { status: 401 });
+  try {
+    await requireGenerationConsent(db, user.id);
+  } catch (error) {
+    if (error instanceof Error && error.message === "GENERATION_CONSENT_REQUIRED") {
+      return NextResponse.json({ error: "GENERATION_CONSENT_REQUIRED" }, { status: 403 });
+    }
+    return jsonError(error, "Could not verify generation consent");
+  }
   const { data: persona } = await db.from("personas").select("id").eq("id", personaId).single();
   if (!persona) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const formData = await request.formData();

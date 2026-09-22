@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireGenerationConsent } from "@/lib/legal/server";
 import { authenticatedDb, invalidInput, jsonError, parsePersonaBody, personaJson, PERSONA_SELECT } from "@/lib/personas/api";
 
 export async function GET() {
@@ -12,6 +13,14 @@ export async function GET() {
 export async function POST(request: Request) {
   const { db, user } = await authenticatedDb();
   if (!user) return NextResponse.json({ error: "Auth required" }, { status: 401 });
+  try {
+    await requireGenerationConsent(db, user.id);
+  } catch (error) {
+    if (error instanceof Error && error.message === "GENERATION_CONSENT_REQUIRED") {
+      return NextResponse.json({ error: "GENERATION_CONSENT_REQUIRED" }, { status: 403 });
+    }
+    return jsonError(error, "Could not verify generation consent");
+  }
   try {
     const body = parsePersonaBody(await request.json());
     const { data, error } = await db.rpc("create_persona", { p_name: body.name, p_height: body.height ?? null, p_weight: body.weight ?? null, p_gender: body.gender ?? null, p_eye_color: body.eyeColor ?? null });

@@ -132,6 +132,9 @@ export default function ProfileWorkspace({
   const [copied, setCopied] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [generationConsentCurrent, setGenerationConsentCurrent] = useState(false);
+  const [generationConsentChecked, setGenerationConsentChecked] = useState(false);
+  const [generationConsentPending, setGenerationConsentPending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const photosRef = useRef<Record<string, PersonaPhoto[]>>({});
   const pointerDragRef = useRef<{ personaId: string; photoId: string; previous: PersonaPhoto[] } | null>(null);
@@ -184,6 +187,13 @@ export default function ProfileWorkspace({
   useEffect(() => {
     setReferralUrl(`${window.location.origin}/signup?ref=${referralCode}`);
     void loadPersonas();
+    void fetch('/api/consents', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Не удалось проверить согласие на генерацию.');
+        const payload = await response.json() as { accepted?: { generation?: { current?: boolean } } };
+        setGenerationConsentCurrent(Boolean(payload.accepted?.generation?.current));
+      })
+      .catch(() => setLoadError('Не удалось проверить согласие на генерацию. Обновите страницу.'));
   }, [loadPersonas, referralCode]);
 
   const setMessage = (personaId: string, message: string) => {
@@ -213,6 +223,10 @@ export default function ProfileWorkspace({
   };
 
   const createPersona = async () => {
+    if (!generationConsentCurrent) {
+      setLoadError('Сначала подтвердите согласие на генерацию изображений.');
+      return;
+    }
     const actionKey = 'create-persona';
     setPendingAction(actionKey);
     setLoadError('');
@@ -269,6 +283,10 @@ export default function ProfileWorkspace({
   };
 
   const openFilePicker = (personaId: string) => {
+    if (!generationConsentCurrent) {
+      setMessage(personaId, 'Сначала подтвердите согласие на генерацию изображений.');
+      return;
+    }
     setUploadPersonaId(personaId);
     fileInputRef.current?.click();
   };
@@ -481,6 +499,26 @@ export default function ProfileWorkspace({
     }
   };
 
+  const acceptGenerationConsent = async () => {
+    if (!generationConsentChecked) return;
+    setGenerationConsentPending(true);
+    setLoadError('');
+    try {
+      const response = await fetch('/api/consents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ consentType: 'generation' }),
+      });
+      if (!response.ok) throw new Error('Не удалось сохранить согласие.');
+      setGenerationConsentCurrent(true);
+      setGenerationConsentChecked(false);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Не удалось сохранить согласие.');
+    } finally {
+      setGenerationConsentPending(false);
+    }
+  };
+
   const copyReferral = async () => {
     await navigator.clipboard.writeText(referralUrl);
     setCopied(true);
@@ -493,6 +531,31 @@ export default function ProfileWorkspace({
         <h1>Профиль</h1>
         <p>Сохраните фотографии и данные внешности один раз, чтобы использовать их во всех будущих фотосессиях.</p>
       </section>
+
+      {!generationConsentCurrent ? (
+        <section className={styles.profileSection}>
+          <h2>Согласие на генерацию изображений</h2>
+          <p className={styles.panelDescription}>
+            Перед созданием первой персоны подтвердите, что вы понимаете условия обработки фотографий и генерации AI-изображений.
+          </p>
+          <label className={styles.consentRow}>
+            <input
+              type="checkbox"
+              checked={generationConsentChecked}
+              onChange={(event) => setGenerationConsentChecked(event.target.checked)}
+            />
+            <span>Я принимаю <a href="/generation-consent" target="_blank" rel="noreferrer">согласие на генерацию изображений</a>.</span>
+          </label>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            disabled={!generationConsentChecked || generationConsentPending}
+            onClick={() => void acceptGenerationConsent()}
+          >
+            {generationConsentPending ? 'Сохраняем…' : 'Подтвердить согласие'}
+          </button>
+        </section>
+      ) : null}
 
       <input
         ref={fileInputRef}

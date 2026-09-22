@@ -1,0 +1,35 @@
+.consent {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  color: var(--text-on-dark-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.consent input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.consent a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consent:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.oauthNote {
+  margin: 18px 0 0;
+  color: var(--text-on-dark-secondary);
+  font-size: 13px;
+  text-align: center;
+}

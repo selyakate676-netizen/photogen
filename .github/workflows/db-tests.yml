@@ -44,9 +44,13 @@ jobs:
           cp supabase_crystal_wallet.sql supabase/migrations/20260807001200_crystal_wallet.sql
           cp supabase_marketing_attribution.sql supabase/migrations/20260807001300_marketing_attribution.sql
           cp supabase_yookassa_payments.sql supabase/migrations/20260807001400_yookassa_payments.sql
+          cp supabase_user_consents.sql supabase/migrations/20260807001500_user_consents.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
+
+      - name: Run user consent pgTAP tests
+        run: supabase test db tests/user_consents.pgtap.sql
 
       - name: Run YooKassa payment pgTAP tests
         run: supabase test db tests/yookassa_payments.pgtap.sql

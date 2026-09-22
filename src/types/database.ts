@@ -8,10 +8,38 @@ export type PhotoshootBodyBuild = "slim" | "average" | "full";
 export type PhotoshootPaymentSource = "crystals" | "rub";
 export type PaymentMethod = "bank_card" | "sbp";
 export type PaymentStatus = "pending" | "succeeded" | "canceled";
+export type ConsentType = "privacy" | "personal_data" | "generation";
 
 export interface Database {
   public: {
     Tables: {
+      user_consents: {
+        Row: {
+          id: string;
+          user_id: string;
+          consent_type: ConsentType;
+          document_version: string;
+          accepted_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          consent_type: ConsentType;
+          document_version: string;
+          accepted_at?: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "user_consents_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       photoshoots: {
         Row: {
           id: string;

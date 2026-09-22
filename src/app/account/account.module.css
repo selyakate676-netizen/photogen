@@ -2081,3 +2081,33 @@
   .personaCatalogCta { align-items: stretch; flex-direction: column; }
   .personaCatalogCta .primaryButton { width: 100%; justify-content: center; }
 }
+
+
+.consentRow {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin: 16px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.consentRow input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.consentRow a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consentRow:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
