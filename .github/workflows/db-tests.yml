@@ -40,7 +40,6 @@ jobs:
           cp supabase_persona_appearance.sql supabase/migrations/20260807000700_persona_appearance.sql
           cp supabase_photoshoot_lifecycle.sql supabase/migrations/20260807000800_photoshoot_lifecycle.sql
           cp supabase_crystal_wallet.sql supabase/migrations/20260807000900_crystal_wallet.sql
-          cp supabase_rpc_acl_hardening.sql supabase/migrations/20260807001000_rpc_acl_hardening.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
@@ -57,11 +56,16 @@ jobs:
             >> tests/crystal_wallet_ci.pgtap.sql
           supabase test db tests/crystal_wallet_ci.pgtap.sql
 
+      - name: Run RPC ACL hardening pgTAP tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat supabase_rpc_acl_hardening.sql > tests/rpc_acl_ci.pgtap.sql
+          cat tests/rpc_acl_hardening.pgtap.sql >> tests/rpc_acl_ci.pgtap.sql
+          supabase test db tests/rpc_acl_ci.pgtap.sql
+
       - name: Run photoshoot lifecycle pgTAP tests
         run: supabase test db tests/photoshoot_lifecycle.pgtap.sql
-
-      - name: Run RPC ACL hardening pgTAP tests
-        run: supabase test db tests/rpc_acl_hardening.pgtap.sql
 
       - name: Stop ephemeral Supabase
         if: always()
