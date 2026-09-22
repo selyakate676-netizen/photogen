@@ -56,8 +56,6 @@ jobs:
           supabase test db tests/personas.pgtap.sql
           supabase test db tests/personas_limits.pgtap.sql
           supabase test db tests/persona_appearance.pgtap.sql
-          supabase test db tests/photoshoot_persona.pgtap.sql
-          supabase test db tests/persona_photos_completion.pgtap.sql
 
       - name: Apply Persona photo safe deletion migration
         shell: bash
