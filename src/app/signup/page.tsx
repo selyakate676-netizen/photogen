@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import { trackAnalyticsGoal } from '@/lib/analytics';
 import { LEGAL_DOCUMENT_VERSIONS } from '@/lib/legal/consents';
+import SocialAuth from '@/components/SocialAuth';
 import styles from '../login/login.module.css';
 import signupStyles from './signup.module.css';
 
@@ -119,7 +120,7 @@ export default function SignupPage() {
           </button>
         </form>
 
-        <p className={signupStyles.oauthNote}>Регистрация через социальные сети временно недоступна.</p>
+        <SocialAuth />
         <div className={styles.footer}>Уже есть аккаунт? <Link href="/login" className={styles.link}>Войти</Link></div>
         <Link href="/" className={styles.backLink}>← На главную</Link>
       </div>

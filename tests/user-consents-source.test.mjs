@@ -12,7 +12,7 @@ test('signup requires explicit current-version legal consent', () => {
   assert.match(signup, /\/privacy/);
   assert.match(signup, /\/personal-data-consent/);
   assert.match(signup, /legal_consents/);
-  assert.doesNotMatch(signup, /<SocialAuth/);
+  assert.match(signup, /<SocialAuth \/>/);
 });
 
 test('persona creation and photo upload require current generation consent', () => {
