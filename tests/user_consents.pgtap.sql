@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap;
-select plan(16);
+select plan(17);
 
 select has_table('public', 'user_consents', 'user_consents table exists');
 select columns_are('public', 'user_consents', array['id','user_id','consent_type','document_version','accepted_at','created_at'], 'user_consents has the audited contract');
