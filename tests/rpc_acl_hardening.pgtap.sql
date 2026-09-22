@@ -210,7 +210,7 @@ select is(
 select throws_ok(
   $$select public.confirm_mock_photoshoot_payment(
     (select id from public.photoshoots where user_id = auth.uid() and style_id = 'acl-test')
-  )$,
+  )$$,
   '42501', 'permission denied for function confirm_mock_photoshoot_payment',
   'authenticated cannot execute mock payment'
 );
@@ -275,14 +275,14 @@ select throws_ok(
 select throws_ok(
   $$select public.record_photoshoot_result_images(
     (select id from public.photoshoots where user_id = auth.uid() and style_id = 'acl-test'), '{}'
-  )$,
+  )$$,
   '42501', 'SERVICE_ROLE_REQUIRED',
   'result RPC body rejects authenticated even after an accidental grant'
 );
 select throws_ok(
   $$select public.confirm_mock_photoshoot_payment(
     (select id from public.photoshoots where user_id = auth.uid() and style_id = 'acl-test')
-  )$,
+  )$$,
   '42501', 'SERVICE_ROLE_REQUIRED',
   'mock payment body rejects authenticated even after an accidental grant'
 );
