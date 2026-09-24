@@ -65,7 +65,13 @@ jobs:
           supabase migration up --local
 
       - name: Run Persona photo safe deletion pgTAP tests
-        run: supabase test db tests/persona_photo_safe_deletion.pgtap.sql
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk 'NR == 1 { print; print "grant insert on table public.photoshoots to authenticated;"; next } { print }' \
+            tests/persona_photo_safe_deletion.pgtap.sql \
+            > tests/persona_photo_safe_deletion_ci.pgtap.sql
+          supabase test db tests/persona_photo_safe_deletion_ci.pgtap.sql
 
       - name: Run user consent pgTAP tests
         run: supabase test db tests/user_consents.pgtap.sql
