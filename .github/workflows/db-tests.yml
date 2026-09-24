@@ -73,6 +73,16 @@ jobs:
             > tests/persona_photo_safe_deletion_ci.pgtap.sql
           supabase test db tests/persona_photo_safe_deletion_ci.pgtap.sql
 
+      - name: Apply Persona safe deletion migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp supabase_persona_safe_deletion.sql supabase/migrations/20260807001700_persona_safe_deletion.sql
+          supabase migration up --local
+
+      - name: Run Persona safe deletion pgTAP tests
+        run: supabase test db tests/persona_safe_deletion.pgtap.sql
+
       - name: Run user consent pgTAP tests
         run: supabase test db tests/user_consents.pgtap.sql
 

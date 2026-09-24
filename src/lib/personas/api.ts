@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 import { getS3BucketName } from "@/lib/env";
 import { s3Client } from "@/lib/s3";
@@ -87,6 +87,41 @@ export async function deletePrivateObjects(paths: string[]) {
 }
 export async function deletePrivateObject(path: string) {
   await s3Client.send(new DeleteObjectCommand({ Bucket: getS3BucketName(), Key: path }));
+}
+export async function deletePrivatePrefix(prefix: string) {
+  const bucket = getS3BucketName();
+  let continuationToken: string | undefined;
+
+  do {
+    const listed = await s3Client.send(new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: prefix,
+      ContinuationToken: continuationToken,
+    }));
+    const objects = (listed.Contents ?? [])
+      .flatMap(({ Key }) => Key ? [{ Key }] : []);
+
+    if (objects.length) {
+      const deleted = await s3Client.send(new DeleteObjectsCommand({
+        Bucket: bucket,
+        Delete: { Objects: objects, Quiet: true },
+      }));
+      if (deleted.Errors?.length) {
+        throw new Error(`Could not delete ${deleted.Errors.length} Persona storage objects`);
+      }
+    }
+
+    continuationToken = listed.IsTruncated ? listed.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  const remaining = await s3Client.send(new ListObjectsV2Command({
+    Bucket: bucket,
+    Prefix: prefix,
+    MaxKeys: 1,
+  }));
+  if ((remaining.KeyCount ?? remaining.Contents?.length ?? 0) > 0) {
+    throw new Error("Persona storage prefix is not empty after cleanup");
+  }
 }
 
 export function invalidInput(error: unknown) {
