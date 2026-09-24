@@ -111,8 +111,9 @@ export async function deletePrivatePrefix(prefix: string) {
         Bucket: bucket,
         Delete: { Objects: objects, Quiet: true },
       }));
-      if (deleted.Errors?.length) {
-        throw new Error(`Could not delete ${deleted.Errors.length} Persona storage objects`);
+      const failures = (deleted.Errors ?? []).filter(({ Code }) => Code !== "NoSuchKey" && Code !== "NotFound");
+      if (failures.length) {
+        throw new Error(`Could not delete ${failures.length} Persona storage objects`);
       }
     }
 
