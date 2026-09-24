@@ -104,6 +104,8 @@ begin
   where id = p_persona_id and user_id = v_user;
 end $$;
 
+drop function if exists public.delete_persona(uuid);
+
 create or replace function public.delete_persona(p_persona_id uuid)
 returns text language plpgsql security definer set search_path = public as $$
 declare
