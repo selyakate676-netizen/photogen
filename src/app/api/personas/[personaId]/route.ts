@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { authenticatedDb, deletePrivatePrefix, invalidInput, jsonError, parsePersonaBody, personaJson, PERSONA_SELECT, UUID_RE } from "@/lib/personas/api";
+import { processEntityDeletionTask } from "@/lib/deletion-tasks";
+import { authenticatedDb, invalidInput, jsonError, parsePersonaBody, personaJson, PERSONA_SELECT, UUID_RE } from "@/lib/personas/api";
 
 type PersonaRouteContext = { params: Promise<{ personaId: string }> };
 
@@ -48,19 +49,14 @@ export async function DELETE(_request: Request, { params }: PersonaRouteContext)
   const { db, user } = await authenticatedDb();
   if (!user) return NextResponse.json({ error: "Auth required" }, { status: 401 });
   const rpcArgs = { p_persona_id: personaId };
-  const { data: storagePrefix, error: prepareError } = await db.rpc("prepare_persona_deletion", rpcArgs);
+  const { error: prepareError } = await db.rpc("prepare_persona_deletion", rpcArgs);
   if (prepareError) return jsonError(prepareError, "Could not prepare Persona deletion");
 
   try {
-    await deletePrivatePrefix(storagePrefix);
-  } catch (storageError) {
-    const { error: cancelError } = await db.rpc("cancel_persona_deletion", rpcArgs);
-    if (cancelError) console.error("Could not cancel Persona deletion reservation", cancelError);
-    console.error("Persona storage prefix cleanup failed", storageError);
+    await processEntityDeletionTask(db, user.id, "persona", personaId);
+  } catch (cleanupError) {
+    console.error("Persona deletion task failed", cleanupError);
     return NextResponse.json({ error: "Could not delete Persona storage" }, { status: 502 });
   }
-
-  const { error: deleteError } = await db.rpc("delete_persona", rpcArgs);
-  if (deleteError) return jsonError(deleteError, "Could not finalize Persona deletion");
   return NextResponse.json({ deleted: true, storageCleaned: true });
 }

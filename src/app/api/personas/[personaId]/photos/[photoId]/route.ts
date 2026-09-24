@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { processEntityDeletionTask } from "@/lib/deletion-tasks";
 import {
   authenticatedDb,
-  deletePrivateObject,
   jsonError,
   personaJson,
   PERSONA_SELECT,
@@ -16,19 +16,14 @@ export async function DELETE(_request: Request, { params }: PersonaPhotoRouteCon
   const { db, user } = await authenticatedDb();
   if (!user) return NextResponse.json({ error: "Auth required" }, { status: 401 });
   const rpcArgs = { p_persona_id: personaId, p_photo_id: photoId };
-  const { data: storagePath, error: prepareError } = await db.rpc("prepare_persona_photo_deletion", rpcArgs);
+  const { error: prepareError } = await db.rpc("prepare_persona_photo_deletion", rpcArgs);
   if (prepareError) return jsonError(prepareError, "Could not prepare photo deletion");
   try {
-    await deletePrivateObject(storagePath);
-  } catch (storageError) {
-    const { error: cancelError } = await db.rpc("cancel_persona_photo_deletion", rpcArgs);
-    if (cancelError) console.error("Could not cancel Persona photo deletion reservation", cancelError);
-    console.error("Persona photo storage cleanup failed", storageError);
+    await processEntityDeletionTask(db, user.id, "persona_photo", photoId);
+  } catch (cleanupError) {
+    console.error("Persona photo deletion task failed", cleanupError);
     return NextResponse.json({ error: "Could not delete photo from storage" }, { status: 502 });
   }
-
-  const { error: deleteError } = await db.rpc("delete_persona_photo", rpcArgs);
-  if (deleteError) return jsonError(deleteError, "Could not finalize photo deletion");
 
   const { data: persona, error: personaError } = await db
     .from("personas")

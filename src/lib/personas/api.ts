@@ -86,7 +86,12 @@ export async function deletePrivateObjects(paths: string[]) {
   return failed.length === 0;
 }
 export async function deletePrivateObject(path: string) {
-  await s3Client.send(new DeleteObjectCommand({ Bucket: getS3BucketName(), Key: path }));
+  try {
+    await s3Client.send(new DeleteObjectCommand({ Bucket: getS3BucketName(), Key: path }));
+  } catch (error) {
+    const code = (error as { name?: string; Code?: string })?.name ?? (error as { Code?: string })?.Code;
+    if (code !== "NoSuchKey" && code !== "NotFound") throw error;
+  }
 }
 export async function deletePrivatePrefix(prefix: string) {
   const bucket = getS3BucketName();
