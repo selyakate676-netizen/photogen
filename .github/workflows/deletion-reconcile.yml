@@ -1,0 +1,26 @@
+name: Reconcile deletion tasks
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Reconcile pending deletion tasks
+        env:
+          SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+          RECONCILE_SECRET: ${{ secrets.DELETION_RECONCILE_SECRET }}
+        run: |
+          set -euo pipefail
+          : "${SITE_URL:?NEXT_PUBLIC_SITE_URL repository variable is required}"
+          : "${RECONCILE_SECRET:?DELETION_RECONCILE_SECRET repository secret is required}"
+          curl --fail --silent --show-error --retry 2 \
+            --request POST \
+            --header "Authorization: Bearer ${RECONCILE_SECRET}" \
+            "${SITE_URL%/}/api/deletion-tasks/reconcile"

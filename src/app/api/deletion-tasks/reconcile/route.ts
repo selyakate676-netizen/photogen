@@ -1,12 +1,23 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { reconcileDeletionTasks } from "@/lib/deletion-tasks";
-import { authenticatedDb, jsonError } from "@/lib/personas/api";
+import { reconcileAllDeletionTasks } from "@/lib/deletion-tasks";
+import { getDeletionReconcileSecret } from "@/lib/env";
+import { jsonError } from "@/lib/personas/api";
 
-export async function POST() {
-  const { db, user } = await authenticatedDb();
-  if (!user) return NextResponse.json({ error: "Auth required" }, { status: 401 });
+function hasTrustedSecret(request: Request) {
+  const authorization = request.headers.get("authorization");
+  if (!authorization?.startsWith("Bearer ")) return false;
+  const supplied = Buffer.from(authorization.slice(7), "utf8");
+  const expected = Buffer.from(getDeletionReconcileSecret(), "utf8");
+  return supplied.length === expected.length && timingSafeEqual(supplied, expected);
+}
+
+export async function POST(request: Request) {
   try {
-    return NextResponse.json(await reconcileDeletionTasks(db, user.id));
+    if (!hasTrustedSecret(request)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json(await reconcileAllDeletionTasks());
   } catch (error) {
     return jsonError(error, "Could not reconcile deletion tasks");
   }

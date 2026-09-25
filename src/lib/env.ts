@@ -12,6 +12,7 @@ type EnvName =
   | "SUPABASE_SERVICE_ROLE_KEY"
   | "REPLICATE_API_TOKEN"
   | "WEBHOOK_SECRET"
+  | "DELETION_RECONCILE_SECRET"
   | "S3_ENDPOINT"
   | "S3_REGION"
   | "S3_BUCKET_NAME"
@@ -54,6 +55,10 @@ export function getReplicateApiToken(): string {
 
 export function getWebhookSecret(): string {
   return getEnv("WEBHOOK_SECRET");
+}
+
+export function getDeletionReconcileSecret(): string {
+  return getEnv("DELETION_RECONCILE_SECRET");
 }
 
 export function getS3BucketName(): string {

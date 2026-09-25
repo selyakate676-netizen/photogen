@@ -32,7 +32,12 @@ async function setTaskState(serviceDb: DbClient, task: DeletionTask, status: "pe
   if (error) throw error;
 }
 
-async function finalizeEntity(sessionDb: DbClient, task: DeletionTask) {
+async function finalizeEntity(sessionDb: DbClient | null, serviceDb: DbClient, task: DeletionTask) {
+  if (!sessionDb) {
+    const { error } = await serviceDb.rpc("finalize_deletion_task", { p_task_id: task.id });
+    if (error) throw error;
+    return;
+  }
   if (task.entity_type === "persona_photo") {
     const { data: photo, error: photoError } = await sessionDb
       .from("persona_photos")
@@ -60,7 +65,7 @@ async function finalizeEntity(sessionDb: DbClient, task: DeletionTask) {
   if (error) throw error;
 }
 
-export async function processDeletionTask(sessionDb: DbClient, task: DeletionTask) {
+export async function processDeletionTask(sessionDb: DbClient | null, task: DeletionTask) {
   const serviceDb = createServiceRoleClient() as unknown as DbClient;
   const { data: claimedRows, error: claimError } = await serviceDb.rpc("claim_deletion_task", {
     p_task_id: task.id,
@@ -75,7 +80,7 @@ export async function processDeletionTask(sessionDb: DbClient, task: DeletionTas
       else await deletePrivateObject(claimed.object_key);
       await setTaskState(serviceDb, claimed, "storage_deleted");
     }
-    await finalizeEntity(sessionDb, claimed);
+    await finalizeEntity(sessionDb, serviceDb, claimed);
     await setTaskState(serviceDb, claimed, "completed");
   } catch (error) {
     await setTaskState(serviceDb, claimed, "pending", safeError(error)).catch((stateError) => {
@@ -120,6 +125,29 @@ export async function reconcileDeletionTasks(sessionDb: DbClient, userId: string
   for (const task of (data ?? []) as DeletionTask[]) {
     try {
       await processDeletionTask(sessionDb, task);
+      completed += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+  return { attempted: (data ?? []).length, completed, failed };
+}
+
+export async function reconcileAllDeletionTasks(limit = 20) {
+  const serviceDb = createServiceRoleClient() as unknown as DbClient;
+  const { data, error } = await serviceDb
+    .from("deletion_tasks")
+    .select("id,user_id,object_key,entity_type,entity_id,status")
+    .neq("status", "completed")
+    .order("created_at")
+    .limit(limit);
+  if (error) throw error;
+
+  let completed = 0;
+  let failed = 0;
+  for (const task of (data ?? []) as DeletionTask[]) {
+    try {
+      await processDeletionTask(null, task);
       completed += 1;
     } catch {
       failed += 1;

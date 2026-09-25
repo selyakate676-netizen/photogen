@@ -93,6 +93,16 @@ jobs:
       - name: Run deletion tasks pgTAP tests
         run: supabase test db tests/deletion_tasks.pgtap.sql
 
+      - name: Apply deletion scheduler migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp supabase_deletion_tasks_scheduler.sql supabase/migrations/20260807001900_deletion_tasks_scheduler.sql
+          supabase migration up --local
+
+      - name: Run deletion scheduler pgTAP tests
+        run: supabase test db tests/deletion_tasks_scheduler.pgtap.sql
+
       - name: Run user consent pgTAP tests
         run: supabase test db tests/user_consents.pgtap.sql
 
