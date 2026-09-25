@@ -40,12 +40,16 @@ select lives_ok(
   format('select public.finalize_deletion_task(%L)', (select id from public.deletion_tasks)),
   'service role finalizes a storage-cleaned task'
 );
+reset role;
 select is((select count(*) from public.persona_photos where storage_path like '%/retry.jpg'), 0::bigint,
   'trusted retry uses the existing photo finalizer');
 select is((select attempts from public.deletion_tasks), 1,
   'trusted finalization does not alter attempt counting');
 select is((select status from public.deletion_tasks), 'storage_deleted',
   'worker retains responsibility for marking completion');
+
+set local role service_role;
+select set_config('request.jwt.claim.role', 'service_role', true);
 select lives_ok(
   format('select public.finalize_deletion_task(%L)', (select id from public.deletion_tasks)),
   'finalization is idempotent when the entity is already absent'
