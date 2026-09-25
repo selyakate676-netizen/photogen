@@ -5,6 +5,7 @@ import { getPhotoPackForHistory } from '@/lib/photoPacks';
 import { retryTraining } from '@/app/dashboard/actions';
 import AnalyticsEvent from '@/components/AnalyticsEvent';
 import { attributionAnalyticsParams, sanitizeAttributionSnapshot } from '@/lib/marketingAttribution';
+import { resultImageUrls } from '@/lib/photoshoots/api';
 import styles from '../account.module.css';
 
 const statusLabels: Record<string, string> = {
@@ -37,19 +38,21 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
     .order('created_at', { ascending: false });
 
   const photoshoots = data ?? [];
+  const signedResultImages = new Map(await Promise.all(photoshoots.map(async (shoot) => [
+    shoot.id,
+    await resultImageUrls(
+      shoot.id,
+      Array.isArray(shoot.result_images)
+        ? shoot.result_images.filter((image: unknown): image is string => typeof image === 'string')
+        : [],
+    ),
+  ] as const)));
   const paymentShoot = photoshoots.find((shoot) => shoot.id === (query.payment_completed ?? query.payment_failed));
   const paymentAttribution = attributionAnalyticsParams(sanitizeAttributionSnapshot(paymentShoot?.attribution_snapshot));
   const paymentSnapshot = paymentShoot?.package_snapshot && typeof paymentShoot.package_snapshot === 'object' && !Array.isArray(paymentShoot.package_snapshot)
     ? paymentShoot.package_snapshot
     : null;
   const paymentAmount = paymentSnapshot && typeof paymentSnapshot.price_rub === 'number' ? paymentSnapshot.price_rub : undefined;
-  const s3Endpoint = process.env.S3_ENDPOINT ?? 'https://s3.ru1.storage.beget.cloud';
-  const bucket = process.env.S3_BUCKET_NAME;
-  const getImageUrl = (key: string) => {
-    if (key.startsWith('http') || key.startsWith('/')) return key;
-    if (!bucket) return key;
-    return `${s3Endpoint}/${bucket}/${key}`;
-  };
 
   return (
     <>
@@ -120,9 +123,7 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
         <div className={styles.generationGrid}>
           {photoshoots.map((shoot) => {
             const pack = getPhotoPackForHistory(shoot.style_id);
-            const resultImages = Array.isArray(shoot.result_images)
-              ? shoot.result_images.filter((image: unknown): image is string => typeof image === 'string').slice(0, 4)
-              : [];
+            const resultImages = (signedResultImages.get(shoot.id) ?? []).slice(0, 4);
             const previewImages: string[] = resultImages.length > 0 ? resultImages : [pack?.image ?? '/after-main.png'];
             const isProcessing = shoot.status === 'queued' || shoot.status === 'generating';
 
@@ -133,7 +134,7 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
                   {previewImages.map((image, index) => (
                     <div key={`${image}-${index}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={getImageUrl(image)} alt="" className={styles.previewImage} />
+                      <img src={image} alt="" className={styles.previewImage} />
                     </div>
                   ))}
                 </div>

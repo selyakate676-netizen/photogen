@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import dashboardStyles from '../../dashboard.module.css';
-import { getEnv, getOptionalEnv } from '@/lib/env';
+import { resultImageUrls } from '@/lib/photoshoots/api';
 import AnalyticsEvent from '@/components/AnalyticsEvent';
 import TrackedDownloadLink from '@/components/TrackedDownloadLink';
 import { attributionAnalyticsParams, sanitizeAttributionSnapshot } from '@/lib/marketingAttribution';
@@ -30,15 +30,12 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
     return redirect('/dashboard');
   }
 
-  // Конфиг домена S3 для отображения изображений
-  const s3Endpoint = getOptionalEnv('S3_ENDPOINT', 'https://s3.ru1.storage.beget.cloud');
-  const bucket = getEnv('S3_BUCKET_NAME');
-  
-  // Функция для превращения S3 ключа в публичный URL URL
-  const getImageUrl = (key: string) => {
-    if (key.startsWith('http')) return key; // Если это прямой Replicate фолбэк URL
-    return `${s3Endpoint}/${bucket}/${key}`;
-  };
+  const resultImages = await resultImageUrls(
+    photoshoot.id,
+    Array.isArray(photoshoot.result_images)
+      ? photoshoot.result_images.filter((image: unknown): image is string => typeof image === 'string')
+      : [],
+  );
 
   return (
     <>
@@ -87,7 +84,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                gap: 'var(--space-lg)'
             }}>
-               {photoshoot.result_images && photoshoot.result_images.map((key: string, index: number) => (
+               {resultImages.map((image, index) => (
                   <div key={index} style={{
                      borderRadius: 'var(--radius-lg)',
                      overflow: 'hidden',
@@ -95,8 +92,9 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                      position: 'relative',
                      aspectRatio: '3/4'
                   }}>
-                     <img 
-                        src={getImageUrl(key)} 
+                     {/* eslint-disable-next-line @next/next/no-img-element */}
+                     <img
+                        src={image}
                         alt={`Result ${index + 1}`} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                      />
@@ -111,7 +109,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                          justifyContent: 'center'
                      }}>
                         <TrackedDownloadLink
-                          href={getImageUrl(key)} 
+                          href={image}
                           download={`ai-portrait-${index + 1}.jpg`} 
                           target="_blank" 
                           rel="noreferrer"
@@ -124,7 +122,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                   </div>
                ))}
                
-               {(!photoshoot.result_images || photoshoot.result_images.length === 0) && (
+               {resultImages.length === 0 && (
                    <div className={dashboardStyles.emptyState} style={{ gridColumn: '1 / -1' }}>
                        <p>Изображения не найдены или произошла ошибка.</p>
                    </div>
