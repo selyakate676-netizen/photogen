@@ -2,6 +2,7 @@
 import type { Database, PhotoshootStatus } from "@/types/database";
 
 import { isExactInternalGenerationResultSet } from "@/lib/ai/generation-count-contract";
+import { getClaimErrorCode, logGenerationEvent } from "@/lib/ai/generation-log";
 
 type PhotoshootSupabaseClient = SupabaseClient<Database>;
 
@@ -181,7 +182,13 @@ export async function claimPhotoshootGeneration(
     p_photoshoot_id: photoshootId,
   });
   if (error) {
-    console.warn("Could not claim photoshoot generation:", error);
+    logGenerationEvent(
+      "warn",
+      "generation_claim_rejected",
+      "wallet_payment_gate",
+      photoshootId,
+      getClaimErrorCode(error),
+    );
     return false;
   }
   return data === true;

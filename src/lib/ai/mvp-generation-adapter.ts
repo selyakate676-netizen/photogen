@@ -10,6 +10,7 @@ import {
   getSiteUrl,
 } from "@/lib/env";
 import { renderHeroCompositionContract } from "@/lib/ai/hero-composition-catalog";
+import { logGenerationEvent } from "@/lib/ai/generation-log";
 import {
   GPT_IMAGE_MODEL_ID,
   NANO_BANANA_2_MODEL_ID,
@@ -1611,6 +1612,8 @@ export async function startMvpGenerationForPhotoshoot(
     throw new Error("Photoshoot not found.");
   }
 
+  logGenerationEvent("info", "photoshoot_loaded", "photoshoot", photoshoot.id);
+
   const personaReferenceKeys = getPersonaSnapshotPhotoKeys(photoshoot);
   if (personaReferenceKeys.length === 0) {
     throw new Error("Photoshoot Persona snapshot has no reference photos.");
@@ -1628,8 +1631,10 @@ export async function startMvpGenerationForPhotoshoot(
   }
 
   const serviceClient = createServiceRoleClient();
+  logGenerationEvent("info", "generation_claim_started", "claim", photoshoot.id);
   const claimed = await claimPhotoshootGeneration(serviceClient, photoshoot.id);
   if (!claimed) {
+    logGenerationEvent("warn", "generation_claim_not_acquired", "claim", photoshoot.id, "CLAIM_REJECTED");
     const { data: current } = await serviceClient
       .from("photoshoots")
       .select("generation_id,result_images")
@@ -1640,6 +1645,8 @@ export async function startMvpGenerationForPhotoshoot(
       resultImages: current?.result_images || [],
     };
   }
+
+  logGenerationEvent("info", "generation_claim_acquired", "wallet_payment_gate", photoshoot.id);
 
   const requestedImageCount = getRequestedImageCount(photoshoot.requested_images_count);
   const isShortNanoPack = isShortNanoPackStyle(photoshoot.style_id);
@@ -1696,6 +1703,7 @@ export async function startMvpGenerationForPhotoshoot(
       : isShortNanoPack
         ? generation.scenePackage
         : buildMvpPromptWithScenePackage(photoshoot, generation.scenePackage);
+    logGenerationEvent("info", "provider_call_started", "provider_call", photoshoot.id);
     const prediction = (await createPredictionWithRateLimit(replicate, {
       ...predictionTarget,
       input: buildReplicateImageInput(generationModel, finalPrompt, referenceUrls),
@@ -1708,6 +1716,7 @@ export async function startMvpGenerationForPhotoshoot(
     })) as ReplicatePredictionResponse;
 
     predictionIds.push(prediction.id);
+    logGenerationEvent("info", "prediction_created", "prediction", photoshoot.id);
 
     await serviceClient
       .from("photoshoots")
@@ -1721,10 +1730,12 @@ export async function startMvpGenerationForPhotoshoot(
     const completedPrediction = await waitForPrediction(replicate, prediction.id);
 
     if (completedPrediction.status !== "succeeded") {
+      logGenerationEvent("error", "prediction_failed", "prediction", photoshoot.id, "PREDICTION_FAILED");
       await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
       throw new Error(completedPrediction.error || `Prediction ${completedPrediction.status}`);
     }
 
+    logGenerationEvent("info", "prediction_succeeded", "prediction", photoshoot.id);
     const outputUrls = normalizeReplicateOutputUrls(completedPrediction.output);
     if (outputUrls.length !== 1) {
       await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
@@ -1744,6 +1755,7 @@ export async function startMvpGenerationForPhotoshoot(
   }
 
   if (!isExactInternalGenerationResultSet(photoshoot.id, resultImages, requestedImageCount)) {
+    logGenerationEvent("error", "result_count_invalid", "result", photoshoot.id, "RESULT_COUNT_ERROR");
     await updatePhotoshootStatus(serviceClient, photoshoot.id, "failed");
     throw new Error("Generation did not produce the exact requested image set.");
   }
@@ -1755,8 +1767,11 @@ export async function startMvpGenerationForPhotoshoot(
     resultImages,
   );
   if (!completed) {
+    logGenerationEvent("error", "result_transition_failed", "result", photoshoot.id, "RESULT_TRANSITION_ERROR");
     throw new Error("Could not complete photoshoot generation.");
   }
+
+  logGenerationEvent("info", "generation_completed", "result", photoshoot.id);
 
   return {
     predictionId: predictionIds.join(","),
