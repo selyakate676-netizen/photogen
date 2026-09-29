@@ -23,15 +23,18 @@ test("production startup clears PM2 copies and reloads the managed secrets", () 
   }
   assert.match(startup, /--env-file="\$ENV_FILE"/);
   assert.match(startup, /verify-production-env\.mjs/);
-  assert.match(startup, /node_modules\/next\/dist\/bin\/next" start -p 3001/);
+  assert.match(startup, /PORT=\$\{PORT:-3001\}/);
+  assert.match(startup, /node_modules\/next\/dist\/bin\/next" start -p "\$PORT"/);
   assert.doesNotMatch(startup, /(?:cat|printenv|set -x).*\.env\.local/);
 });
 
 test("deploy starts the guarded production entrypoint", () => {
   assert.match(
     workflow,
-    /\$PM2_BIN" start \/root\/scripts\/start-production\.sh --name "photogen" --interpreter \/usr\/bin\/bash/,
+    /\$PM2_BIN" start "\$CURRENT_LINK\/scripts\/start-production\.sh" --name photogen --interpreter \/usr\/bin\/bash/,
   );
+  assert.match(workflow, /PORT="\$CANDIDATE_PORT" "\$RELEASE_DIR\/scripts\/start-production\.sh"/);
+  assert.match(workflow, /ln -s "\$PRODUCTION_ENV_FILE" \.env\.local/);
   assert.doesNotMatch(workflow, /\$PM2_BIN" start \/usr\/bin\/npm --name "photogen"/);
 });
 

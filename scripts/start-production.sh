@@ -4,6 +4,7 @@ set -euo pipefail
 APP_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 ENV_FILE="$APP_ROOT/.env.local"
 NODE_BIN=$(command -v node)
+PORT=${PORT:-3001}
 
 if [ ! -s "$ENV_FILE" ]; then
   echo "[production-env] BLOCKED: $ENV_FILE is missing or empty" >&2
@@ -25,4 +26,4 @@ CLEAN_ENV=(
 
 cd "$APP_ROOT"
 exec "${CLEAN_ENV[@]}" "$NODE_BIN" --env-file="$ENV_FILE" \
-  "$APP_ROOT/node_modules/next/dist/bin/next" start -p 3001
+  "$APP_ROOT/node_modules/next/dist/bin/next" start -p "$PORT"
