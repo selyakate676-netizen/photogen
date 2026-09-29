@@ -6,6 +6,7 @@ import {
 } from "@/lib/photoshoots/status";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
+import { getProviderErrorCode, logGenerationEvent } from "@/lib/ai/generation-log";
 
 export async function confirmMockPaymentAndQueue(photoshootId: string, userId: string) {
   const supabase = await createClient();
@@ -23,6 +24,7 @@ export async function confirmMockPaymentAndQueue(photoshootId: string, userId: s
 }
 
 export async function startQueuedPhotoshootGeneration(photoshootId: string, userId?: string) {
+  logGenerationEvent("info", "photoshoot_generation_requested", "photoshoot", photoshootId);
   const sessionClient = await createClient();
   const {
     data: { user },
@@ -49,7 +51,13 @@ export async function startQueuedPhotoshootGeneration(photoshootId: string, user
       userId: user.id,
     });
   } catch (error) {
-    console.error("[photoshoot-generation] Provider start failed:", error);
+    logGenerationEvent(
+      "error",
+      "provider_start_failed",
+      "provider_call",
+      photoshootId,
+      getProviderErrorCode(error),
+    );
     const serviceClient = createServiceRoleClient();
     await updatePhotoshootStatus(
       serviceClient,
