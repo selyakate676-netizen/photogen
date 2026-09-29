@@ -33,7 +33,7 @@ Env-файлы хранят настройки проекта. Некоторы�
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - публичный ключ Supabase для клиента.
 - `SUPABASE_SERVICE_ROLE_KEY` - приватный ключ Supabase для серверных webhook-операций.
 - `REPLICATE_API_TOKEN` - токен Replicate для AI-обучения и генерации.
-- `WEBHOOK_SECRET` - секрет для проверки webhook-запросов.
+- `REPLICATE_WEBHOOK_SIGNING_SECRET` - секрет для проверки webhook-запросов.
 - `S3_ENDPOINT` - адрес S3-хранилища.
 - `S3_REGION` - регион S3.
 - `S3_BUCKET_NAME` - имя bucket.

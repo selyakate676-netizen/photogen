@@ -20,29 +20,15 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
     setUploadingStatus(prev => ({ ...prev, [fileId]: 'uploading' }));
 
     try {
-      // 1. Получаем временную ссылку от нашего сервера
-      const res = await fetch('/api/upload/presigned', {
+      const formData = new FormData();
+      formData.set('file', file);
+      const uploadRes = await fetch('/api/upload/direct', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: file.name,
-          fileType: file.type
-        })
-      });
-
-      if (!res.ok) throw new Error('Failed to get upload URL');
-      const { uploadUrl, key } = await res.json();
-
-      // 2. Загружаем файл напрямую в Beget S3
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type
-        }
+        body: formData,
       });
 
       if (!uploadRes.ok) throw new Error('Upload failed');
+      const { key } = await uploadRes.json();
       
       setUploadingStatus(prev => ({ ...prev, [fileId]: 'success' }));
       return key;
@@ -74,7 +60,12 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': [] },
+    accept: {
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/webp': ['.webp'],
+    },
+    maxSize: 15 * 1024 * 1024,
     multiple: true
   });
 

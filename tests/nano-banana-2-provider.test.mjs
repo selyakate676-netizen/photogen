@@ -188,7 +188,7 @@ test("webhook validates prediction association and ignores repeated or terminal 
   const webhook = await read("src/app/api/webhooks/replicate/generation/route.ts");
 
   assert.match(webhook, /getGenerationIds\(currentShoot\.generation_id\)\.includes\(payload\.id\)/);
-  assert.match(webhook, /Ignored unassociated prediction/);
+  assert.match(webhook, /PREDICTION_NOT_ASSOCIATED/);
   assert.match(webhook, /Terminal photoshoot status already recorded/);
   assert.match(webhook, /Prediction output already recorded/);
   assert.match(webhook, /result_\$\{stablePredictionKey\}_/);
@@ -212,8 +212,8 @@ test("webhook saves a validated private S3 key before recording completed status
 test("malformed output and persistence failures use the existing safe failed lifecycle", async () => {
   const webhook = await read("src/app/api/webhooks/replicate/generation/route.ts");
 
-  assert.match(webhook, /Invalid provider output[\s\S]*?updatePhotoshootGenerationStatus\(supabase, photoshootId, "failed"\)/);
-  assert.match(webhook, /Output persistence failed[\s\S]*?updatePhotoshootGenerationStatus\(supabase, photoshootId, "failed"\)/);
+  assert.match(webhook, /PROVIDER_OUTPUT_INVALID[\s\S]*?updatePhotoshootGenerationStatus\(supabase, photoshootId, "failed"\)/);
+  assert.match(webhook, /RESULT_PERSISTENCE_FAILED[\s\S]*?updatePhotoshootGenerationStatus\(supabase, photoshootId, "failed"\)/);
   assert.doesNotMatch(webhook, /console\.(?:log|error)\([^\n]*imageUrl/);
 });
 

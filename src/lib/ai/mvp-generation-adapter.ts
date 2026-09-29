@@ -8,7 +8,6 @@ import {
   getReplicateApiToken,
   getS3BucketName,
   getSiteUrl,
-  getWebhookSecret,
 } from "@/lib/env";
 import { renderHeroCompositionContract } from "@/lib/ai/hero-composition-catalog";
 import {
@@ -609,6 +608,7 @@ async function createIdentityReferenceCrop(
       Key: cropKey,
       Body: cropBuffer,
       ContentType: "image/jpeg",
+      ACL: "private",
     }),
   );
 
@@ -636,6 +636,7 @@ async function saveGeneratedImage(photoshootId: string, url: string, index: numb
       Key: key,
       Body: buffer,
       ContentType: contentType,
+      ACL: "private",
     }),
   );
 
@@ -1684,7 +1685,7 @@ export async function startMvpGenerationForPhotoshoot(
       : { model: generationModel };
 
   const shouldWaitForCompletion = options.waitForCompletion ?? true;
-  const webhookUrl = `${getSiteUrl()}/api/webhooks/replicate/generation?secret=${getWebhookSecret()}&photoshootId=${photoshoot.id}`;
+  const webhookUrl = `${getSiteUrl()}/api/webhooks/replicate/generationphotoshootId=${photoshoot.id}`;
 
   const predictionIds: string[] = [];
   const resultImages: string[] = [];

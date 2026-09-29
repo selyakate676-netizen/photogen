@@ -3,7 +3,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "@/lib/s3";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
-import { getReplicateApiToken, getS3BucketName, getSiteUrl, getWebhookSecret } from "@/lib/env";
+import { getReplicateApiToken, getS3BucketName, getSiteUrl } from "@/lib/env";
+import { logReplicateWebhook } from "@/lib/replicate/webhook-security";
 import AdmZip from "adm-zip";
 
 // Функция для гарантированного получения ключа напрямую из файла (обход глюков кеша VPS)
@@ -44,7 +45,6 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
     throw new Error("Нет изображений для обучения");
   }
 
-  console.log(`[Internal] Starting packaging for ${photoshoot.images.length} images...`);
 
   // 2. Упаковываем в ZIP
   const zip = new AdmZip();
@@ -65,8 +65,8 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
         const ext = imageKey.split('.').pop() || 'jpg';
         zip.addFile(`image_${i + 1}.${ext}`, buffer);
       }
-    } catch (err) {
-      console.error(`Ошибка при скачивании ${imageKey}:`, err);
+    } catch {
+      logReplicateWebhook("error", "RESULT_PERSISTENCE_FAILED");
     }
   }
 
@@ -74,7 +74,6 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   const zipKey = `photoshoots/${photoshoot.user_id}/${photoshoot.id}-dataset.zip`;
 
   // 3. Загружаем ZIP обратно в S3
-  console.log("[Internal] Uploading zip to S3...");
   const putCommand = new PutObjectCommand({
     Bucket: s3BucketName,
     Key: zipKey,
@@ -85,7 +84,6 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   await s3Client.send(putCommand);
 
   // 4. Ссылка для Replicate
-  console.log("[Internal] Generating presigned URL...");
   const presignedGetCommand = new GetObjectCommand({
     Bucket: s3BucketName,
     Key: zipKey,
@@ -94,9 +92,8 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   const zipUrl = await getSignedUrl(s3Client, presignedGetCommand, { expiresIn: 7200 });
 
   // 5. Запуск Replicate (Прямым fetch-запросом для максимальной прозрачности)
-  console.log("[Internal] Calling Replicate API (Direct Fetch)...");
   const host = getSiteUrl();
-  const webhookUrl = `${host}/api/webhooks/replicate/training?secret=${getWebhookSecret()}&photoshootId=${photoshoot.id}`;
+  const webhookUrl = `${host}/api/webhooks/replicate/training?photoshootId=${photoshoot.id}`;
 
   const token = getReplicateApiToken();
 
@@ -126,12 +123,11 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
     const resultData = await replicateResponse.json();
 
     if (!replicateResponse.ok) {
-        console.error(`[CRITICAL] Replicate API Error (${replicateResponse.status}):`, JSON.stringify(resultData));
-        throw new Error(resultData.detail || "Replicate API error");
+        logReplicateWebhook("error", "PROVIDER_REQUEST_FAILED");
+        throw new Error("Replicate API error");
     }
     
     // 6. Сохраняем ID
-    console.log(`[Internal] Replicate training started SUCCESS. ID: ${resultData.id}`);
     await serviceClient
       .from('photoshoots')
       .update({ 
@@ -141,9 +137,8 @@ export async function startTrainingForPhotoshoot(photoshootId: string) {
   
     return { success: true, trainingId: resultData.id };
 
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`[CRITICAL] Fatal error in training trigger:`, message);
-    throw err;
+  } catch (error: unknown) {
+    logReplicateWebhook("error", "PROVIDER_START_FAILED");
+    throw error;
   }
 }

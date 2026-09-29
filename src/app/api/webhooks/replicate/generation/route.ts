@@ -1,8 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getS3BucketName, getSupabaseServiceRoleConfig, getWebhookSecret } from "@/lib/env";
+import { getReplicateWebhookSigningSecret, getS3BucketName, getSupabaseServiceRoleConfig } from "@/lib/env";
 import {
-  ProviderOutputError,
   downloadReplicateImage,
   normalizeReplicateOutputUrls,
 } from "@/lib/ai/image-generation-provider";
@@ -11,6 +10,7 @@ import {
   isExactInternalGenerationResultSet,
 } from "@/lib/ai/generation-count-contract";
 import { updatePhotoshootGenerationStatus } from "@/lib/photoshoots/status";
+import { logReplicateWebhook, verifyReplicateWebhook } from "@/lib/replicate/webhook-security";
 import type { Database, PhotoshootStatus } from "@/types/database";
 
 interface ReplicateGenerationPayload {
@@ -58,10 +58,11 @@ export async function POST(request: Request) {
   try {
     // 1. РџСЂРѕРІРµСЂСЏРµРј СЃРµРєСЂРµС‚РЅС‹Р№ РєР»СЋС‡
     const { searchParams } = new URL(request.url);
-    const secret = searchParams.get("secret");
     const photoshootId = searchParams.get("photoshootId");
+    const rawBody = await request.text();
 
-    if (secret !== getWebhookSecret()) {
+    if (!verifyReplicateWebhook(request.headers, rawBody, getReplicateWebhookSigningSecret())) {
+      logReplicateWebhook("warn", "WEBHOOK_SIGNATURE_INVALID");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -69,9 +70,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing photoshootId" }, { status: 400 });
     }
 
-    // 2. РџРѕР»СѓС‡Р°РµРј С‚РµР»Рѕ Р·Р°РїСЂРѕСЃР° РѕС‚ Replicate
-    const payload = (await request.json()) as ReplicateGenerationPayload;
-    console.log(`Replicate Generation Webhook received for photoshoot: ${photoshootId}. Status: ${payload.status}`);
+    let payload: ReplicateGenerationPayload;
+    try {
+      payload = JSON.parse(rawBody) as ReplicateGenerationPayload;
+    } catch {
+      logReplicateWebhook("warn", "WEBHOOK_BODY_INVALID");
+      return NextResponse.json({ error: "Invalid webhook body" }, { status: 400 });
+    }
 
     // Р’Р°Р¶РЅРѕ: РРЎРџРћР›Р¬Р—РЈР•Рњ SERVICE ROLE KEY РґР»СЏ РѕР±С…РѕРґР° RLS
     // РРЅР°С‡Рµ Р°РЅРѕРЅРёРјРЅС‹Р№ РІРµР±С…СѓРє РЅРµ СЃРјРѕР¶РµС‚ РѕР±РЅРѕРІРёС‚СЊ РІР°С€Сѓ Р±Р°Р·Сѓ РґР°РЅРЅС‹С…!
@@ -89,18 +94,12 @@ export async function POST(request: Request) {
       .single();
 
     if (currentShootError || !currentShoot) {
-      console.error("[generation-webhook] Photoshoot lookup failed", {
-        photoshootId,
-        predictionId: payload.id,
-      });
+      logReplicateWebhook("error", "PHOTOSHOOT_LOOKUP_FAILED", payload.status);
       return NextResponse.json({ error: "Photoshoot not found." }, { status: 404 });
     }
 
     if (!getGenerationIds(currentShoot.generation_id).includes(payload.id)) {
-      console.warn("[generation-webhook] Ignored unassociated prediction", {
-        photoshootId,
-        predictionId: payload.id,
-      });
+      logReplicateWebhook("warn", "PREDICTION_NOT_ASSOCIATED", payload.status);
       return NextResponse.json({ message: "Prediction is not associated with this photoshoot." }, { status: 202 });
     }
 
@@ -124,15 +123,8 @@ export async function POST(request: Request) {
 
       try {
         images = normalizeReplicateOutputUrls(payload.output);
-      } catch (error) {
-        console.error("[generation-webhook] Invalid provider output", {
-          photoshootId,
-          predictionId: payload.id,
-          errorCode:
-            error instanceof ProviderOutputError
-              ? error.code
-              : "MALFORMED_PROVIDER_OUTPUT",
-        });
+      } catch {
+        logReplicateWebhook("error", "PROVIDER_OUTPUT_INVALID", payload.status);
         await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
         return NextResponse.json({ error: "Generation output is unavailable." }, { status: 400 });
       }
@@ -168,15 +160,8 @@ export async function POST(request: Request) {
            }));
            
            savedS3Keys.push(s3Key);
-        } catch (error) {
-           console.error("[generation-webhook] Output persistence failed", {
-             photoshootId,
-             predictionId: payload.id,
-             errorCode:
-               error instanceof ProviderOutputError
-                 ? error.code
-                 : "S3_PERSISTENCE_FAILED",
-           });
+        } catch {
+           logReplicateWebhook("error", "RESULT_PERSISTENCE_FAILED", payload.status);
            await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
            return NextResponse.json({ error: "Generation output could not be saved." }, { status: 502 });
         }
@@ -203,11 +188,7 @@ export async function POST(request: Request) {
       try {
         expectedCount = getRequestedImageCount(latestShoot?.requested_images_count);
       } catch {
-        console.error("[generation-webhook] Invalid requested image count", {
-          photoshootId,
-          predictionId: payload.id,
-          errorCode: "GENERATION_COUNT_CONFIGURATION_ERROR",
-        });
+        logReplicateWebhook("error", "GENERATION_COUNT_CONFIGURATION_ERROR", payload.status);
         await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
         return NextResponse.json({ error: "Generation configuration is invalid." }, { status: 500 });
       }
@@ -232,8 +213,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Status received but no action required." });
 
-  } catch (error: unknown) {
-    console.error("Generation Webhook error:", error);
+  } catch {
+    logReplicateWebhook("error", "WEBHOOK_PROCESSING_FAILED");
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

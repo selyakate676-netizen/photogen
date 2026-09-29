@@ -40,6 +40,7 @@ export async function savePortraitImageUrlToS3({
       Key: s3Key,
       Body: body,
       ContentType: "image/jpeg",
+      ACL: "private",
     }),
   );
 

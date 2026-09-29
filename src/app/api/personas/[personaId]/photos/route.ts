@@ -5,9 +5,7 @@ import { NextResponse } from "next/server";
 import { getS3BucketName } from "@/lib/env";
 import { authenticatedDb, jsonError, photoJson, PHOTO_SELECT, UUID_RE } from "@/lib/personas/api";
 import { s3Client } from "@/lib/s3";
-
-const MAX_FILE_SIZE = 15 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+import { ImageUploadValidationError, validateImageUpload } from "@/lib/uploads/image";
 
 type PersonaRouteContext = { params: Promise<{ personaId: string }> };
 
@@ -32,7 +30,7 @@ export async function GET(_request: Request, { params }: PersonaRouteContext) {
       url: await getSignedUrl(s3Client, new GetObjectCommand({
         Bucket: getS3BucketName(),
         Key: row.storage_path,
-      }), { expiresIn: 900 }),
+      }), { expiresIn: 300 }),
     })));
     return NextResponse.json({ photos }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (signingError) {
@@ -49,10 +47,24 @@ export async function POST(request: Request, { params }: PersonaRouteContext) {
   if (!persona) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const formData = await request.formData();
   const file = formData.get("file");
-  if (!(file instanceof File) || !ALLOWED_TYPES.has(file.type) || file.size < 1 || file.size > MAX_FILE_SIZE) return NextResponse.json({ error: "Valid JPEG, PNG or WebP file up to 15 MB is required" }, { status: 400 });
-  const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
-  const key = `personas/${user.id}/${personaId}/${randomUUID()}.${extension}`;
-  await s3Client.send(new PutObjectCommand({ Bucket: getS3BucketName(), Key: key, Body: Buffer.from(await file.arrayBuffer()), ContentType: file.type }));
+  if (!(file instanceof File)) return NextResponse.json({ error: "Image file is required" }, { status: 400 });
+  let image;
+  try {
+    image = await validateImageUpload(file);
+  } catch (error) {
+    if (error instanceof ImageUploadValidationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    throw error;
+  }
+  const key = `personas/${user.id}/${personaId}/${randomUUID()}.${image.extension}`;
+  await s3Client.send(new PutObjectCommand({
+    Bucket: getS3BucketName(),
+    Key: key,
+    Body: image.body,
+    ContentType: image.contentType,
+    ACL: "private",
+  }));
   const { data, error } = await db.rpc("add_persona_photo", { p_persona_id: personaId, p_storage_path: key });
   if (error) {
     await s3Client.send(new DeleteObjectCommand({ Bucket: getS3BucketName(), Key: key })).catch((cleanupError) => console.error("Uploaded persona photo cleanup failed", cleanupError));

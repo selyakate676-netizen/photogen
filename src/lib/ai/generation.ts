@@ -2,7 +2,8 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "@/lib/s3";
 import { createClient } from "@/utils/supabase/server";
-import { getReplicateApiToken, getS3BucketName, getSiteUrl, getWebhookSecret } from "@/lib/env";
+import { getReplicateApiToken, getS3BucketName, getSiteUrl } from "@/lib/env";
+import { logReplicateWebhook } from "@/lib/replicate/webhook-security";
 import Replicate from "replicate";
 
 // Функция получения токена API (как в training.ts)
@@ -43,7 +44,6 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
   // 2. Берем ПЕРВОЕ фото как Image Reference
   // В будущем будем брать лучшее или давать выбор.
   const referenceImageKey = photoshoot.images[0];
-  console.log(`[InstantID] Using reference image: ${referenceImageKey}`);
 
   // Генерируем временную ссылку на 2 часа
   const presignedGetCommand = new GetObjectCommand({
@@ -61,9 +61,8 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
 
   // 4. Подготавливаем Webhook для получения результата
   const host = getSiteUrl();
-  const webhookUrl = `${host}/api/webhooks/replicate/generation?secret=${getWebhookSecret()}&photoshootId=${photoshoot.id}`;
+  const webhookUrl = `${host}/api/webhooks/replicate/generation?photoshootId=${photoshoot.id}`;
 
-  console.log("[InstantID] Calling fofr/instant-id...");
   
   try {
     // 5. Вызываем fofr/instant-id
@@ -84,7 +83,6 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
       webhook_events_filter: ["completed"]
     });
 
-    console.log(`[InstantID] Generation started SUCCESS. ID: ${result.id}`);
     
     // 6. Обновляем статус на generating и сохраняем generation_id
     // Пока используем колонку training_id для хранения generation_id, чтобы не ломать Dashboard UI
@@ -99,9 +97,8 @@ export async function startGenerationForPhotoshoot(photoshootId: string) {
   
     return { success: true, generationId: result.id };
 
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`[CRITICAL] Fatal error in generation trigger:`, message);
-    throw err;
+  } catch (error: unknown) {
+    logReplicateWebhook("error", "PROVIDER_START_FAILED");
+    throw error;
   }
 }

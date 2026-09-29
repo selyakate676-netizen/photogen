@@ -11,7 +11,7 @@ type EnvName =
   | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
   | "SUPABASE_SERVICE_ROLE_KEY"
   | "REPLICATE_API_TOKEN"
-  | "WEBHOOK_SECRET"
+  | "REPLICATE_WEBHOOK_SIGNING_SECRET"
   | "S3_ENDPOINT"
   | "S3_REGION"
   | "S3_BUCKET_NAME"
@@ -48,8 +48,8 @@ export function getReplicateApiToken(): string {
   return getEnv("REPLICATE_API_TOKEN");
 }
 
-export function getWebhookSecret(): string {
-  return getEnv("WEBHOOK_SECRET");
+export function getReplicateWebhookSigningSecret(): string {
+  return getEnv("REPLICATE_WEBHOOK_SIGNING_SECRET");
 }
 
 export function getS3BucketName(): string {
