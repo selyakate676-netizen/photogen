@@ -109,7 +109,7 @@ jobs:
                 fi
                 continue
               fi
-              if [ -n "$daemon_tree_commands" ] && [[ "$daemon_tree_commands" != *"npm run start"* ]] && [[ "$daemon_tree_commands" != *"npm -- run start"* ]] && [[ "$daemon_tree_commands" != *"next start"* ]] && [[ "$daemon_tree_commands" != *"next-server"* ]]; then
+              if [ -n "$daemon_tree_commands" ] && [[ "$daemon_tree_commands" != *"npm run start"* ]] && [[ "$daemon_tree_commands" != *"npm -- run start"* ]] && [[ "$daemon_tree_commands" != *"next start"* ]] && [[ "$daemon_tree_commands" != *"next-server"* ]] && [[ "$daemon_tree_commands" != *"start-production.sh"* ]]; then
                 echo "Refusing to stop non-canonical PM2 daemon $daemon_pid with unknown process tree"
                 exit 1
               fi
@@ -141,7 +141,7 @@ jobs:
               echo "Port 3001 is still occupied after stopping stale PhotoGen listener"
               exit 1
             fi
-            "$PM2_BIN" start /usr/bin/npm --name "photogen" -- run start
+            "$PM2_BIN" start /root/scripts/start-production.sh --name "photogen" --interpreter /usr/bin/bash
             "$PM2_BIN" save
             listener_count=0
             for wait_attempt in 1 2 3 4 5 6 7 8 9 10; do
