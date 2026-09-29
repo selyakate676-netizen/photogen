@@ -53,7 +53,7 @@ test("generation paths no longer log raw provider, claim, or webhook errors", ()
   assert.doesNotMatch(webhook, /Generation Webhook error:|predictionId:/);
   const logStatements = productionDiagnostics
     .split(/\r?\n/)
-    .filter((line) => line.includes("logGenerationEvent("))
+    .filter((line) => line.includes("logGenerationEvent(") || line.includes("console."))
     .join("\n");
   assert.doesNotMatch(logStatements, /prompt|payload|sourceUrl|signedUrl|token|secret|personal/i);
 });

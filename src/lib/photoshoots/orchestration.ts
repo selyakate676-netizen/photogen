@@ -1,5 +1,4 @@
 import { startMvpGenerationForPhotoshoot } from "@/lib/ai/mvp-generation-adapter";
-import { getProviderErrorCode, logGenerationEvent } from "@/lib/ai/generation-log";
 import {
   SAFE_GENERATION_ERROR,
   confirmMockPhotoshootPayment,
@@ -7,6 +6,7 @@ import {
 } from "@/lib/photoshoots/status";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
+import { getProviderErrorCode, logGenerationEvent } from "@/lib/ai/generation-log";
 
 export async function confirmMockPaymentAndQueue(photoshootId: string, userId: string) {
   const supabase = await createClient();

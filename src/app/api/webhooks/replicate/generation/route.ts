@@ -10,9 +10,9 @@ import {
   isExactInternalGenerationResultSet,
 } from "@/lib/ai/generation-count-contract";
 import { updatePhotoshootGenerationStatus } from "@/lib/photoshoots/status";
-import { logGenerationEvent } from "@/lib/ai/generation-log";
 import { logReplicateWebhook, verifyReplicateWebhook } from "@/lib/replicate/webhook-security";
 import type { Database, PhotoshootStatus } from "@/types/database";
+import { logGenerationEvent } from "@/lib/ai/generation-log";
 
 interface ReplicateGenerationPayload {
   id?: string;
@@ -77,13 +77,13 @@ export async function POST(request: Request) {
       payload = JSON.parse(rawBody) as ReplicateGenerationPayload;
     } catch {
       logReplicateWebhook("warn", "WEBHOOK_BODY_INVALID");
-      logGenerationEvent("warn", "webhook_body_invalid", "webhook", photoshootId, "WEBHOOK_ERROR");
       return NextResponse.json({ error: "Invalid webhook body" }, { status: 400 });
     }
 
+    logGenerationEvent("info", "webhook_received", "webhook", photoshootId);
+
     // Р’Р°Р¶РЅРѕ: РРЎРџРћР›Р¬Р—РЈР•Рњ SERVICE ROLE KEY РґР»СЏ РѕР±С…РѕРґР° RLS
     // РРЅР°С‡Рµ Р°РЅРѕРЅРёРјРЅС‹Р№ РІРµР±С…СѓРє РЅРµ СЃРјРѕР¶РµС‚ РѕР±РЅРѕРІРёС‚СЊ РІР°С€Сѓ Р±Р°Р·Сѓ РґР°РЅРЅС‹С…!
-    logGenerationEvent("info", "webhook_received", "webhook", photoshootId);
     const supabaseConfig = getSupabaseServiceRoleConfig();
     const supabase = createClient<Database>(supabaseConfig.url, supabaseConfig.serviceRoleKey);
 
@@ -118,6 +118,7 @@ export async function POST(request: Request) {
       logGenerationEvent("error", "provider_prediction_failed", "prediction", photoshootId, "PREDICTION_FAILED");
       const updated = await updatePhotoshootGenerationStatus(supabase, photoshootId, "failed");
       if (!updated) {
+        logGenerationEvent("error", "result_transition_failed", "result", photoshootId, "RESULT_TRANSITION_ERROR");
         return NextResponse.json({ message: "Generation failed/canceled. Failed transition was ignored." });
       }
 
@@ -220,6 +221,7 @@ export async function POST(request: Request) {
       }
 
       logGenerationEvent("info", isCompleted ? "generation_completed" : "generation_result_saved", "result", photoshootId);
+
       return NextResponse.json({ message: `Image added. Status updated to ${isCompleted ? 'completed' : 'generating'}. Total: ${newImages.length}` });
 
     }
@@ -232,3 +234,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+
+

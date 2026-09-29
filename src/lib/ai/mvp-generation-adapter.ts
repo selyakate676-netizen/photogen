@@ -1558,18 +1558,6 @@ function buildMvpPromptWithScenePackage(photoshoot: Photoshoot, scenePackage: st
     "Short constraints: one photograph only; preserve identity and realistic anatomy; follow the current Hero Composition; no collage, grid, contact sheet, pasted face or copied reference pose.",
   ].filter((layer): layer is string => Boolean(layer));
 
-  if (process.env.NODE_ENV !== "production") {
-    console.debug("[MVP generation] prompt layer order", [
-      "GENERATION_TASK",
-      "IDENTITY",
-      "PERSONA_APPEARANCE",
-      "SERIES_AND_SCENE",
-      heroComposition ? "CURRENT_HERO_COMPOSITION" : null,
-      poseAnatomySafety ? "POSE_ANATOMY_SAFETY" : null,
-      "REALISM",
-      "SHORT_CONSTRAINTS",
-    ].filter(Boolean));
-  }
 
   return layers.join("\n\n");
 }
@@ -1664,25 +1652,11 @@ export async function startMvpGenerationForPhotoshoot(
   );
   const referenceUrls: string[] = [];
 
-  if (process.env.NODE_ENV !== "production") {
-    console.debug("[MVP generation] Persona reference selection", {
-      sourceCount: personaReferenceKeys.length,
-      selectedCount: referenceKeys.length,
-      selectedIndexes: referenceKeys.map((key) => personaReferenceKeys.indexOf(key)),
-    });
-  }
 
   for (const [index, key] of referenceKeys.entries()) {
     const crop = await createIdentityReferenceCrop(photoshoot.id, key, index + 1);
     referenceUrls.push(await createSignedReadUrl(crop.key));
 
-    if (process.env.NODE_ENV !== "production") {
-      console.debug("[MVP generation] prepared identity reference", {
-        selectedIndex: index,
-        width: crop.width,
-        height: crop.height,
-      });
-    }
   }
 
   const replicate = new Replicate({ auth: getReplicateApiToken() });
