@@ -1666,7 +1666,7 @@ export async function startMvpGenerationForPhotoshoot(
       : { model: generationModel };
 
   const shouldWaitForCompletion = options.waitForCompletion ?? true;
-  const webhookUrl = `${getSiteUrl()}/api/webhooks/replicate/generationphotoshootId=${photoshoot.id}`;
+  const webhookUrl = `${getSiteUrl()}/api/webhooks/replicate/generation?photoshootId=${encodeURIComponent(photoshoot.id)}`;
 
   const predictionIds: string[] = [];
   const resultImages: string[] = [];
