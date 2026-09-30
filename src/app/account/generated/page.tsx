@@ -6,6 +6,7 @@ import { retryTraining } from '@/app/dashboard/actions';
 import AnalyticsEvent from '@/components/AnalyticsEvent';
 import { attributionAnalyticsParams, sanitizeAttributionSnapshot } from '@/lib/marketingAttribution';
 import { resultImageUrls } from '@/lib/photoshoots/api';
+import GeneratedPhotoshootsPoller from './GeneratedPhotoshootsPoller';
 import styles from '../account.module.css';
 
 const statusLabels: Record<string, string> = {
@@ -38,6 +39,9 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
     .order('created_at', { ascending: false });
 
   const photoshoots = data ?? [];
+  const hasActivePhotoshoots = photoshoots.some(
+    (shoot) => !['completed', 'failed', 'cancelled'].includes(shoot.status),
+  );
   const signedResultImages = new Map(await Promise.all(photoshoots.map(async (shoot) => [
     shoot.id,
     await resultImageUrls(
@@ -56,6 +60,7 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
 
   return (
     <>
+      <GeneratedPhotoshootsPoller active={hasActivePhotoshoots} />
       {query.payment_completed && paymentShoot && ['paid', 'queued', 'generating', 'completed'].includes(paymentShoot.status) ? (
         <AnalyticsEvent
           goal="payment_completed"

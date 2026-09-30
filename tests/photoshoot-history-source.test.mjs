@@ -133,3 +133,27 @@ test("generated list and result detail use the shared signed result mapper", asy
     assert.doesNotMatch(source, /getImageUrl/);
   }
 });
+test("generated history polls while a photoshoot is active and stops after terminal status", async () => {
+  const [page, poller] = await Promise.all([
+    read("src/app/account/generated/page.tsx"),
+    read("src/app/account/generated/GeneratedPhotoshootsPoller.tsx"),
+  ]);
+
+  assert.match(page, /!\['completed', 'failed', 'cancelled'\]\.includes\(shoot\.status\)/);
+  assert.match(page, /<GeneratedPhotoshootsPoller active=\{hasActivePhotoshoots\} \/>/);
+  assert.match(poller, /if \(!active\) return/);
+  assert.match(poller, /setInterval\([\s\S]*?router\.refresh\(\)[\s\S]*?POLL_INTERVAL_MS/);
+  assert.match(poller, /POLL_INTERVAL_MS = 5_000/);
+  assert.match(poller, /clearInterval\(intervalId\)/);
+  assert.doesNotMatch(poller, /window\.location|location\.reload/);
+});
+
+test("generated history renders completed results after a client refresh", async () => {
+  const page = await read("src/app/account/generated/page.tsx");
+
+  assert.match(page, /signedResultImages\.get\(shoot\.id\)/);
+  assert.match(page, /statusLabels\[shoot\.status\]/);
+  assert.match(page, /completed: 'Готово'/);
+  assert.match(page, /shoot\.status === 'completed'[\s\S]*?dashboard\/result\/\$\{shoot\.id\}[\s\S]*?>Открыть</);
+  assert.match(page, /shoot\.status === 'failed'/);
+});
