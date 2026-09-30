@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 import YandexMetrikaBootstrap from '@/components/YandexMetrikaBootstrap';
 import YandexMetrica from '@/components/YandexMetrica';
 import Navbar from '@/components/Navbar';
+import { FIRST_PARTY_ATTRIBUTION_BOOTSTRAP_SCRIPT } from '@/lib/marketingAttribution';
 
 const themeInitScript = `
 (function () {
@@ -47,6 +48,7 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: FIRST_PARTY_ATTRIBUTION_BOOTSTRAP_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link
           href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap"

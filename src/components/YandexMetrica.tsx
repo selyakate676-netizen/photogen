@@ -16,7 +16,8 @@ export default function YandexMetrica() {
   const pageUrl = query ? `${pathname}?${query}` : pathname;
 
   useEffect(() => {
-    if (canUseYandexMetrika()) captureBrowserAttribution();
+    // First-party attribution is persisted independently of third-party analytics consent.
+    captureBrowserAttribution(true);
     flushPendingAnalyticsGoals();
 
     if (
