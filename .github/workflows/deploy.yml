@@ -2,178 +2,139 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+
+permissions: {}
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Deploy updates via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Deploy immutable release via SSH
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         env:
+          DEPLOY_SHA: ${{ github.sha }}
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
           NEXT_PUBLIC_YANDEX_METRIKA_ID: ${{ vars.NEXT_PUBLIC_YANDEX_METRIKA_ID }}
         with:
-          envs: NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SITE_URL,NEXT_PUBLIC_YANDEX_METRIKA_ID
+          envs: DEPLOY_SHA,RELEASE_ID,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SITE_URL,NEXT_PUBLIC_YANDEX_METRIKA_ID
           host: ${{ secrets.VPS_IP }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          username: photogen
+          key: ${{ secrets.VPS_SSH_KEY }}
+          fingerprint: ${{ secrets.VPS_HOST_FINGERPRINT }}
           script: |
             set -euo pipefail
-            export PM2_HOME=/root/.pm2
-            PM2_BIN=/usr/bin/pm2
+            readonly DEPLOY_ROOT=/srv/photogen
+            readonly REPO_DIR="$DEPLOY_ROOT/repo"
+            readonly RELEASES_DIR="$DEPLOY_ROOT/releases"
+            readonly SHARED_DIR="$DEPLOY_ROOT/shared"
+            readonly CURRENT_LINK="$DEPLOY_ROOT/current"
+            readonly RELEASE_DIR="$RELEASES_DIR/$RELEASE_ID"
+            readonly PRODUCTION_ENV_FILE="$SHARED_DIR/.env.local"
+            readonly PM2_BIN=/usr/bin/pm2
+            readonly PM2_HOME=/home/photogen/.pm2
+            readonly CANDIDATE_PORT=3002
+            export PM2_HOME
+            candidate_pid=""
+            cutover_started=0
+            previous_release=""
 
-            # 1. Swap setup
-            if ! grep -q "/swapfile" /etc/fstab; then
-              fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
-              chmod 600 /swapfile
-              mkswap /swapfile
-              swapon /swapfile
-              echo '/swapfile none swap sw 0 0' >> /etc/fstab
-            fi
+            atomic_switch_current() {
+              target_release="$1"
+              next_link="$DEPLOY_ROOT/.current.next"
+              ln -sfn "$target_release" "$next_link"
+              mv -Tf "$next_link" "$CURRENT_LINK"
+            }
 
-            # 2. Update code
-            test -d "$PM2_HOME"
-            "$PM2_BIN" status
-            cd /root
-            git fetch origin
-            git checkout -f origin/main -B main
-            git clean -fd -e .pm2/ -e .cache/ -e .config/ -e .npm/ -e .bash_history
-            active_sha=$(git rev-parse HEAD)
-            test "$active_sha" = "$(git rev-parse origin/main)"
-            grep -q 'photogen-analytics-consent' src/lib/analytics.ts
-            grep -q 'getAnalyticsConsent' src/components/YandexMetrikaBootstrap.tsx
+            rollback_on_error() {
+              exit_code=$?
+              trap - EXIT
+              if [ -n "$candidate_pid" ]; then
+                kill "$candidate_pid" 2>/dev/null || true
+                wait "$candidate_pid" 2>/dev/null || true
+              fi
+              if [ "$exit_code" -ne 0 ] && [ "$cutover_started" -eq 1 ] && [ -n "$previous_release" ]; then
+                echo "Deploy failed after cutover; restoring previous release"
+                atomic_switch_current "$previous_release"
+                "$PM2_BIN" delete photogen >/dev/null 2>&1 || true
+                "$PM2_BIN" start "$CURRENT_LINK/scripts/start-production.sh" --name photogen --interpreter /usr/bin/bash
+                "$PM2_BIN" save
+              fi
+              exit "$exit_code"
+            }
+            trap rollback_on_error EXIT
 
-            # 3. Install & Build
+            : "${DEPLOY_SHA:?DEPLOY_SHA is required}"
+            : "${RELEASE_ID:?RELEASE_ID is required}"
             : "${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL is required}"
             : "${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY is required}"
             : "${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}"
             : "${NEXT_PUBLIC_YANDEX_METRIKA_ID:?NEXT_PUBLIC_YANDEX_METRIKA_ID is required}"
-            npm install
+            test "$(id -un)" = photogen
+            test -x "$PM2_BIN"
+            test -d "$REPO_DIR/.git"
+            test -s "$PRODUCTION_ENV_FILE"
+            test -L "$CURRENT_LINK"
+            previous_release=$(readlink -f "$CURRENT_LINK")
+            test -d "$previous_release"
+            test ! -e "$RELEASE_DIR"
+
+            mkdir -p "$RELEASES_DIR"
+            cd "$REPO_DIR"
+            git fetch --prune origin main
+            git cat-file -e "$DEPLOY_SHA^{commit}"
+            git worktree add --detach "$RELEASE_DIR" "$DEPLOY_SHA"
+            cd "$RELEASE_DIR"
+            ln -s "$PRODUCTION_ENV_FILE" .env.local
+            npm ci --no-audit --no-fund
             rm -rf .next
             npm run build
-            test -n "$NEXT_PUBLIC_YANDEX_METRIKA_ID"
-            grep -R -q "$NEXT_PUBLIC_YANDEX_METRIKA_ID" .next/static/chunks
-            build_id=$(cat .next/BUILD_ID)
-            echo "Active SHA: $active_sha"
-            echo "Build ID: $build_id"
-            grep -R -q 'photogen-analytics-consent' .next/server
+            test -f .next/BUILD_ID
 
-            # 4. Restart app
-            pm2_daemon_pids() {
-              for process_path in /proc/[0-9]*; do
-                process_name=$(cat "$process_path/comm" 2>/dev/null || true)
-                if [[ "$process_name" == PM2* ]]; then basename "$process_path"; fi
-              done
-            }
-            canonical_daemon_pid=""
-            canonical_daemon_count=0
-            for daemon_pid in $(pm2_daemon_pids); do
-              daemon_pm2_home=$(tr '\0' '\n' < "/proc/$daemon_pid/environ" | sed -n 's/^PM2_HOME=//p' | head -n 1)
-              daemon_command=$(tr '\0' ' ' < "/proc/$daemon_pid/cmdline")
-              if [ "$daemon_pm2_home" = "$PM2_HOME" ] || [[ "$daemon_command" == *"($PM2_HOME)"* ]]; then
-                canonical_daemon_pid="$daemon_pid"
-                canonical_daemon_count=$((canonical_daemon_count + 1))
-              fi
-            done
-            test "$canonical_daemon_count" -eq 1
-            printf '%s\n' "$canonical_daemon_pid" > "$PM2_HOME/pm2.pid"
-            collect_descendants() {
-              for child_pid in $(pgrep -P "$1" || true); do
-                echo "$child_pid"
-                collect_descendants "$child_pid"
-              done
-            }
-            for daemon_pid in $(pm2_daemon_pids); do
-              if [ "$daemon_pid" = "$canonical_daemon_pid" ]; then continue; fi
-              descendant_pids=$(collect_descendants "$daemon_pid")
-              daemon_tree_commands=""
-              for tree_pid in $descendant_pids; do
-                if [ -r "/proc/$tree_pid/cmdline" ]; then
-                  daemon_tree_commands="$daemon_tree_commands $(tr '\0' ' ' < "/proc/$tree_pid/cmdline")"
-                fi
-              done
-              if [[ "$daemon_tree_commands" == *"hello-world"* ]]; then
-                legacy_pm2_home=$(tr '\0' '\n' < "/proc/$daemon_pid/environ" | sed -n 's/^PM2_HOME=//p' | head -n 1)
-                if [ -z "$legacy_pm2_home" ] || [ "$legacy_pm2_home" = "$PM2_HOME" ] || [ ! -S "$legacy_pm2_home/rpc.sock" ]; then
-                  echo "Cannot safely attach to legacy hello-world PM2 daemon $daemon_pid"
-                  exit 1
-                fi
-                PM2_HOME="$legacy_pm2_home" "$PM2_BIN" delete photogen || true
-                legacy_process_list=$(PM2_HOME="$legacy_pm2_home" "$PM2_BIN" jlist)
-                if [[ "$legacy_process_list" != *'"name":"hello-world"'* ]]; then
-                  echo "hello-world is not healthy after removing legacy photogen"
-                  exit 1
-                fi
-                continue
-              fi
-              if [ -n "$daemon_tree_commands" ] && [[ "$daemon_tree_commands" != *"npm run start"* ]] && [[ "$daemon_tree_commands" != *"npm -- run start"* ]] && [[ "$daemon_tree_commands" != *"next start"* ]] && [[ "$daemon_tree_commands" != *"next-server"* ]] && [[ "$daemon_tree_commands" != *"start-production.sh"* ]]; then
-                echo "Refusing to stop non-canonical PM2 daemon $daemon_pid with unknown process tree"
-                exit 1
-              fi
-              kill "$daemon_pid"
-              for wait_attempt in 1 2 3 4 5; do
-                if ! kill -0 "$daemon_pid" 2>/dev/null; then break; fi
-                sleep 1
-              done
-              if kill -0 "$daemon_pid" 2>/dev/null; then
-                echo "Non-canonical PM2 daemon $daemon_pid did not stop"
-                exit 1
-              fi
-            done
-            "$PM2_BIN" delete photogen || true
-            for listener_pid in $(fuser 3001/tcp 2>/dev/null || true); do
-              listener_cwd=$(readlink -f "/proc/$listener_pid/cwd")
-              listener_command=$(tr '\0' ' ' < "/proc/$listener_pid/cmdline")
-              if [ "$listener_cwd" != "/root" ] || [[ "$listener_command" != *"next-server"* ]]; then
-                echo "Refusing to stop unexpected port 3001 listener: pid=$listener_pid cwd=$listener_cwd command=$listener_command"
-                exit 1
-              fi
-              kill "$listener_pid"
-            done
-            for wait_attempt in 1 2 3 4 5; do
-              if ! fuser 3001/tcp >/dev/null 2>&1; then break; fi
-              sleep 1
-            done
-            if fuser 3001/tcp >/dev/null 2>&1; then
-              echo "Port 3001 is still occupied after stopping stale PhotoGen listener"
+            if curl --fail --silent "http://127.0.0.1:$CANDIDATE_PORT/" >/dev/null 2>&1; then
+              echo "Candidate port $CANDIDATE_PORT is already in use"
               exit 1
             fi
-            "$PM2_BIN" start /root/scripts/start-production.sh --name "photogen" --interpreter /usr/bin/bash
+            PORT="$CANDIDATE_PORT" "$RELEASE_DIR/scripts/start-production.sh" >"$DEPLOY_ROOT/candidate.log" 2>&1 &
+            candidate_pid=$!
+            candidate_ready=0
+            for wait_attempt in $(seq 1 20); do
+              kill -0 "$candidate_pid" 2>/dev/null || { echo "Candidate exited before smoke passed"; exit 1; }
+              if curl --fail --silent --show-error "http://127.0.0.1:$CANDIDATE_PORT/" >/dev/null; then
+                candidate_ready=1
+                break
+              fi
+              sleep 1
+            done
+            test "$candidate_ready" -eq 1
+            kill "$candidate_pid"
+            wait "$candidate_pid" 2>/dev/null || true
+            candidate_pid=""
+
+            cutover_started=1
+            atomic_switch_current "$RELEASE_DIR"
+            "$PM2_BIN" delete photogen >/dev/null 2>&1 || true
+            "$PM2_BIN" start "$CURRENT_LINK/scripts/start-production.sh" --name photogen --interpreter /usr/bin/bash
             "$PM2_BIN" save
-            listener_count=0
-            for wait_attempt in 1 2 3 4 5 6 7 8 9 10; do
-              listener_pids=$(fuser 3001/tcp 2>/dev/null || true)
-              listener_count=$(wc -w <<< "$listener_pids")
-              if [ "$listener_count" -eq 1 ]; then break; fi
+            production_ready=0
+            for wait_attempt in $(seq 1 20); do
+              if curl --fail --silent --show-error http://127.0.0.1:3001/ >/dev/null; then
+                production_ready=1
+                break
+              fi
               sleep 1
             done
-            test "$listener_count" -eq 1
-            sleep 5
-            canonical_process_list=$("$PM2_BIN" jlist)
-            [[ "$canonical_process_list" == *'"name":"photogen"'* ]]
-            [[ "$canonical_process_list" == *'"status":"online"'* ]]
-            [[ "$canonical_process_list" == *'"restart_time":0'* ]]
-            fresh_homepage=$(curl --fail --silent --show-error http://127.0.0.1:3001/)
-            if [[ "$fresh_homepage" == *'id="yandex-metrika"'* ]]; then
-              echo "Stale inline Metrika bootstrap detected in fresh server HTML"
-              exit 1
-            fi
-
-            # 5. Configure Nginx for photogenlab.ru
-            printf 'server {\n    listen 80;\n    server_name photogenlab.ru www.photogenlab.ru;\n    location / {\n        proxy_pass http://localhost:3001;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection upgrade;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_cache_bypass $http_upgrade;\n    }\n}\n' > /etc/nginx/sites-available/photogenlab.ru
-
-            if [ ! -f /etc/nginx/sites-enabled/photogenlab.ru ]; then
-              ln -s /etc/nginx/sites-available/photogenlab.ru /etc/nginx/sites-enabled/
-            fi
-            nginx -t && systemctl reload nginx
-
-            # 6. SSL via Certbot
-            apt-get install -y certbot python3-certbot-nginx
-            certbot --nginx -d photogenlab.ru -d www.photogenlab.ru --non-interactive --agree-tos -m selyakate676@gmail.com --redirect || true
-
-            # 7. Status
-            "$PM2_BIN" status
-            netstat -tulpn | grep :3001 || echo "Port 3001 NOT active!"
+            test "$production_ready" -eq 1
+            "$PM2_BIN" describe photogen >/dev/null
+            cutover_started=0
+            trap - EXIT
+            echo "Deployed SHA: $DEPLOY_SHA"
+            echo "Rollback release retained: $previous_release"
