@@ -47,6 +47,13 @@ jobs:
             cutover_started=0
             previous_release=""
 
+            atomic_switch_current() {
+              target_release="$1"
+              next_link="$DEPLOY_ROOT/.current.next"
+              ln -sfn "$target_release" "$next_link"
+              mv -Tf "$next_link" "$CURRENT_LINK"
+            }
+
             rollback_on_error() {
               exit_code=$?
               trap - EXIT
@@ -56,7 +63,7 @@ jobs:
               fi
               if [ "$exit_code" -ne 0 ] && [ "$cutover_started" -eq 1 ] && [ -n "$previous_release" ]; then
                 echo "Deploy failed after cutover; restoring previous release"
-                ln -sfn "$previous_release" "$CURRENT_LINK"
+                atomic_switch_current "$previous_release"
                 "$PM2_BIN" delete photogen >/dev/null 2>&1 || true
                 "$PM2_BIN" start "$CURRENT_LINK/scripts/start-production.sh" --name photogen --interpreter /usr/bin/bash
                 "$PM2_BIN" save
@@ -113,7 +120,7 @@ jobs:
             candidate_pid=""
 
             cutover_started=1
-            ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
+            atomic_switch_current "$RELEASE_DIR"
             "$PM2_BIN" delete photogen >/dev/null 2>&1 || true
             "$PM2_BIN" start "$CURRENT_LINK/scripts/start-production.sh" --name photogen --interpreter /usr/bin/bash
             "$PM2_BIN" save
