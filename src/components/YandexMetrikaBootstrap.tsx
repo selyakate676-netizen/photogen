@@ -12,14 +12,8 @@ import {
   type MetrikaFunction,
 } from '@/lib/analytics';
 import styles from './YandexMetrikaBootstrap.module.css';
-import {
-  clearStagedAttribution,
-  commitBrowserAttribution,
-  stageBrowserAttribution,
-} from '@/lib/marketingAttribution';
 
 function initializeYandexMetrika() {
-  commitBrowserAttribution();
   const counterId = yandexMetrikaId;
   if (!counterId || !shouldInitializeYandexMetrika(
     getAnalyticsConsent(),
@@ -63,7 +57,6 @@ export default function YandexMetrikaBootstrap() {
   const [consent, setConsent] = useState<AnalyticsConsent | null | undefined>(undefined);
 
   useEffect(() => {
-    stageBrowserAttribution();
     const timeoutId = window.setTimeout(() => setConsent(getAnalyticsConsent()), 0);
     return () => window.clearTimeout(timeoutId);
   }, []);
@@ -80,7 +73,6 @@ export default function YandexMetrikaBootstrap() {
           setConsent('granted');
         }}>Разрешить</button>
         <button className={styles.rejectButton} type="button" onClick={() => {
-          clearStagedAttribution();
           setAnalyticsConsent('denied');
           setConsent('denied');
         }}>Отклонить</button>

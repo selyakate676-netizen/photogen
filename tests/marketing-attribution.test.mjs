@@ -17,55 +17,72 @@ function memoryStorage() {
   };
 }
 
-test('parses UTM fields, yclid, and a privacy-safe external referrer', () => {
+test('parses only approved UTM fields, yclid, and a referrer without query or hash', () => {
   const touch = attribution.parseAttribution(
-    'https://photogenlab.ru/?utm_source=yandex&utm_medium=cpc&utm_campaign=beta&utm_content=hero&utm_term=ai&yclid=123',
-    'https://yandex.ru/search/?text=private',
+    'https://photogenlab.ru/?utm_source=yandex&utm_medium=cpc&utm_campaign=beta&utm_content=hero&utm_term=ai&yclid=123&email=private',
+    'https://yandex.ru/search/?text=private#secret',
     '2026-09-15T10:00:00.000Z',
   );
   assert.deepEqual(touch, {
     source: 'yandex', medium: 'cpc', campaign: 'beta', content: 'hero', term: 'ai', yclid: '123',
-    referrer: 'https://yandex.ru/search/', capturedAt: '2026-09-15T10:00:00.000Z',
+    referrer: 'https://yandex.ru', capturedAt: '2026-09-15T10:00:00.000Z',
   });
 });
 
-test('first touch is immutable while a new tagged visit updates last touch', () => {
-  const storage = memoryStorage();
-  const first = attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=yandex&utm_campaign=launch', '', '2026-09-15T10:00:00.000Z');
-  const direct = attribution.captureAttribution(storage, 'https://photogenlab.ru/catalog', '', '2026-09-15T11:00:00.000Z');
-  const organic = attribution.captureAttribution(storage, 'https://photogenlab.ru/catalog', 'https://google.com/search?q=photo', '2026-09-15T11:30:00.000Z');
-  const last = attribution.captureAttribution(storage, 'https://photogenlab.ru/catalog?utm_source=telegram&utm_medium=social', '', '2026-09-15T12:00:00.000Z');
-  assert.deepEqual(direct, first);
-  assert.deepEqual(organic, first);
-  assert.equal(last.first.source, 'yandex');
-  assert.equal(last.last.source, 'telegram');
-  assert.equal(last.last.medium, 'social');
+test('direct traffic produces a non-null attribution snapshot', () => {
+  const snapshot = attribution.captureAttribution(memoryStorage(), 'https://photogenlab.ru/', '', '2026-09-15T10:00:00.000Z');
+  assert.equal(snapshot.first.source, 'direct');
+  assert.equal(snapshot.first.medium, 'none');
+  assert.deepEqual(snapshot.last, snapshot.first);
 });
 
-test('initial tagged landing survives navigation before delayed consent', () => {
-  const storage = memoryStorage();
-  attribution.clearStagedAttribution();
-  attribution.stageInitialAttribution(
-    'https://photogenlab.ru/?utm_source=vk&utm_medium=cpc&utm_campaign=test&utm_content=creative_1&yclid=123',
-    '',
-    '2026-09-15T10:00:00.000Z',
-  );
-  attribution.stageInitialAttribution('https://photogenlab.ru/catalog', '', '2026-09-15T10:05:00.000Z');
-
-  assert.equal(storage.getItem(attribution.ATTRIBUTION_STORAGE_KEY), null);
-  const snapshot = attribution.commitStagedAttribution(storage);
-  assert.equal(snapshot.first.source, 'vk');
-  assert.equal(snapshot.first.yclid, '123');
-  assert.equal(snapshot.last.campaign, 'test');
+test('photoshoot snapshot is non-null for attributed and direct visits', () => {
+  const attributed = attribution.captureAttribution(memoryStorage(), 'https://photogenlab.ru/?utm_source=test', '', '2026-09-15T10:00:00.000Z');
+  const direct = attribution.captureAttribution(memoryStorage(), 'https://photogenlab.ru/', '', '2026-09-15T10:00:00.000Z');
+  assert.ok(attribution.sanitizeAttributionSnapshot(attributed));
+  assert.ok(attribution.sanitizeAttributionSnapshot(direct));
 });
 
-test('rejecting consent discards the staged landing without persistence', () => {
+test('first touch is immutable and last touch updates', () => {
   const storage = memoryStorage();
-  attribution.clearStagedAttribution();
-  attribution.stageInitialAttribution('https://photogenlab.ru/?utm_source=vk', '');
-  attribution.clearStagedAttribution();
-  assert.equal(attribution.commitStagedAttribution(storage), null);
-  assert.equal(storage.getItem(attribution.ATTRIBUTION_STORAGE_KEY), null);
+  attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=yandex&utm_campaign=launch', '', '2026-09-15T10:00:00.000Z');
+  const latest = attribution.captureAttribution(storage, 'https://photogenlab.ru/catalog?utm_source=telegram&utm_medium=social', '', '2026-09-15T12:00:00.000Z');
+  assert.equal(latest.first.source, 'yandex');
+  assert.equal(latest.first.campaign, 'launch');
+  assert.equal(latest.last.source, 'telegram');
+  assert.equal(latest.last.medium, 'social');
+});
+
+test('UTM survives navigation, reload, and signup/login flow before analytics consent', () => {
+  const storage = memoryStorage();
+  attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=vk&utm_medium=cpc&utm_campaign=test&yclid=123', '', '2026-09-15T10:00:00.000Z');
+  const afterNavigation = attribution.captureAttribution(storage, 'https://photogenlab.ru/signup', '', '2026-09-15T10:05:00.000Z', true);
+  assert.equal(afterNavigation.first.source, 'vk');
+  assert.equal(afterNavigation.first.yclid, '123');
+
+  const persistedValue = storage.getItem(attribution.ATTRIBUTION_STORAGE_KEY);
+  const reloadedStorage = memoryStorage();
+  reloadedStorage.setItem(attribution.ATTRIBUTION_STORAGE_KEY, persistedValue);
+  const afterReload = attribution.captureAttribution(reloadedStorage, 'https://photogenlab.ru/signup', '', '2026-09-15T10:06:00.000Z', true);
+  const afterLogin = attribution.captureAttribution(reloadedStorage, 'https://photogenlab.ru/login', '', '2026-09-15T10:07:00.000Z', true);
+  assert.equal(afterReload.first.campaign, 'test');
+  assert.equal(afterLogin.first.source, 'vk');
+  assert.equal(afterLogin.last.source, 'vk');
+});
+
+test('last-touch updates do not extend the first-touch TTL', () => {
+  const storage = memoryStorage();
+  attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=first', '', '2026-01-01T00:00:00.000Z');
+  attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=last', '', '2026-03-31T00:00:00.000Z');
+  const fresh = attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=fresh', '', '2026-04-02T00:00:00.000Z');
+  assert.equal(fresh.first.source, 'fresh');
+});
+
+test('TTL expires the old first touch after 90 days', () => {
+  const storage = memoryStorage();
+  attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=old', '', '2026-01-01T00:00:00.000Z');
+  const fresh = attribution.captureAttribution(storage, 'https://photogenlab.ru/?utm_source=new', '', '2026-04-02T00:00:00.000Z');
+  assert.equal(fresh.first.source, 'new');
 });
 
 test('sanitizer drops unexpected and personal fields', () => {
