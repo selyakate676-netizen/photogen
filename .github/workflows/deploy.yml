@@ -103,7 +103,7 @@ jobs:
               echo "Candidate port $CANDIDATE_PORT is already in use"
               exit 1
             fi
-            PORT="$CANDIDATE_PORT" "$RELEASE_DIR/scripts/start-production.sh" >"$DEPLOY_ROOT/candidate.log" 2>&1 &
+            PORT="$CANDIDATE_PORT" /usr/bin/bash "$RELEASE_DIR/scripts/start-production.sh" >"$DEPLOY_ROOT/candidate.log" 2>&1 &
             candidate_pid=$!
             candidate_ready=0
             for wait_attempt in $(seq 1 20); do

@@ -33,7 +33,8 @@ test("deploy starts the guarded production entrypoint", () => {
     workflow,
     /\$PM2_BIN" start "\$CURRENT_LINK\/scripts\/start-production\.sh" --name photogen --interpreter \/usr\/bin\/bash/,
   );
-  assert.match(workflow, /PORT="\$CANDIDATE_PORT" "\$RELEASE_DIR\/scripts\/start-production\.sh"/);
+  assert.match(workflow, /PORT="\$CANDIDATE_PORT" \/usr\/bin\/bash "\$RELEASE_DIR\/scripts\/start-production\.sh"/);
+  assert.doesNotMatch(workflow, /PORT="\$CANDIDATE_PORT" "\$RELEASE_DIR\/scripts\/start-production\.sh"/);
   assert.match(workflow, /ln -s "\$PRODUCTION_ENV_FILE" \.env\.local/);
   assert.match(workflow, /atomic_switch_current\(\)/);
   assert.match(workflow, /mv -Tf "\$next_link" "\$CURRENT_LINK"/);
