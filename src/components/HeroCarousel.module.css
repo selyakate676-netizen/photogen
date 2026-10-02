@@ -1,0 +1,59 @@
+.carousel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--bg-dark);
+}
+
+.group {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 450ms ease;
+}
+
+.visible { opacity: 1; }
+
+.status {
+  position: absolute;
+  z-index: 20;
+  right: 16px;
+  bottom: 14px;
+  display: flex;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.dot,
+.activeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: width 250ms ease, background-color 250ms ease;
+}
+
+.activeDot {
+  width: 18px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group,
+  .dot,
+  .activeDot { transition: none; }
+}

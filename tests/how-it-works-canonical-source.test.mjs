@@ -7,6 +7,7 @@ const component = readFileSync(new URL('../src/components/HowItWorks.tsx', impor
 const navbar = readFileSync(new URL('../src/components/Navbar.tsx', import.meta.url), 'utf8');
 const footer = readFileSync(new URL('../src/components/Footer.tsx', import.meta.url), 'utf8');
 const consentStyles = readFileSync(new URL('../src/components/YandexMetrikaBootstrap.module.css', import.meta.url), 'utf8');
+const visualRegistry = readFileSync(new URL('../src/lib/marketingVisuals.ts', import.meta.url), 'utf8');
 
 const styles = readFileSync(new URL('../src/components/HowItWorks.module.css', import.meta.url), 'utf8');
 
@@ -38,9 +39,9 @@ test('canonical HowItWorks exposes three complete steps and both CTA levels', ()
   assert.equal((component.match(/\n    icon:/g) ?? []).length, 3);
   assert.match(component, /title: 'Создайте профиль'[\s\S]*?href: '\/account\/profile'/);
   assert.match(component, /title: 'Выберите фотосессию и получите AI-фото'[\s\S]*?href: '\/catalog'/);
-  assert.equal((component.match(/\bimage: '\/[^']+'/g) ?? []).length, 3);
-  assert.equal((component.match(/<img\b/g) ?? []).length, 1);
-  assert.match(component, /<img src=\{step\.image\} alt="" \/>/);
+  assert.equal((visualRegistry.match(/slot: 'HowItWorks \/ step/g) ?? []).length, 3);
+  assert.equal((component.match(/image: howItWorksVisuals\[\d\]/g) ?? []).length, 3);
+  assert.match(component, /<Image src=\{step\.image\.src\} alt=\{step\.image\.alt\} fill/);
   assert.equal((component.match(/href=\{step\.href\}/g) ?? []).length, 1);
   assert.match(component, /styles\.stepCta/);
   assert.match(component, /styles\.footerAction/);
