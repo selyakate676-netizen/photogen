@@ -20,22 +20,30 @@ const fallbackResults = [
   '/studio-red-light-v2.png',
 ] as const;
 
+const modelASource = '/marketing/hero/group-1/source.png';
+const modelAResults = [
+  '/marketing/hero/group-1/result-1.webp',
+  '/marketing/hero/group-1/result-2.webp',
+  '/marketing/hero/group-1/result-3.webp',
+  '/marketing/hero/group-1/result-4.webp',
+] as const;
+
 function resultSlot(group: 1 | 2 | 3, index: 0 | 1 | 2 | 3): MarketingImageSlot {
   return {
     slot: `Hero group ${group} / result ${index + 1}`,
-    src: fallbackResults[index],
-    replacementPath: `/marketing/hero/group-${group}/result-${index + 1}.jpg`,
+    src: group === 1 ? modelAResults[index] : fallbackResults[index],
+    replacementPath: group === 1 ? modelAResults[index] : `/marketing/hero/group-${group}/result-${index + 1}.jpg`,
     alt: `Результат AI-фотосессии ${index + 1}, группа ${group}`,
   };
 }
 function heroGroup(group: 1 | 2 | 3): HeroVisualGroup {
   return {
     id: `hero-group-${group}`,
-    persona: `Persona ${group} — temporary fallback`,
+    persona: group === 1 ? 'Model A' : `Persona ${group} — temporary fallback`,
     source: {
       slot: `Hero group ${group} / source`,
-      src: fallbackSource,
-      replacementPath: `/marketing/hero/group-${group}/source.jpg`,
+      src: group === 1 ? modelASource : fallbackSource,
+      replacementPath: group === 1 ? modelASource : `/marketing/hero/group-${group}/source.jpg`,
       alt: `Обычное исходное фото, группа ${group}`,
     },
     results: [
@@ -47,9 +55,8 @@ function heroGroup(group: 1 | 2 | 3): HeroVisualGroup {
   };
 }
 
-// Approved persona-matched assets have not been supplied yet. Each group keeps the
-// current production visual as a fallback until all five files for that persona
-// are approved and the corresponding `src` values are switched together.
+// Group 1 uses approved Model A assets. Groups 2-3 keep the current production
+// visual as a fallback until all five files for each persona are approved.
 export const heroVisualGroups = [heroGroup(1), heroGroup(2), heroGroup(3)] as const;
 
 export const howItWorksVisuals = [
