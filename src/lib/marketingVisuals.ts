@@ -12,14 +12,6 @@ export type HeroVisualGroup = {
   results: readonly [MarketingImageSlot, MarketingImageSlot, MarketingImageSlot, MarketingImageSlot];
 };
 
-const fallbackSource = '/selfie-2.png';
-const fallbackResults = [
-  '/studio-glamour.png',
-  '/studio-fashion.png',
-  '/studio-nature.png',
-  '/studio-red-light-v2.png',
-] as const;
-
 const modelASource = '/marketing/hero/group-1/source.png';
 const modelAResults = [
   '/marketing/hero/group-1/result-1.webp',
@@ -28,22 +20,43 @@ const modelAResults = [
   '/marketing/hero/group-1/result-4.webp',
 ] as const;
 
+const modelBSource = '/marketing/hero/group-2/source.png';
+const modelBResults = [
+  '/marketing/hero/group-2/result-1.webp',
+  '/marketing/hero/group-2/result-2.webp',
+  '/marketing/hero/group-2/result-3.webp',
+  '/marketing/hero/group-2/result-4.webp',
+] as const;
+
+const modelCSource = '/marketing/hero/group-3/source.png';
+const modelCResults = [
+  '/marketing/hero/group-3/result-1.webp',
+  '/marketing/hero/group-3/result-2.webp',
+  '/marketing/hero/group-3/result-3.webp',
+  '/marketing/hero/group-3/result-4.webp',
+] as const;
+
 function resultSlot(group: 1 | 2 | 3, index: 0 | 1 | 2 | 3): MarketingImageSlot {
+  const results = group === 1 ? modelAResults : group === 2 ? modelBResults : modelCResults;
+
   return {
     slot: `Hero group ${group} / result ${index + 1}`,
-    src: group === 1 ? modelAResults[index] : fallbackResults[index],
-    replacementPath: group === 1 ? modelAResults[index] : `/marketing/hero/group-${group}/result-${index + 1}.jpg`,
+    src: results[index],
+    replacementPath: results[index],
     alt: `Результат AI-фотосессии ${index + 1}, группа ${group}`,
   };
 }
 function heroGroup(group: 1 | 2 | 3): HeroVisualGroup {
+  const source = group === 1 ? modelASource : group === 2 ? modelBSource : modelCSource;
+  const persona = group === 1 ? 'Model A' : group === 2 ? 'Model B' : 'Model C';
+
   return {
     id: `hero-group-${group}`,
-    persona: group === 1 ? 'Model A' : `Persona ${group} — temporary fallback`,
+    persona,
     source: {
       slot: `Hero group ${group} / source`,
-      src: group === 1 ? modelASource : fallbackSource,
-      replacementPath: group === 1 ? modelASource : `/marketing/hero/group-${group}/source.jpg`,
+      src: source,
+      replacementPath: source,
       alt: `Обычное исходное фото, группа ${group}`,
     },
     results: [
@@ -55,8 +68,7 @@ function heroGroup(group: 1 | 2 | 3): HeroVisualGroup {
   };
 }
 
-// Group 1 uses approved Model A assets. Groups 2-3 keep the current production
-// visual as a fallback until all five files for each persona are approved.
+// All three Hero groups use approved persona-matched assets.
 export const heroVisualGroups = [heroGroup(1), heroGroup(2), heroGroup(3)] as const;
 
 export const howItWorksVisuals = [
