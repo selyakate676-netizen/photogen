@@ -74,20 +74,20 @@ export const heroVisualGroups = [heroGroup(1), heroGroup(2), heroGroup(3)] as co
 export const howItWorksVisuals = [
   {
     slot: 'HowItWorks / step 1 / natural selfie',
-    src: '/selfie-2.png',
-    replacementPath: '/marketing/how-it-works/step-1-source.jpg',
+    src: '/marketing/how-it-works/step-1-register.png',
+    replacementPath: '/marketing/how-it-works/step-1-register.png',
     alt: 'Обычное селфи пользователя в начале пути',
   },
   {
     slot: 'HowItWorks / step 2 / persona reference',
-    src: '/before-main.png',
-    replacementPath: '/marketing/how-it-works/step-2-persona.jpg',
+    src: '/marketing/how-it-works/step-2-profile.png',
+    replacementPath: '/marketing/how-it-works/step-2-profile.png',
     alt: 'Чёткое исходное фото лица для создания профиля',
   },
   {
     slot: 'HowItWorks / step 3 / generated result',
-    src: '/package-previews/sp006-studio-elegance.jpg',
-    replacementPath: '/marketing/how-it-works/step-3-result.jpg',
+    src: '/marketing/how-it-works/step-3-pack.png',
+    replacementPath: '/marketing/how-it-works/step-3-pack.png',
     alt: 'Готовый результат AI-фотосессии PhotoGen',
   },
 ] as const satisfies readonly MarketingImageSlot[];
