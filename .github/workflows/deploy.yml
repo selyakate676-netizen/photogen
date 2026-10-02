@@ -42,6 +42,7 @@ jobs:
             readonly PM2_BIN=/usr/bin/pm2
             readonly PM2_HOME=/home/photogen/.pm2
             readonly CANDIDATE_PORT=3002
+            readonly MIN_FREE_KB=2097152
             export PM2_HOME
             candidate_pid=""
             cutover_started=0
@@ -52,6 +53,41 @@ jobs:
               next_link="$DEPLOY_ROOT/.current.next"
               ln -sfn "$target_release" "$next_link"
               mv -Tf "$next_link" "$CURRENT_LINK"
+            }
+
+            assert_managed_release_dir() {
+              release_dir="$1"
+              case "$release_dir" in
+                "$RELEASES_DIR"/*) ;;
+                *) echo "Refusing release path outside $RELEASES_DIR: $release_dir"; return 1 ;;
+              esac
+              test "$(dirname -- "$release_dir")" = "$RELEASES_DIR"
+              test "$release_dir" != "$RELEASES_DIR"
+              test ! -L "$release_dir"
+            }
+
+            remove_release_dir() {
+              release_dir="$1"
+              assert_managed_release_dir "$release_dir" || return 1
+              current_release=$(readlink -f -- "$CURRENT_LINK" 2>/dev/null || true)
+              if [ -n "$current_release" ] && [ "$release_dir" = "$current_release" ]; then
+                echo "Refusing to remove current release: $release_dir"
+                return 1
+              fi
+              if [ -d "$release_dir" ]; then
+                rm -rf -- "$release_dir"
+              fi
+            }
+
+            cleanup_releases_except() {
+              keep_current="$1"
+              keep_rollback="${2:-}"
+              while IFS= read -r -d '' release_dir; do
+                if [ "$release_dir" != "$keep_current" ] && [ "$release_dir" != "$keep_rollback" ]; then
+                  remove_release_dir "$release_dir"
+                fi
+              done < <(find "$RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d -print0)
+              git -C "$REPO_DIR" worktree prune
             }
 
             rollback_on_error() {
@@ -68,6 +104,10 @@ jobs:
                 "$PM2_BIN" start "$CURRENT_LINK/scripts/start-production.sh" --name photogen --interpreter /usr/bin/bash
                 "$PM2_BIN" save
               fi
+              if [ "$exit_code" -ne 0 ]; then
+                remove_release_dir "$RELEASE_DIR" 2>/dev/null || true
+                git -C "$REPO_DIR" worktree prune 2>/dev/null || true
+              fi
               exit "$exit_code"
             }
             trap rollback_on_error EXIT
@@ -83,11 +123,26 @@ jobs:
             test -d "$REPO_DIR/.git"
             test -s "$PRODUCTION_ENV_FILE"
             test -L "$CURRENT_LINK"
-            previous_release=$(readlink -f "$CURRENT_LINK")
+            previous_release=$(readlink -f -- "$CURRENT_LINK")
             test -d "$previous_release"
-            test ! -e "$RELEASE_DIR"
-
             mkdir -p "$RELEASES_DIR"
+            assert_managed_release_dir "$previous_release"
+            releases_before=$(find "$RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l)
+            disk_free_before_kb=$(df -Pk "$DEPLOY_ROOT" | awk 'NR == 2 { print $4 }')
+            echo "Release cleanup preflight: ${releases_before} release directories, ${disk_free_before_kb} KiB free"
+            cleanup_releases_except "$previous_release" ""
+            remove_release_dir "$RELEASE_DIR" 2>/dev/null || true
+
+            available_kb=$(df -Pk "$DEPLOY_ROOT" | awk 'NR == 2 { print $4 }')
+            case "$available_kb" in
+              ''|*[!0-9]*) echo "Unable to determine free disk space"; exit 1 ;;
+            esac
+            if [ "$available_kb" -lt "$MIN_FREE_KB" ]; then
+              echo "Insufficient disk space before build: ${available_kb} KiB available, ${MIN_FREE_KB} KiB required"
+              exit 1
+            fi
+            echo "Disk preflight passed: ${available_kb} KiB available"
+
             cd "$REPO_DIR"
             git fetch --prune origin main
             git cat-file -e "$DEPLOY_SHA^{commit}"
@@ -135,6 +190,10 @@ jobs:
             test "$production_ready" -eq 1
             "$PM2_BIN" describe photogen >/dev/null
             cutover_started=0
+            cleanup_releases_except "$RELEASE_DIR" "$previous_release"
+            releases_after=$(find "$RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l)
+            disk_free_after_kb=$(df -Pk "$DEPLOY_ROOT" | awk 'NR == 2 { print $4 }')
+            echo "Release retention complete: ${releases_after} release directories, ${disk_free_after_kb} KiB free"
             trap - EXIT
             echo "Deployed SHA: $DEPLOY_SHA"
             echo "Rollback release retained: $previous_release"
