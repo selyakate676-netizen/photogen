@@ -180,6 +180,14 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      is_photoshoot_safe_to_cancel: {
+        Args: { p_photoshoot_id: string };
+        Returns: boolean;
+      };
+      cancel_unstarted_photoshoot: {
+        Args: { p_photoshoot_id: string };
+        Returns: boolean;
+      };
       create_photoshoot_with_persona: {
         Args: {
           p_persona_id: string;

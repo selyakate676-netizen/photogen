@@ -133,13 +133,13 @@ test("generated list and result detail use the shared signed result mapper", asy
     assert.doesNotMatch(source, /getImageUrl/);
   }
 });
-test("generated history polls while a photoshoot is active and stops after terminal status", async () => {
+test("generated history polls only while generation can advance", async () => {
   const [page, poller] = await Promise.all([
     read("src/app/account/generated/page.tsx"),
     read("src/app/account/generated/GeneratedPhotoshootsPoller.tsx"),
   ]);
 
-  assert.match(page, /!\['completed', 'failed', 'cancelled'\]\.includes\(shoot\.status\)/);
+  assert.match(page, /\['paid', 'queued', 'training', 'generating'\]\.includes\(shoot\.status\)/);
   assert.match(page, /<GeneratedPhotoshootsPoller active=\{hasActivePhotoshoots\} \/>/);
   assert.match(poller, /if \(!active\) return/);
   assert.match(poller, /setInterval\([\s\S]*?router\.refresh\(\)[\s\S]*?POLL_INTERVAL_MS/);
@@ -156,4 +156,35 @@ test("generated history renders completed results after a client refresh", async
   assert.match(page, /completed: 'Готово'/);
   assert.match(page, /shoot\.status === 'completed'[\s\S]*?dashboard\/result\/\$\{shoot\.id\}[\s\S]*?>Открыть</);
   assert.match(page, /shoot\.status === 'failed'/);
+});
+
+test("pending action lifecycle exposes only safe continuation and cancellation", async () => {
+  const [page, action, migration] = await Promise.all([
+    read("src/app/account/generated/page.tsx"),
+    read("src/app/account/generated/actions.ts"),
+    read("supabase_pending_action_lifecycle.sql"),
+  ]);
+
+  assert.match(page, /Требуется действие/);
+  assert.match(page, /dashboard\/pay\/\$\{shoot\.id\}/);
+  assert.match(page, /form action=\{cancelUnstartedPhotoshoot\}/);
+  assert.match(page, /\['pending', 'awaiting_payment'\]\.includes\(shoot\.status\)/);
+  assert.match(action, /rpc\('cancel_unstarted_photoshoot'/);
+  assert.match(migration, /for update;/i);
+  assert.match(migration, /status not in \('pending', 'awaiting_payment'\)/i);
+  assert.match(migration, /generation_id is not null/i);
+  assert.match(migration, /transaction_type = 'debit'/i);
+  assert.match(migration, /cardinality\(coalesce\(v_photoshoot\.result_images/i);
+  assert.match(migration, /payment_id is not null/i);
+  assert.match(migration, /status <> 'canceled'/i);
+});
+
+test("terminal and active lifecycle labels remain distinct", async () => {
+  const page = await read("src/app/account/generated/page.tsx");
+
+  assert.match(page, /queued: 'В процессе'/);
+  assert.match(page, /generating: 'В процессе'/);
+  assert.match(page, /completed: 'Готово'/);
+  assert.match(page, /failed: 'Ошибка'/);
+  assert.match(page, /cancelled: 'Отменено'/);
 });
