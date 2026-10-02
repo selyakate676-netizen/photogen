@@ -4,11 +4,32 @@ import test from 'node:test';
 
 const home = readFileSync(new URL('../src/app/page.tsx', import.meta.url), 'utf8');
 const component = readFileSync(new URL('../src/components/HowItWorks.tsx', import.meta.url), 'utf8');
+const navbar = readFileSync(new URL('../src/components/Navbar.tsx', import.meta.url), 'utf8');
+const footer = readFileSync(new URL('../src/components/Footer.tsx', import.meta.url), 'utf8');
+const consentStyles = readFileSync(new URL('../src/components/YandexMetrikaBootstrap.module.css', import.meta.url), 'utf8');
+
 const styles = readFileSync(new URL('../src/components/HowItWorks.module.css', import.meta.url), 'utf8');
 
 test('homepage renders only the canonical HowItWorks component', () => {
   assert.match(home, /import HowItWorks from '@\/components\/HowItWorks';/);
   assert.equal((home.match(/<HowItWorks \/>/g) ?? []).length, 1);
+});
+test('related navigation always targets the canonical homepage section', () => {
+  assert.match(navbar, /href: '\/#how-it-works'/);
+  assert.match(footer, /href="\/#how-it-works"/);
+  assert.doesNotMatch(footer, /href="#how-it-works"/);
+});
+
+test('global CTA is emphasized independently from step CTAs', () => {
+  assert.match(styles, /\.cta \{[\s\S]*font-weight: 800;[\s\S]*box-shadow:/);
+  assert.match(styles, /\.cta:hover, \.cta:focus-visible/);
+});
+
+test('consent actions use theme-aware contrast and visible interaction states', () => {
+  assert.match(consentStyles, /\.banner \{[\s\S]*color: var\(--text-primary\);[\s\S]*background: color-mix\([\s\S]*var\(--surface-secondary\)/);
+  assert.match(consentStyles, /\.allowButton \{[\s\S]*color: var\(--accent-contrast\)/);
+  assert.match(consentStyles, /\.rejectButton \{[\s\S]*color: var\(--text-primary\)/);
+  assert.match(consentStyles, /\.allowButton:focus-visible, \.rejectButton:focus-visible/);
 });
 
 test('canonical HowItWorks exposes three complete steps and both CTA levels', () => {

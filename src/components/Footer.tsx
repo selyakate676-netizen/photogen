@@ -1,4 +1,5 @@
 import styles from './Footer.module.css';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -19,7 +20,7 @@ export default function Footer() {
             <div className={styles.footerCol}>
               <h4>Сервис</h4>
               <ul>
-                <li><a href="#how-it-works">Как это работает</a></li>
+                <li><Link href="/#how-it-works">Как это работает</Link></li>
                 <li><a href="#catalog">Каталог</a></li>
               </ul>
             </div>
