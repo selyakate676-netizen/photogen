@@ -15,25 +15,25 @@ export type HeroVisualGroup = {
 const modelASource = '/marketing/hero/group-1/source.png';
 const modelAResults = [
   '/marketing/hero/group-1/result-1.webp',
+  '/marketing/hero/group-1/result-4.webp',
   '/marketing/hero/group-1/result-2.webp',
   '/marketing/hero/group-1/result-3.webp',
-  '/marketing/hero/group-1/result-4.webp',
 ] as const;
 
 const modelBSource = '/marketing/hero/group-2/source.png';
 const modelBResults = [
   '/marketing/hero/group-2/result-1.webp',
+  '/marketing/hero/group-2/result-4.webp',
   '/marketing/hero/group-2/result-2.webp',
   '/marketing/hero/group-2/result-3.webp',
-  '/marketing/hero/group-2/result-4.webp',
 ] as const;
 
 const modelCSource = '/marketing/hero/group-3/source.png';
 const modelCResults = [
   '/marketing/hero/group-3/result-1.webp',
-  '/marketing/hero/group-3/result-2.webp',
-  '/marketing/hero/group-3/result-3.webp',
   '/marketing/hero/group-3/result-4.webp',
+  '/marketing/hero/group-3/result-3.webp',
+  '/marketing/hero/group-3/result-2.webp',
 ] as const;
 
 function resultSlot(group: 1 | 2 | 3, index: 0 | 1 | 2 | 3): MarketingImageSlot {
