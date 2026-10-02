@@ -5,15 +5,38 @@
   z-index: 1000;
   width: min(440px, calc(100vw - 32px));
   padding: 16px;
-  color: var(--text-on-dark);
-  background: rgba(20, 20, 24, 0.96);
-  border: 1px solid var(--border-dark);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-secondary) 96%, transparent);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
 }
 .banner p { margin: 0 0 14px; font-size: var(--font-size-sm); line-height: 1.5; }
 .actions { display: flex; gap: 10px; justify-content: flex-end; }
 .allowButton, .rejectButton { min-height: 38px; padding: 8px 14px; border-radius: var(--radius-sm); font: inherit; font-weight: 600; cursor: pointer; }
-.allowButton { color: var(--text-on-light); background: var(--accent-primary); border: 1px solid var(--accent-primary); }
-.rejectButton { color: var(--text-on-dark); background: transparent; border: 1px solid var(--border-dark); }
+.allowButton {
+  color: var(--accent-contrast);
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-dark);
+}
+.rejectButton {
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 42%, transparent);
+}
+.allowButton, .rejectButton {
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.allowButton:hover { background: var(--accent-secondary); }
+.rejectButton:hover {
+  background: var(--surface-secondary);
+  border-color: var(--text-secondary);
+}
+.allowButton:focus-visible, .rejectButton:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  outline-offset: 2px;
+}
+.allowButton:hover, .allowButton:focus-visible, .rejectButton:hover, .rejectButton:focus-visible {
+  transform: translateY(-1px);
+}
 @media (max-width: 520px) { .banner { right: 16px; bottom: 16px; } }
