@@ -1,16 +1,19 @@
 'use client';
 import { useState, useRef, useEffect, MouseEvent, TouchEvent } from 'react';
+import Image from 'next/image';
 import styles from './ImageSlider.module.css';
+import type { MarketingImageSlot } from '@/lib/marketingVisuals';
 
 interface ImageSliderProps {
-  beforeImages: string[];
-  afterImages: string[];
+  beforeImages: readonly (string | MarketingImageSlot)[];
+  afterImages: readonly (string | MarketingImageSlot)[];
   beforeLabel?: string;
   afterLabel?: string;
   autoPlay?: boolean;
   autoDurationMs?: number;
   autoResumeDelayMs?: number;
   variant?: 'default' | 'hero';
+  priority?: boolean;
 }
 
 const AUTO_MIN_POSITION = 18;
@@ -25,6 +28,7 @@ export default function ImageSlider({
   autoDurationMs = 7000,
   autoResumeDelayMs = 2200,
   variant = 'default',
+  priority = false,
 }: ImageSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -158,9 +162,11 @@ export default function ImageSlider({
     >
       {/* Background (Before Images - Unprocessed) */}
       <div className={styles.gridContainer} draggable={false}>
-        {beforeImages.map((src, i) => (
-          <img key={`before-${i}`} src={src} alt="До" className={styles.imageGridItem} draggable={false} />
-        ))}
+        {beforeImages.map((image, i) => {
+          const src = typeof image === 'string' ? image : image.src;
+          const alt = typeof image === 'string' ? 'До' : image.alt;
+          return <Image key={`before-${i}`} src={src} alt={alt} fill sizes="(max-width: 1024px) 100vw, 55vw" preload={priority && i === 0} className={styles.imageGridItem} draggable={false} />;
+        })}
       </div>
       {beforeLabel && <div className={`${styles.label} ${styles.labelRight}`}>{beforeLabel}</div>}
 
@@ -170,9 +176,11 @@ export default function ImageSlider({
         style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
       >
         <div className={styles.gridContainer} draggable={false}>
-          {afterImages.map((src, i) => (
-            <img key={`after-${i}`} src={src} alt="После" className={styles.imageGridItem} draggable={false} />
-          ))}
+          {afterImages.map((image, i) => {
+            const src = typeof image === 'string' ? image : image.src;
+            const alt = typeof image === 'string' ? 'После' : image.alt;
+            return <Image key={`after-${i}`} src={src} alt={alt} fill sizes="(max-width: 768px) 28vw, 14vw" preload={priority && i === 0} className={styles.imageGridItem} draggable={false} />;
+          })}
         </div>
         {afterLabel && <div className={`${styles.label} ${styles.labelLeft}`}>{afterLabel}</div>}
       </div>

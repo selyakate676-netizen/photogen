@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import ImageSlider from './ImageSlider';
+import HeroCarousel from './HeroCarousel';
 import styles from './Hero.module.css';
+import { heroVisualGroups } from '@/lib/marketingVisuals';
 
 type BenefitIcon = 'sparkle' | 'shirt' | 'bolt';
 
@@ -93,14 +94,7 @@ export default function Hero() {
 
         <div className={styles.heroVisual} aria-label="Сравнение одного селфи и результата фотосессии">
           <div className={styles.sliderFrame}>
-            <ImageSlider
-              beforeImages={["/selfie-2.png"]}
-              afterImages={["/studio-glamour.png", "/studio-fashion.png", "/studio-nature.png", "/studio-red-light-v2.png"]}
-              beforeLabel=""
-              afterLabel=""
-              autoPlay
-              variant="hero"
-            />
+            <HeroCarousel groups={heroVisualGroups} />
           </div>
 
           <div className={styles.heroBenefits} aria-label="Преимущества PhotoGen">
