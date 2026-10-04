@@ -1,7 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
+import Image from 'next/image';
 import { Images, LogIn, UserRound } from 'lucide-react';
 import styles from './HowItWorks.module.css';
+import { howItWorksVisuals } from '@/lib/marketingVisuals';
 
 export type HowItWorksCtaState = 'guest' | 'needs-persona' | 'ready';
 
@@ -18,7 +19,7 @@ const steps = [
     description: 'Создайте аккаунт, чтобы сохранить профиль и фотосессии.',
     cta: 'Войти / зарегистрироваться',
     href: '/login',
-    image: '/selfie-2.png',
+    image: howItWorksVisuals[0],
   },
   {
     icon: UserRound,
@@ -26,7 +27,7 @@ const steps = [
     description: 'Загрузите свои обычные фотографии и заполните короткую анкету.',
     cta: 'Создать профиль',
     href: '/account/profile',
-    image: '/before-main.png',
+    image: howItWorksVisuals[1],
   },
   {
     icon: Images,
@@ -34,7 +35,7 @@ const steps = [
     description: 'Выберите подходящий фотопак — готовые снимки появятся в вашей студии после генерации.',
     cta: 'Выбрать фотосессию',
     href: '/catalog',
-    image: '/package-previews/sp006-studio-elegance.jpg',
+    image: howItWorksVisuals[2],
   },
 ] as const;
 
@@ -55,7 +56,7 @@ export default function HowItWorks({ ctaState = 'guest' }: { ctaState?: HowItWor
                 <div className={styles.stepTopline}><span>{index + 1}</span>{index < steps.length - 1 ? <i aria-hidden="true" /> : null}</div>
                 <div className={styles.visual} aria-hidden="true">
                   <Icon className={styles.visualIcon} />
-                  <img src={step.image} alt="" />
+                  <Image src={step.image.src} alt={step.image.alt} fill sizes="(max-width: 760px) 100vw, 33vw" />
                 </div>
                 <h3>{step.title}</h3>
                 <p>{step.description}</p>
