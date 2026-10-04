@@ -42,6 +42,7 @@ jobs:
           cp supabase_rpc_acl_hardening.sql supabase/migrations/20260807001100_rpc_acl_hardening.sql
           cp supabase_crystal_wallet.sql supabase/migrations/20260807001200_crystal_wallet.sql
           cp supabase_marketing_attribution.sql supabase/migrations/20260807001300_marketing_attribution.sql
+          cp supabase_pending_action_lifecycle.sql supabase/migrations/20260807001400_pending_action_lifecycle.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
@@ -62,6 +63,9 @@ jobs:
 
       - name: Run marketing attribution pgTAP tests
         run: supabase test db tests/marketing_attribution.pgtap.sql
+
+      - name: Run pending action lifecycle pgTAP tests
+        run: supabase test db tests/pending_action_lifecycle.pgtap.sql
 
       - name: Run RPC ACL hardening pgTAP tests
         run: supabase test db tests/rpc_acl_hardening.pgtap.sql
