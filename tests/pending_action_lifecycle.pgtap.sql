@@ -9,6 +9,7 @@ values
 
 set local role service_role;
 select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
 select public.credit_wallet('93000000-0000-4000-8000-000000000093', 5, 'test:pending-action:credit');
 
 reset role;
