@@ -48,7 +48,7 @@ export default async function GeneratedPage({ searchParams }: GeneratedPageProps
     (shoot) => ['paid', 'queued', 'training', 'generating'].includes(shoot.status),
   );
   const pendingPhotoshoots = photoshoots.filter(
-    (shoot) => ['pending', 'awaiting_payment'].includes(shoot.status),
+    (shoot) => shoot.status === 'awaiting_payment',
   );
   const actionableIds = new Set((await Promise.all(pendingPhotoshoots.map(async (shoot) => {
     const { data: canCancel } = await supabase.rpc('is_photoshoot_safe_to_cancel', {

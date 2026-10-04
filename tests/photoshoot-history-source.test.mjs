@@ -168,15 +168,13 @@ test("pending action lifecycle exposes only safe continuation and cancellation",
   assert.match(page, /Требуется действие/);
   assert.match(page, /dashboard\/pay\/\$\{shoot\.id\}/);
   assert.match(page, /form action=\{cancelUnstartedPhotoshoot\}/);
-  assert.match(page, /\['pending', 'awaiting_payment'\]\.includes\(shoot\.status\)/);
+  assert.match(page, /shoot\.status === 'awaiting_payment'/);
   assert.match(action, /rpc\('cancel_unstarted_photoshoot'/);
   assert.match(migration, /for update;/i);
-  assert.match(migration, /status not in \('pending', 'awaiting_payment'\)/i);
+  assert.match(migration, /status <> 'awaiting_payment'/i);
   assert.match(migration, /generation_id is not null/i);
   assert.match(migration, /transaction_type = 'debit'/i);
   assert.match(migration, /cardinality\(coalesce\(v_photoshoot\.result_images/i);
-  assert.match(migration, /payment_id is not null/i);
-  assert.match(migration, /status <> 'canceled'/i);
 });
 
 test("terminal and active lifecycle labels remain distinct", async () => {

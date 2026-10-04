@@ -8,8 +8,6 @@ set search_path = public
 as $$
 declare
   v_photoshoot public.photoshoots;
-  v_has_payment_link boolean := false;
-  v_has_payment_obligation boolean := false;
 begin
   if auth.uid() is null then
     return false;
@@ -20,7 +18,7 @@ begin
   where id = p_photoshoot_id and user_id = auth.uid();
 
   if not found
-     or v_photoshoot.status not in ('pending', 'awaiting_payment')
+     or v_photoshoot.status <> 'awaiting_payment'
      or v_photoshoot.training_id is not null
      or v_photoshoot.lora_url is not null
      or v_photoshoot.generation_id is not null
@@ -34,25 +32,7 @@ begin
     return false;
   end if;
 
-  if exists (
-    select 1 from information_schema.columns
-    where table_schema = 'public' and table_name = 'photoshoots' and column_name = 'payment_id'
-  ) then
-    execute 'select payment_id is not null from public.photoshoots where id = $1'
-      into v_has_payment_link using p_photoshoot_id;
-  end if;
-
-  if to_regclass('public.payments') is not null then
-    execute $query$
-      select exists (
-        select 1 from public.payments
-        where photoshoot_id = $1 and status <> 'canceled'
-      )
-    $query$ into v_has_payment_obligation using p_photoshoot_id;
-  end if;
-
-  return not coalesce(v_has_payment_link, false)
-    and not coalesce(v_has_payment_obligation, false);
+  return true;
 end;
 $$;
 
@@ -64,8 +44,6 @@ set search_path = public
 as $$
 declare
   v_photoshoot public.photoshoots;
-  v_has_payment_link boolean := false;
-  v_has_payment_obligation boolean := false;
 begin
   if auth.uid() is null then
     raise exception using errcode = '42501', message = 'AUTH_REQUIRED';
@@ -80,7 +58,7 @@ begin
     raise exception using errcode = 'P0002', message = 'PHOTOSHOOT_NOT_FOUND';
   end if;
 
-  if v_photoshoot.status not in ('pending', 'awaiting_payment')
+  if v_photoshoot.status <> 'awaiting_payment'
      or v_photoshoot.training_id is not null
      or v_photoshoot.lora_url is not null
      or v_photoshoot.generation_id is not null
@@ -94,26 +72,6 @@ begin
     return false;
   end if;
 
-  if exists (
-    select 1 from information_schema.columns
-    where table_schema = 'public' and table_name = 'photoshoots' and column_name = 'payment_id'
-  ) then
-    execute 'select payment_id is not null from public.photoshoots where id = $1'
-      into v_has_payment_link using p_photoshoot_id;
-  end if;
-
-  if to_regclass('public.payments') is not null then
-    execute $query$
-      select exists (
-        select 1 from public.payments
-        where photoshoot_id = $1 and status <> 'canceled'
-      )
-    $query$ into v_has_payment_obligation using p_photoshoot_id;
-  end if;
-
-  if coalesce(v_has_payment_link, false) or coalesce(v_has_payment_obligation, false) then
-    return false;
-  end if;
 
   perform set_config('photogen.allow_status_transition', 'on', true);
   update public.photoshoots

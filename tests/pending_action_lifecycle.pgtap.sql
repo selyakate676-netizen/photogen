@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap;
-select plan(9);
+select plan(10);
 
 insert into auth.users(id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values
@@ -47,6 +47,13 @@ select public.create_photoshoot_with_persona(
   '{"id":"pending-paid","slug":"pending-paid","name":"Pending paid","price_crystals":1}'::jsonb
 );
 
+select public.create_photoshoot_with_persona(
+  (select id from public.personas where user_id = auth.uid() and is_default),
+  'pending-wallet', '{}', 'woman', 'average', 'green', '',
+  null, null, null, null, null, 2,
+  '{"id":"pending-wallet","slug":"pending-wallet","name":"Pending wallet","price_crystals":1}'::jsonb
+);
+
 select ok(
   public.is_photoshoot_safe_to_cancel((select id from public.photoshoots where style_id = 'pending-safe')),
   'unpaid and unstarted photoshoot requires action and is safe to cancel'
@@ -69,6 +76,15 @@ update public.photoshoots
 set result_images = array['photoshoots/generations/test/result.jpg']
 where style_id = 'pending-results';
 
+insert into public.wallet_transactions(
+  user_id, delta_crystals, balance_after_crystals, transaction_type,
+  idempotency_key, reference_type, reference_id
+) values (
+  '93000000-0000-4000-8000-000000000093', -1, 4, 'debit',
+  'photoshoot:' || (select id::text from public.photoshoots where style_id = 'pending-wallet') || ':charge',
+  'photoshoot', (select id::text from public.photoshoots where style_id = 'pending-wallet')
+);
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '93000000-0000-4000-8000-000000000093', true);
 select set_config('request.jwt.claim.role', 'authenticated', true);
@@ -82,6 +98,12 @@ select is(
   false,
   'photoshoot with results cannot be cancelled'
 );
+select is(
+  public.is_photoshoot_safe_to_cancel((select id from public.photoshoots where style_id = 'pending-wallet')),
+  false,
+  'photoshoot with a wallet debit cannot be cancelled'
+);
+
 select public.confirm_mock_photoshoot_payment((select id from public.photoshoots where style_id = 'pending-paid'));
 select is(
   public.is_photoshoot_safe_to_cancel((select id from public.photoshoots where style_id = 'pending-paid')),
