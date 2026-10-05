@@ -41,6 +41,10 @@ export default function PrivacyPage() {
           <h2>Cookies и аналитика</h2>
           <p>PhotoGen использует необходимые cookies для авторизации и работы сервиса. Яндекс Метрика загружается после согласия пользователя на аналитические cookies.</p>
         </section>
+        <section className={styles.section}>
+          <h2>Связь по вопросам данных</h2>
+          <p>Email: <a href="mailto:photogenlab@mail.ru">photogenlab@mail.ru</a>. Telegram: <a href="https://t.me/photogenlab">@photogenlab</a>.</p>
+        </section>
       </article>
     </main>
   );

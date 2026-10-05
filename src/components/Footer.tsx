@@ -28,6 +28,8 @@ export default function Footer() {
               <h4>Поддержка</h4>
               <ul>
                 <li><Link href="/#faq">FAQ</Link></li>
+                <li><a href="mailto:photogenlab@mail.ru">photogenlab@mail.ru</a></li>
+                <li><a href="https://t.me/photogenlab">Telegram: @photogenlab</a></li>
               </ul>
             </div>
             <div className={styles.footerCol}>
