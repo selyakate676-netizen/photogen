@@ -26,6 +26,13 @@ test('FAQ reflects the current Persona and generation contract', () => {
   assert.doesNotMatch(faq, /обучается именно|через 24 часа|10–20|15 до 30|100% вы|без каких-либо ограничений/);
 });
 
+test('authenticated upload copy matches private Persona storage behavior', () => {
+  const upload = read('src/app/dashboard/new/PhotoUpload.tsx');
+  assert.match(upload, /хранятся приватно/);
+  assert.match(upload, /следующих фотосессий/);
+  assert.match(upload, /удаляются при удалении Persona/);
+  assert.doesNotMatch(upload, /24 часа/);
+});
 test('landing uses neutral use cases instead of unverified testimonials', () => {
   const reviews = read('src/components/Reviews.tsx');
   assert.match(reviews, /Примеры/);
