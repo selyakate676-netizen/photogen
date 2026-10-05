@@ -3,6 +3,9 @@ import { Suspense } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
+  other: {
+    'p:domain_verify': 'b6bf36e3a85751aa217a696b77ca1c03',
+  },
   title: 'PhotoGen — Нейрофотосессия без дорогой студии',
   description:
     'Создайте реалистичные профессиональные фото с помощью AI. Это вы, только фотогеничнее. Без фотографа, камеры и студии — от 500 ₽.',
