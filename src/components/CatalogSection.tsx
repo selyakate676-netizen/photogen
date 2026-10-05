@@ -4,13 +4,13 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Gem } from 'lucide-react';
 import PhotoPackModal from '@/components/PhotoPackModal';
-import { catalogJtbdCollections } from '@/lib/catalogJtbd';
+import { catalogJtbdCollections, catalogQuickFilters, type CatalogQuickFilterId } from '@/lib/catalogJtbd';
 import { getPhotoPack, photoPacks } from '@/lib/photoPacks';
 import { trackAnalyticsGoal } from '@/lib/analytics';
 import styles from './CatalogSection.module.css';
 
 type Category = 'all' | 'social' | 'dating' | 'business' | 'travel' | 'fashion' | 'lifestyle';
-type FilterId = Category | 'women' | 'men' | 'family' | 'holiday' | 'creative' | 'sport' | 'new';
+type FilterId = CatalogQuickFilterId;
 
 type CatalogCard = {
   id: string;
@@ -66,12 +66,7 @@ const labels = {
   soon: '\u0421\u043a\u043e\u0440\u043e',
 };
 
-const filters: Array<{ id: FilterId; label: string }> = [
-  { id: 'all', label: labels.popular },
-  { id: 'lifestyle', label: labels.lifestyle },
-  { id: 'women', label: '\u0414\u043b\u044f \u0436\u0435\u043d\u0449\u0438\u043d' },
-  { id: 'new', label: '\u041d\u043e\u0432\u0438\u043d\u043a\u0438' },
-];
+const filters = catalogQuickFilters;
 
 const realCards: CatalogCard[] = photoPacks.map((pack) => ({
   id: pack.slug,
@@ -93,10 +88,6 @@ const collections: Collection[] = catalogJtbdCollections.map((collection) => ({
 }));
 
 
-const filterCardIds: Partial<Record<FilterId, string[]>> = {
-  women: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character'],
-  new: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character'],
-};
 function matchesSearch(card: CatalogCard, query: string) {
   const haystack = `${card.title} ${card.description} ${card.categoryLabel}`.toLowerCase();
   return haystack.includes(query.toLowerCase().trim());
@@ -136,16 +127,8 @@ function Card({ card, onOpen }: { card: CatalogCard; onOpen: (card: CatalogCard,
 
 
 function matchesFilter(card: CatalogCard, activeFilter: FilterId) {
-  if (activeFilter === 'all') {
-    return true;
-  }
-
-  const cardIds = filterCardIds[activeFilter];
-  if (cardIds) {
-    return cardIds.includes(card.id);
-  }
-
-  return card.category === activeFilter;
+  const filter = catalogQuickFilters.find((item) => item.id === activeFilter);
+  return filter?.cardIds.includes(card.id) ?? false;
 }
 
 function CarouselRow({ collection, cards, onOpenPack }: { collection: Collection; cards: CatalogCard[]; onOpenPack: (card: CatalogCard, trigger: HTMLElement) => void }) {

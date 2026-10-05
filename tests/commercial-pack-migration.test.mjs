@@ -237,13 +237,18 @@ test("adapter gives new packs an isolated one-reference Nano path", async () => 
 });
 
 test("catalog contains no placeholder or archived cards", async () => {
-  const source = await readFile(
+  const componentSource = await readFile(
     new URL("../src/components/CatalogSection.tsx", import.meta.url),
     "utf8",
   );
+  const taxonomySource = await readFile(
+    new URL("../src/lib/catalogJtbd.ts", import.meta.url),
+    "utf8",
+  );
+  const source = `${componentSource}\n${taxonomySource}`;
 
-  assert.doesNotMatch(source, /placeholderCards/);
-  assert.match(source, /const catalogCards = realCards/);
+  assert.doesNotMatch(componentSource, /placeholderCards/);
+  assert.match(componentSource, /const catalogCards = realCards/);
   assert.match(source, /autumn-promenade/);
   assert.match(source, /misty-morning/);
   assert.match(source, /golden-field/);
