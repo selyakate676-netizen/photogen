@@ -126,7 +126,7 @@ export default function PhotoUpload({ files, setFiles, onUploadComplete }: Photo
       <div className={styles.footer}>
         <div className={styles.securityInfo}>
           <ShieldCheck size={18} />
-          <span>Ваши фото удаляются автоматически через 24 часа</span>
+          <span>Фото профиля хранятся приватно, используются для ваших следующих фотосессий и удаляются при удалении Persona.</span>
         </div>
       </div>
     </div>
