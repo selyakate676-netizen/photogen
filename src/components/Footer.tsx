@@ -11,7 +11,7 @@ export default function Footer() {
               <span className="gradient-text">PhotoGen</span>
             </div>
             <p className={styles.brandDesc}>
-              Профессиональные фотографии с помощью искусственного интеллекта. 
+              Профессиональные фотографии с помощью искусственного интеллекта.
               Без фотографа, без камеры — только вы и AI.
             </p>
           </div>
@@ -21,33 +21,31 @@ export default function Footer() {
               <h4>Сервис</h4>
               <ul>
                 <li><Link href="/#how-it-works">Как это работает</Link></li>
-                <li><a href="#catalog">Каталог</a></li>
+                <li><Link href="/catalog">Каталог</Link></li>
               </ul>
             </div>
             <div className={styles.footerCol}>
               <h4>Поддержка</h4>
               <ul>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="#">Telegram</a></li>
-                <li><a href="#">Email</a></li>
+                <li><Link href="/#faq">FAQ</Link></li>
               </ul>
             </div>
             <div className={styles.footerCol}>
               <h4>Документы</h4>
               <ul>
-                <li><a href="#">Политика конфиденциальности</a></li>
-                <li><a href="#">Оферта</a></li>
+                <li><Link href="/privacy">Политика конфиденциальности</Link></li>
+                <li><Link href="/offer">Оферта</Link></li>
+                <li><Link href="/personal-data-consent">Согласие на обработку данных</Link></li>
+                <li><Link href="/generation-consent">Согласие на AI-генерацию</Link></li>
               </ul>
             </div>
           </div>
         </div>
 
         <div className={styles.footerBottom}>
-          <p className={styles.copyright}>
-            © 2026 PhotoGen. Все права защищены.
-          </p>
+          <p className={styles.copyright}>© 2026 PhotoGen.</p>
           <p className={styles.footerNote}>
-            Сделано с ✨ и искусственным интеллектом
+            Сервис создания изображений с помощью искусственного интеллекта
           </p>
         </div>
       </div>
