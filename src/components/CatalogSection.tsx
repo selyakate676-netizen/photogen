@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Gem } from 'lucide-react';
 import PhotoPackModal from '@/components/PhotoPackModal';
+import { catalogJtbdCollections } from '@/lib/catalogJtbd';
 import { getPhotoPack, photoPacks } from '@/lib/photoPacks';
 import { trackAnalyticsGoal } from '@/lib/analytics';
 import styles from './CatalogSection.module.css';
@@ -55,7 +56,7 @@ const labels = {
   scrollPrev: '\u041f\u0440\u043e\u043a\u0440\u0443\u0442\u0438\u0442\u044c \u043a\u0430\u0440\u0443\u0441\u0435\u043b\u044c \u0432\u043b\u0435\u0432\u043e',
   scrollNext: '\u041f\u0440\u043e\u043a\u0440\u0443\u0442\u0438\u0442\u044c \u043a\u0430\u0440\u0443\u0441\u0435\u043b\u044c \u0432\u043f\u0440\u0430\u0432\u043e',
   showAll: '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0432\u0441\u0435 \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u0438',
-  hideAll: '\u0421\u043a\u0440\u044b\u0442\u044c \u0432\u0441\u0435 \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u0438',
+  hideAll: '\u0421\u0432\u0435\u0440\u043d\u0443\u0442\u044c',
   allPhotoshoots: '\u0412\u0441\u0435 \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u0438',
   nothingFound: '\u041d\u0438\u0447\u0435\u0433\u043e \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e',
   noCategoryItems: '\u0412 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442 \u0444\u043e\u0442\u043e\u0441\u0435\u0441\u0441\u0438\u0439',
@@ -86,10 +87,10 @@ const realCards: CatalogCard[] = photoPacks.map((pack) => ({
 }));
 const catalogCards = realCards;
 
-const collections: Collection[] = [
-  { id: 'popular', title: labels.popular, cardIds: ['autumn-promenade', 'misty-morning', 'golden-field', 'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character'] },
-  { id: 'lifestyle-row', title: labels.lifestyle, category: 'lifestyle', cardIds: ['autumn-promenade', 'misty-morning', 'golden-field', 'autumn-lake', 'autumn-route', 'misty-cabin', 'leaf-fall', 'autumn-warmth'] },
-];
+const collections: Collection[] = catalogJtbdCollections.map((collection) => ({
+  ...collection,
+  cardIds: [...collection.cardIds],
+}));
 
 
 const filterCardIds: Partial<Record<FilterId, string[]>> = {
@@ -266,13 +267,7 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
     }
 
     if (activeFilter === 'all') {
-      const popularCollection = collections.find((collection) => collection.id === 'popular');
-      popularCollection?.cardIds
-        .map((id) => cardsById.get(id))
-        .filter((card): card is CatalogCard => Boolean(card))
-        .forEach((card) => uniqueCards.set(card.id, card));
-
-      return Array.from(uniqueCards.values());
+      return catalogCards;
     }
 
     catalogCards
@@ -280,7 +275,7 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
       .forEach((card) => uniqueCards.set(card.id, card));
 
     return Array.from(uniqueCards.values());
-  }, [activeFilter, cardsById, query]);
+  }, [activeFilter, query]);
 
   const resultCollection = useMemo(() => {
     return {
@@ -307,9 +302,9 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
 
   const fullCatalogCards = useMemo(() => {
     const uniqueCards = new Map<string, CatalogCard>();
-    catalogCards.forEach((card) => uniqueCards.set(card.id, card));
+    resultCards.forEach((card) => uniqueCards.set(card.id, card));
     return Array.from(uniqueCards.values());
-  }, []);
+  }, [resultCards]);
 
   const searchSuggestions = useMemo(() => {
     return catalogCards.filter((card) => matchesSearch(card, query)).slice(0, 10);
@@ -551,7 +546,18 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
           )}
         </div>
 
-        <>
+        <section className={styles.fullCatalogSection} aria-labelledby="catalog-all-title">
+          <h3 id="catalog-all-title">{labels.allPhotoshoots}</h3>
+          <div
+            id="catalog-all-photoshoots"
+            className={`${styles.fullGrid} ${showAllPhotoshoots ? styles.fullGridExpanded : ''}`}
+            data-expanded={showAllPhotoshoots}
+          >
+            {fullCatalogCards.map((card) => (
+              <Card key={`all-${card.id}`} card={card} onOpen={openPackModal} />
+            ))}
+          </div>
+          {fullCatalogCards.length > 6 ? (
             <div className={styles.toggleWrap}>
               <button
                 type="button"
@@ -566,22 +572,8 @@ export default function CatalogSection({ standalone = false }: CatalogSectionPro
                 </svg>
               </button>
             </div>
-
-            <div
-              id="catalog-all-photoshoots"
-              className={`${styles.fullCatalogPanel} ${showAllPhotoshoots ? styles.fullCatalogPanelOpen : ''}`}
-              aria-hidden={!showAllPhotoshoots}
-            >
-              <div className={styles.fullCatalogInner}>
-                <h3>{labels.allPhotoshoots}</h3>
-                <div className={styles.fullGrid}>
-                  {fullCatalogCards.map((card) => (
-                    <Card key={`all-${card.id}`} card={card} onOpen={openPackModal} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
+          ) : null}
+        </section>
       </div>
       {selectedPack ? (
         <PhotoPackModal pack={selectedPack} onClose={closePackModal} onSelectPack={selectRelatedPack} />

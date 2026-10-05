@@ -1,0 +1,108 @@
+export type CatalogJtbdCollection = {
+  id: string;
+  title: string;
+  cardIds: readonly string[];
+};
+
+export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
+  {
+    id: 'social-lifestyle',
+    title: 'Для соцсетей и lifestyle',
+    cardIds: [
+      'autumn-promenade',
+      'misty-morning',
+      'golden-field',
+      'black-minimalism',
+      'scarlet-accent',
+      'turquoise-wave',
+      'pink-manifesto',
+      'make-a-wish',
+      'first-impression',
+      'quiet-confidence',
+      'petersburg-walk-v2',
+      'golden-reflection',
+      'scarlet-accent-2',
+      'autumn-lake',
+      'autumn-route',
+      'misty-cabin',
+      'leaf-fall',
+      'autumn-warmth',
+      'red-square-autumn',
+      'monochrome-character',
+    ],
+  },
+  {
+    id: 'events',
+    title: 'Праздники и события',
+    cardIds: ['make-a-wish'],
+  },
+  {
+    id: 'work-brand',
+    title: 'Личный бренд и работа',
+    cardIds: [
+      'autumn-promenade',
+      'misty-morning',
+      'golden-field',
+      'black-minimalism',
+      'scarlet-accent',
+      'pink-manifesto',
+      'first-impression',
+      'quiet-confidence',
+      'petersburg-walk-v2',
+      'golden-reflection',
+      'scarlet-accent-2',
+      'autumn-lake',
+      'misty-cabin',
+      'monochrome-character',
+    ],
+  },
+  {
+    id: 'walks-travel',
+    title: 'Прогулки и путешествия',
+    cardIds: [
+      'autumn-promenade',
+      'misty-morning',
+      'golden-field',
+      'turquoise-wave',
+      'petersburg-walk-v2',
+      'autumn-lake',
+      'autumn-route',
+      'misty-cabin',
+      'leaf-fall',
+      'autumn-warmth',
+      'red-square-autumn',
+    ],
+  },
+  {
+    id: 'style-refresh',
+    title: 'Стиль и новый образ',
+    cardIds: [
+      'black-minimalism',
+      'scarlet-accent',
+      'pink-manifesto',
+      'first-impression',
+      'quiet-confidence',
+      'golden-reflection',
+      'scarlet-accent-2',
+      'monochrome-character',
+    ],
+  },
+  {
+    id: 'for-yourself',
+    title: 'Для себя',
+    cardIds: [
+      'autumn-promenade',
+      'misty-morning',
+      'golden-field',
+      'turquoise-wave',
+      'make-a-wish',
+      'autumn-lake',
+      'autumn-route',
+      'misty-cabin',
+      'leaf-fall',
+      'autumn-warmth',
+      'red-square-autumn',
+    ],
+  },
+];
+
