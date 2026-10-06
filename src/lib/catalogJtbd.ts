@@ -47,7 +47,8 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     title: '\u041b\u0438\u0447\u043d\u044b\u0439 \u0431\u0440\u0435\u043d\u0434 \u0438 \u0440\u0430\u0431\u043e\u0442\u0430',
     chip: { id: 'work', label: '\u0420\u0430\u0431\u043e\u0442\u0430', order: 4 },
     cardIds: [
-      'black-minimalism', 'first-impression', 'quiet-confidence', 'monochrome-character',
+      'black-minimalism', 'first-impression', 'quiet-confidence', 'pink-manifesto',
+      'monochrome-character',
     ],
   },
   {
