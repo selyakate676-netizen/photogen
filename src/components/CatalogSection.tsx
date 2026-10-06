@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { Gem } from 'lucide-react';
 import PhotoPackModal from '@/components/PhotoPackModal';
 import { catalogJtbdCollections, catalogQuickFilters, type CatalogQuickFilterId } from '@/lib/catalogJtbd';
+import { matchesCatalogSearch } from '@/lib/catalogSearch';
 import { getPhotoPack, photoPacks } from '@/lib/photoPacks';
 import { trackAnalyticsGoal } from '@/lib/analytics';
 import styles from './CatalogSection.module.css';
@@ -89,8 +90,7 @@ const collections: Collection[] = catalogJtbdCollections.map((collection) => ({
 
 
 function matchesSearch(card: CatalogCard, query: string) {
-  const haystack = `${card.title} ${card.description} ${card.categoryLabel}`.toLowerCase();
-  return haystack.includes(query.toLowerCase().trim());
+  return matchesCatalogSearch(`${card.title} ${card.description} ${card.categoryLabel}`, query);
 }
 
 function Card({ card, onOpen }: { card: CatalogCard; onOpen: (card: CatalogCard, trigger: HTMLElement) => void }) {
