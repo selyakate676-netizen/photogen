@@ -29,6 +29,14 @@ test('canonical JTBD config provides the required rows and quick filters', () =>
   );
 });
 
+test('work collection and chip contain only business-relevant packs', () => {
+  const workCollection = catalogJtbdCollections.find(({ id }) => id === 'work-brand');
+  const workFilter = catalogQuickFilters.find(({ id }) => id === 'work');
+  const expected = ['black-minimalism', 'first-impression', 'quiet-confidence', 'monochrome-character'];
+
+  assert.deepEqual(workCollection?.cardIds, expected);
+  assert.deepEqual(workFilter?.cardIds, expected);
+});
 test('Red Square is prominent in social and reused for travel and dating jobs', () => {
   const byId = new Map(catalogJtbdCollections.map((collection) => [collection.id, collection]));
   assert.ok(byId.get('social-lifestyle').cardIds.indexOf('red-square-autumn') < 3);
