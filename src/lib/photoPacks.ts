@@ -617,6 +617,17 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     features: ['3 профессиональных фото', 'Единая монохромная серия'],
     deliverables: ['Портрет у окна', 'Портрет с чашкой', 'Городской портрет'],
   },
+  {
+    id: 'flowers', slug: 'flowers', title: 'Цветы',
+    description: 'Нежная студийная фотосессия с пышным букетом розовых пионов',
+    summary: 'Три светлых женственных кадра с нежно-розовыми пионами: на студийном полу, крупный портрет и расслабленный кадр на деревянном стуле.',
+    photos: 3, price: '139 ₽', category: 'lifestyle', categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp031-flowers-model-b-hc001.jpg',
+    gallery: ['/package-previews/sp031-flowers-model-b-hc001.jpg', '/package-previews/sp031-flowers-model-b-hc002.jpg', '/package-previews/sp031-flowers-model-b-hc003.jpg'],
+    suitableFor: ['Праздники', 'Соцсети', 'Для себя'],
+    features: ['3 профессиональных фото', 'Единый светлый образ', 'Большой букет пионов'],
+    deliverables: ['Портрет сидя на полу', 'Крупный портрет с пионами', 'Портрет на деревянном стуле'],
+  },
 ];
 
 type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
@@ -642,6 +653,7 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   'autumn-warmth': { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   'red-square-autumn': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   'monochrome-character': { photoCount: 3, priceRub: 139, priceCrystals: 28 },
+  flowers: { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },

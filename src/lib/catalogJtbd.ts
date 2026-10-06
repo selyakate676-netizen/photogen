@@ -10,7 +10,7 @@ const allActivePackIds = [
   'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish',
   'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection',
   'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin',
-  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character',
+  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character', 'flowers',
 ] as const;
 
 export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
@@ -23,7 +23,7 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
       'black-minimalism', 'scarlet-accent', 'turquoise-wave', 'pink-manifesto',
       'make-a-wish', 'first-impression', 'quiet-confidence', 'petersburg-walk-v2',
       'golden-reflection', 'scarlet-accent-2', 'autumn-lake', 'autumn-route',
-      'misty-cabin', 'leaf-fall', 'autumn-warmth', 'monochrome-character',
+      'flowers', 'misty-cabin', 'leaf-fall', 'autumn-warmth', 'monochrome-character',
     ],
   },
   {
@@ -40,7 +40,7 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     id: 'events',
     title: '\u041f\u0440\u0430\u0437\u0434\u043d\u0438\u043a\u0438 \u0438 \u0441\u043e\u0431\u044b\u0442\u0438\u044f',
     chip: { id: 'holiday', label: '\u041f\u0440\u0430\u0437\u0434\u043d\u0438\u043a\u0438', order: 5 },
-    cardIds: ['make-a-wish'],
+    cardIds: ['flowers', 'make-a-wish'],
   },
   {
     id: 'work-brand',
@@ -88,7 +88,7 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     cardIds: [
       'autumn-promenade', 'misty-morning', 'golden-field', 'turquoise-wave',
       'make-a-wish', 'autumn-lake', 'autumn-route', 'misty-cabin',
-      'leaf-fall', 'autumn-warmth', 'red-square-autumn',
+      'flowers', 'leaf-fall', 'autumn-warmth', 'red-square-autumn',
     ],
   },
 ];
