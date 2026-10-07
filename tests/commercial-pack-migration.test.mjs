@@ -119,21 +119,25 @@ const expectedPromptHashes = {
     "9cdb80f52e5afdde1ed2c157babffe505bb0323d79120e67a5b93250609a209f",
     "4911117fa57279ec2b5e80d9e3e06f2bff9bae41990f6f2911389130421e0221",
   ],
+  "birthday-projection": [
+    "57d2384f483b5ce90f61187fe5bb0e0ae7c85c6f4a1ddf584309c3ac7ab0444b",
+    "5a63cd0a13de215ee34daef8dd76053ac4734684f603a8b95903461c2ab5c2cb",
+  ],
 };
 
-test("only the twenty-one visually accepted packs are orderable", () => {
+test("only the twenty-two visually accepted packs are orderable", () => {
   assert.deepEqual(
     photoPacks.map((pack) => pack.id),
-    ["autumn-promenade", "misty-morning", "golden-field", "black-minimalism", "scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "first-impression", "quiet-confidence", "petersburg-walk-v2", "golden-reflection", "scarlet-accent-2", "autumn-lake", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn", "monochrome-character", "flowers"],
+    ["autumn-promenade", "misty-morning", "golden-field", "black-minimalism", "scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "first-impression", "quiet-confidence", "petersburg-walk-v2", "golden-reflection", "scarlet-accent-2", "autumn-lake", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn", "monochrome-character", "flowers", "birthday-projection"],
   );
 
   for (const pack of photoPacks) {
-    const expectedCount = { "golden-reflection": 8, "autumn-lake": 5, "autumn-route": 2, "leaf-fall": 2, "autumn-warmth": 3, "red-square-autumn": 2, "monochrome-character": 3, flowers: 3 }[pack.id] ?? 4;
+    const expectedCount = { "golden-reflection": 8, "autumn-lake": 5, "autumn-route": 2, "leaf-fall": 2, "autumn-warmth": 3, "red-square-autumn": 2, "monochrome-character": 3, flowers: 3, "birthday-projection": 2 }[pack.id] ?? 4;
     assert.equal(pack.photoCount, expectedCount);
     assert.equal(pack.gallery.length, expectedCount);
     const expectedModel = ["black-minimalism", "first-impression", "quiet-confidence", "autumn-lake", "monochrome-character"].includes(pack.id)
       ? "model-c"
-      : ["scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "golden-reflection", "scarlet-accent-2", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn", "flowers"].includes(pack.id)
+      : ["scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "golden-reflection", "scarlet-accent-2", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn", "flowers", "birthday-projection"].includes(pack.id)
         ? "model-b"
         : "model-a";
     assert.ok(pack.gallery.every((path) => path.includes(`-${expectedModel}-hc00`)));
@@ -148,6 +152,7 @@ test("new mini packs keep approved counts, covers and economy", () => {
     "red-square-autumn": { count: 2, rubles: 99, crystals: 20, cover: "sp029-red-square-autumn-model-b-hc002.jpg" },
     "monochrome-character": { count: 3, rubles: 139, crystals: 28, cover: "sp030-monochrome-character-model-c-hc002.jpg" },
     flowers: { count: 3, rubles: 139, crystals: 28, cover: "sp031-flowers-model-b-hc001.jpg" },
+    "birthday-projection": { count: 2, rubles: 99, crystals: 20, cover: "sp032-birthday-projection-model-b-hc001.jpg" },
   };
 
   for (const [styleId, contract] of Object.entries(expected)) {
@@ -174,7 +179,7 @@ test("legacy packs are hidden from ordering but remain resolvable for history", 
 
 test("short Nano packs preserve all recorded approved prompts byte-for-byte", () => {
   assert.equal(SHORT_NANO_PACK_REFERENCE_COUNT, 1);
-  assert.equal(shortNanoPackDefinitions.length, 21);
+  assert.equal(shortNanoPackDefinitions.length, 22);
 
   for (const [styleId, hashes] of Object.entries(expectedPromptHashes)) {
     const pack = getShortNanoPackDefinition(styleId);
