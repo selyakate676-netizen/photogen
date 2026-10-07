@@ -618,7 +618,7 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     deliverables: ['Портрет у окна', 'Портрет с чашкой', 'Городской портрет'],
   },
   {
-    id: 'flowers', slug: 'flowers', title: 'Цветы',
+    id: 'flowers', slug: 'flowers', title: 'Розовые пионы',
     description: 'Нежная студийная фотосессия с пышным букетом розовых пионов',
     summary: 'Три светлых женственных кадра с нежно-розовыми пионами: на студийном полу, крупный портрет и расслабленный кадр на деревянном стуле.',
     photos: 3, price: '139 ₽', category: 'lifestyle', categoryLabel: 'Lifestyle',
