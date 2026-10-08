@@ -10,7 +10,7 @@ const allActivePackIds = [
   'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish',
   'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection',
   'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin',
-  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character', 'flowers', 'birthday-projection', 'glamour-look', 'awaiting-miracle',
+  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character', 'flowers', 'birthday-projection', 'glamour-look', 'awaiting-miracle', 'roses',
 ] as const;
 
 export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
@@ -40,7 +40,7 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     id: 'events',
     title: '\u041f\u0440\u0430\u0437\u0434\u043d\u0438\u043a\u0438 \u0438 \u0441\u043e\u0431\u044b\u0442\u0438\u044f',
     chip: { id: 'holiday', label: '\u041f\u0440\u0430\u0437\u0434\u043d\u0438\u043a\u0438', order: 5 },
-    cardIds: ['birthday-projection', 'glamour-look', 'flowers', 'make-a-wish'],
+    cardIds: ['birthday-projection', 'glamour-look', 'roses', 'flowers', 'make-a-wish'],
   },
   {
     id: 'work-brand',
