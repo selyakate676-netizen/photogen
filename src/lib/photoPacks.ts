@@ -639,6 +639,18 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     features: ['2 профессиональных фото', 'Художественная проекция', 'Одна свеча без цифр'],
     deliverables: ['Портрет на коленях с тортом', 'Диагональный портрет на полу'],
   },
+
+  {
+    id: 'glamour-look', slug: 'glamour-look', title: "Гламурный образ",
+    description: "Чёрно-белая гламурная фотосессия в атмосфере премиального ресторана и отеля",
+    summary: "Два элегантных вечерних кадра: ресторанный портрет с бокалом и выразительный портрет у зеркала с помадой.",
+    photos: 2, price: '99 ?', category: 'lifestyle', categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp033-glamour-look-model-a-hc001.jpg',
+    gallery: ['/package-previews/sp033-glamour-look-model-a-hc001.jpg', '/package-previews/sp033-glamour-look-model-a-hc002.jpg'],
+    suitableFor: ["Праздники", "Для себя", "Соцсети", "Знакомства"],
+    features: ["2 профессиональных фото", "Чёрно-белая luxury editorial серия", "Элегантный вечерний образ"],
+    deliverables: ["Ресторанный портрет с бокалом", "Портрет у зеркала с помадой"],
+  },
 ];
 
 type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
@@ -666,6 +678,7 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   'monochrome-character': { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   flowers: { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   'birthday-projection': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
+  'glamour-look': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },

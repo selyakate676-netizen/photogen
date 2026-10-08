@@ -123,16 +123,20 @@ const expectedPromptHashes = {
     "57d2384f483b5ce90f61187fe5bb0e0ae7c85c6f4a1ddf584309c3ac7ab0444b",
     "5a63cd0a13de215ee34daef8dd76053ac4734684f603a8b95903461c2ab5c2cb",
   ],
+  "glamour-look": [
+    "1b7ff1d6352bd7ece930754905fd3a6b83d1e06d5c1226ff91317be140bcb2c4",
+    "621dd54bc2c10b0622e94af56cd6659f3f489180133ea4b0dd2a1e7076ffe001",
+  ],
 };
 
-test("only the twenty-two visually accepted packs are orderable", () => {
+test("only the twenty-three visually accepted packs are orderable", () => {
   assert.deepEqual(
     photoPacks.map((pack) => pack.id),
-    ["autumn-promenade", "misty-morning", "golden-field", "black-minimalism", "scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "first-impression", "quiet-confidence", "petersburg-walk-v2", "golden-reflection", "scarlet-accent-2", "autumn-lake", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn", "monochrome-character", "flowers", "birthday-projection"],
+    ["autumn-promenade", "misty-morning", "golden-field", "black-minimalism", "scarlet-accent", "turquoise-wave", "pink-manifesto", "make-a-wish", "first-impression", "quiet-confidence", "petersburg-walk-v2", "golden-reflection", "scarlet-accent-2", "autumn-lake", "autumn-route", "misty-cabin", "leaf-fall", "autumn-warmth", "red-square-autumn", "monochrome-character", "flowers", "birthday-projection", "glamour-look"],
   );
 
   for (const pack of photoPacks) {
-    const expectedCount = { "golden-reflection": 8, "autumn-lake": 5, "autumn-route": 2, "leaf-fall": 2, "autumn-warmth": 3, "red-square-autumn": 2, "monochrome-character": 3, flowers: 3, "birthday-projection": 2 }[pack.id] ?? 4;
+    const expectedCount = { "golden-reflection": 8, "autumn-lake": 5, "autumn-route": 2, "leaf-fall": 2, "autumn-warmth": 3, "red-square-autumn": 2, "monochrome-character": 3, flowers: 3, "birthday-projection": 2, "glamour-look": 2 }[pack.id] ?? 4;
     assert.equal(pack.photoCount, expectedCount);
     assert.equal(pack.gallery.length, expectedCount);
     const expectedModel = ["black-minimalism", "first-impression", "quiet-confidence", "autumn-lake", "monochrome-character"].includes(pack.id)
@@ -153,6 +157,7 @@ test("new mini packs keep approved counts, covers and economy", () => {
     "monochrome-character": { count: 3, rubles: 139, crystals: 28, cover: "sp030-monochrome-character-model-c-hc002.jpg" },
     flowers: { count: 3, rubles: 139, crystals: 28, cover: "sp031-flowers-model-b-hc001.jpg" },
     "birthday-projection": { count: 2, rubles: 99, crystals: 20, cover: "sp032-birthday-projection-model-b-hc001.jpg" },
+    "glamour-look": { count: 2, rubles: 99, crystals: 20, cover: "sp033-glamour-look-model-a-hc001.jpg" },
   };
 
   for (const [styleId, contract] of Object.entries(expected)) {
@@ -179,7 +184,7 @@ test("legacy packs are hidden from ordering but remain resolvable for history", 
 
 test("short Nano packs preserve all recorded approved prompts byte-for-byte", () => {
   assert.equal(SHORT_NANO_PACK_REFERENCE_COUNT, 1);
-  assert.equal(shortNanoPackDefinitions.length, 22);
+  assert.equal(shortNanoPackDefinitions.length, 23);
 
   for (const [styleId, hashes] of Object.entries(expectedPromptHashes)) {
     const pack = getShortNanoPackDefinition(styleId);
