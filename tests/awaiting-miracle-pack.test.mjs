@@ -14,7 +14,7 @@ const previews = [
 test("SP-035 is an active two-frame production pack", () => {
   const pack = photoPacks.find(({ id }) => id === "awaiting-miracle");
   assert.ok(pack);
-  assert.equal(pack.title, "? ???????? ????");
+  assert.equal(pack.title, "В ожидании чуда");
   assert.equal(pack.photoCount, 2);
   assert.equal(pack.priceRub, 99);
   assert.equal(pack.priceCrystals, 20);
@@ -30,6 +30,11 @@ test("SP-035 uses exactly two canonical short-anchor prompts", () => {
   assert.equal(definition.formula, "NB2_FACEKEEP_V1.1_SHORT_WITH_WARM_EXPRESSION");
   assert.deepEqual(definition.heroCompositions.map(({ heroCompositionId }) => heroCompositionId), ["HC-001", "HC-002"]);
   assert.equal(definition.heroCompositions.length, 2);
+});
+
+test("SP-034 remains outside the production catalog", () => {
+  assert.equal(photoPacks.some(({ id }) => id === "roses"), false);
+  assert.equal(getShortNanoPackDefinition("roses"), undefined);
 });
 
 test("SP-035 appears only in the family JTBD collection", () => {
