@@ -641,6 +641,17 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
   },
 
   {
+    id: 'awaiting-miracle', slug: 'awaiting-miracle', title: 'В ожидании чуда',
+    description: 'Нежная фотосессия в ожидании малыша в светлой и тёплой editorial-эстетике',
+    summary: 'Два связанных maternity-портрета в воздушном белом плиссированном платье: светлый кадр сидя и тёплый драматичный портрет.',
+    photos: 2, price: '99 ₽', category: 'lifestyle', categoryLabel: 'Семья',
+    image: '/package-previews/sp035-awaiting-miracle-model-b-hc001.jpg',
+    gallery: ['/package-previews/sp035-awaiting-miracle-model-b-hc001.jpg', '/package-previews/sp035-awaiting-miracle-model-b-hc002.jpg'],
+    suitableFor: ['Беременность', 'Семья', 'В ожидании малыша'],
+    features: ['2 профессиональных фото', 'Единый воздушный образ', 'Нежная maternity editorial-серия'],
+    deliverables: ['Светлый портрет сидя', 'Тёплый драматичный портрет'],
+  },
+  {
     id: 'glamour-look', slug: 'glamour-look', title: "Гламурный образ",
     description: "Чёрно-белая гламурная фотосессия в атмосфере премиального ресторана и отеля",
     summary: "Два элегантных вечерних кадра: ресторанный портрет с бокалом и выразительный портрет у зеркала с помадой.",
@@ -650,17 +661,6 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     suitableFor: ["Праздники", "Для себя", "Соцсети", "Знакомства"],
     features: ["2 профессиональных фото", "Чёрно-белая luxury editorial серия", "Элегантный вечерний образ"],
     deliverables: ["Ресторанный портрет с бокалом", "Портрет у зеркала с помадой"],
-  },
-  {
-    id: 'roses', slug: 'roses', title: 'Розы',
-    description: 'Премиальная ресторанная фотосессия с большим букетом светло-розовых роз',
-    summary: 'Два цельных женственных кадра в тёплом restaurant/lounge интерьере: спокойный портрет с букетом и близкий портрет с розами у лица.',
-    photos: 2, price: '99 ₽', category: 'lifestyle', categoryLabel: 'Праздники',
-    image: '/package-previews/sp034-roses-model-c-hc001.jpg',
-    gallery: ['/package-previews/sp034-roses-model-c-hc001.jpg', '/package-previews/sp034-roses-model-c-hc002.jpg'],
-    suitableFor: ['Праздники', 'Подарок', 'Для себя'],
-    features: ['2 профессиональных фото', 'Единый ресторанный образ', 'Большой букет светло-розовых роз'],
-    deliverables: ['Портрет с взглядом на букет', 'Близкий портрет с розами'],
   },
 ];
 
@@ -690,7 +690,7 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   flowers: { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   'birthday-projection': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   'glamour-look': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
-  roses: { photoCount: 2, priceRub: 99, priceCrystals: 20 },
+  'awaiting-miracle': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },

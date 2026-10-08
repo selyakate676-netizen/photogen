@@ -10,7 +10,7 @@ const allActivePackIds = [
   'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish',
   'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection',
   'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin',
-  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character', 'flowers', 'birthday-projection', 'glamour-look', 'roses',
+  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character', 'flowers', 'birthday-projection', 'glamour-look', 'awaiting-miracle',
 ] as const;
 
 export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
@@ -40,14 +40,15 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     id: 'events',
     title: '\u041f\u0440\u0430\u0437\u0434\u043d\u0438\u043a\u0438 \u0438 \u0441\u043e\u0431\u044b\u0442\u0438\u044f',
     chip: { id: 'holiday', label: '\u041f\u0440\u0430\u0437\u0434\u043d\u0438\u043a\u0438', order: 5 },
-    cardIds: ['birthday-projection', 'glamour-look', 'roses', 'flowers', 'make-a-wish'],
+    cardIds: ['birthday-projection', 'glamour-look', 'flowers', 'make-a-wish'],
   },
   {
     id: 'work-brand',
     title: '\u041b\u0438\u0447\u043d\u044b\u0439 \u0431\u0440\u0435\u043d\u0434 \u0438 \u0440\u0430\u0431\u043e\u0442\u0430',
     chip: { id: 'work', label: '\u0420\u0430\u0431\u043e\u0442\u0430', order: 4 },
     cardIds: [
-      'black-minimalism', 'first-impression', 'quiet-confidence', 'monochrome-character',
+      'black-minimalism', 'first-impression', 'quiet-confidence', 'pink-manifesto',
+      'monochrome-character',
     ],
   },
   {
@@ -72,7 +73,7 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     id: 'family',
     title: '\u0421\u0435\u043c\u044c\u044f \u0438 \u0431\u043b\u0438\u0437\u043a\u0438\u0435',
     chip: { id: 'family', label: '\u0421\u0435\u043c\u044c\u044f', order: 7 },
-    cardIds: ['make-a-wish', 'misty-cabin', 'autumn-lake', 'autumn-warmth'],
+    cardIds: ['awaiting-miracle', 'make-a-wish', 'misty-cabin', 'autumn-lake', 'autumn-warmth'],
   },
   {
     id: 'style-refresh',

@@ -32,7 +32,10 @@ test('canonical JTBD config provides the required rows and quick filters', () =>
 test('work collection and chip contain only business-relevant packs', () => {
   const workCollection = catalogJtbdCollections.find(({ id }) => id === 'work-brand');
   const workFilter = catalogQuickFilters.find(({ id }) => id === 'work');
-  const expected = ['black-minimalism', 'first-impression', 'quiet-confidence', 'monochrome-character'];
+  const expected = [
+    'black-minimalism', 'first-impression', 'quiet-confidence', 'pink-manifesto',
+    'monochrome-character',
+  ];
 
   assert.deepEqual(workCollection?.cardIds, expected);
   assert.deepEqual(workFilter?.cardIds, expected);
