@@ -628,6 +628,29 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     features: ['3 профессиональных фото', 'Единый светлый образ', 'Большой букет пионов'],
     deliverables: ['Портрет сидя на полу', 'Крупный портрет с пионами', 'Портрет на деревянном стуле'],
   },
+  {
+    id: 'birthday-projection', slug: 'birthday-projection', title: 'День рождения с проекцией',
+    description: 'Элегантная праздничная фотосессия с тортом и крупной художественной проекцией',
+    summary: 'Два выразительных праздничных кадра с небольшим тортом и крупной проекцией портрета: спокойная поза на коленях и расслабленная диагональная композиция на полу.',
+    photos: 2, price: '99 ₽', category: 'lifestyle', categoryLabel: 'Праздники',
+    image: '/package-previews/sp032-birthday-projection-model-b-hc001.jpg',
+    gallery: ['/package-previews/sp032-birthday-projection-model-b-hc001.jpg', '/package-previews/sp032-birthday-projection-model-b-hc002.jpg'],
+    suitableFor: ['День рождения', 'Праздники', 'Соцсети'],
+    features: ['2 профессиональных фото', 'Художественная проекция', 'Одна свеча без цифр'],
+    deliverables: ['Портрет на коленях с тортом', 'Диагональный портрет на полу'],
+  },
+
+  {
+    id: 'glamour-look', slug: 'glamour-look', title: "Гламурный образ",
+    description: "Чёрно-белая гламурная фотосессия в атмосфере премиального ресторана и отеля",
+    summary: "Два элегантных вечерних кадра: ресторанный портрет с бокалом и выразительный портрет у зеркала с помадой.",
+    photos: 2, price: '99 ?', category: 'lifestyle', categoryLabel: 'Lifestyle',
+    image: '/package-previews/sp033-glamour-look-model-a-hc001.jpg',
+    gallery: ['/package-previews/sp033-glamour-look-model-a-hc001.jpg', '/package-previews/sp033-glamour-look-model-a-hc002.jpg'],
+    suitableFor: ["Праздники", "Для себя", "Соцсети", "Знакомства"],
+    features: ["2 профессиональных фото", "Чёрно-белая luxury editorial серия", "Элегантный вечерний образ"],
+    deliverables: ["Ресторанный портрет с бокалом", "Портрет у зеркала с помадой"],
+  },
 ];
 
 type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
@@ -654,6 +677,8 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   'red-square-autumn': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   'monochrome-character': { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   flowers: { photoCount: 3, priceRub: 139, priceCrystals: 28 },
+  'birthday-projection': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
+  'glamour-look': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },
