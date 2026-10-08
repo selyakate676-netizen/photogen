@@ -651,17 +651,6 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     features: ["2 профессиональных фото", "Чёрно-белая luxury editorial серия", "Элегантный вечерний образ"],
     deliverables: ["Ресторанный портрет с бокалом", "Портрет у зеркала с помадой"],
   },
-  {
-    id: 'roses', slug: 'roses', title: 'Розы',
-    description: 'Премиальная ресторанная фотосессия с большим букетом светло-розовых роз',
-    summary: 'Два цельных женственных кадра в тёплом restaurant/lounge интерьере: спокойный портрет с букетом и близкий портрет с розами у лица.',
-    photos: 2, price: '99 ₽', category: 'lifestyle', categoryLabel: 'Праздники',
-    image: '/package-previews/sp034-roses-model-c-hc001.jpg',
-    gallery: ['/package-previews/sp034-roses-model-c-hc001.jpg', '/package-previews/sp034-roses-model-c-hc002.jpg'],
-    suitableFor: ['Праздники', 'Подарок', 'Для себя'],
-    features: ['2 профессиональных фото', 'Единый ресторанный образ', 'Большой букет светло-розовых роз'],
-    deliverables: ['Портрет с взглядом на букет', 'Близкий портрет с розами'],
-  },
 ];
 
 type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
@@ -690,7 +679,6 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   flowers: { photoCount: 3, priceRub: 139, priceCrystals: 28 },
   'birthday-projection': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   'glamour-look': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
-  roses: { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },
