@@ -10,7 +10,7 @@ const allActivePackIds = [
   'scarlet-accent', 'turquoise-wave', 'pink-manifesto', 'make-a-wish',
   'first-impression', 'quiet-confidence', 'petersburg-walk-v2', 'golden-reflection',
   'scarlet-accent-2', 'autumn-lake', 'autumn-route', 'misty-cabin',
-  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character', 'flowers', 'birthday-projection', 'glamour-look',
+  'leaf-fall', 'autumn-warmth', 'red-square-autumn', 'monochrome-character', 'flowers', 'birthday-projection', 'glamour-look', 'awaiting-miracle',
 ] as const;
 
 export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
@@ -73,7 +73,7 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     id: 'family',
     title: '\u0421\u0435\u043c\u044c\u044f \u0438 \u0431\u043b\u0438\u0437\u043a\u0438\u0435',
     chip: { id: 'family', label: '\u0421\u0435\u043c\u044c\u044f', order: 7 },
-    cardIds: ['make-a-wish', 'misty-cabin', 'autumn-lake', 'autumn-warmth'],
+    cardIds: ['awaiting-miracle', 'make-a-wish', 'misty-cabin', 'autumn-lake', 'autumn-warmth'],
   },
   {
     id: 'style-refresh',
