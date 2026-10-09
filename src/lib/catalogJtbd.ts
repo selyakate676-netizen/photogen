@@ -66,7 +66,7 @@ export const catalogJtbdCollections: readonly CatalogJtbdCollection[] = [
     chip: { id: 'art', label: '\u0410\u0440\u0442 \u0438 \u0441\u0442\u0443\u0434\u0438\u044f', order: 6 },
     cardIds: [
       'black-minimalism', 'scarlet-accent', 'pink-manifesto',
-      'golden-reflection', 'scarlet-accent-2', 'monochrome-character',
+      'nineties-nostalgia', 'golden-reflection', 'scarlet-accent-2', 'monochrome-character',
     ],
   },
   {

@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import fs from "node:fs";
+import { photoPacks } from "../src/lib/photoPacks.ts";
+import { catalogJtbdCollections } from "../src/lib/catalogJtbd.ts";
+import { getShortNanoPackDefinition } from "../src/lib/ai/short-pack-prompts.ts";
+const previews=["/package-previews/sp036-nineties-nostalgia-model-b-hc001.jpg","/package-previews/sp036-nineties-nostalgia-model-b-hc002.jpg"];
+test("SP-036 is an active two-frame production pack",()=>{const pack=photoPacks.find(({id})=>id==="nineties-nostalgia");assert.ok(pack);assert.equal(pack.photos,2);assert.equal(pack.photoCount,2);assert.equal(pack.priceRub,99);assert.equal(pack.priceCrystals,20);assert.equal(pack.image,previews[0]);assert.deepEqual(pack.gallery,previews);for(const preview of previews)assert.ok(fs.existsSync("public"+preview));});
+test("SP-036 has exactly two approved production prompts",()=>{const d=getShortNanoPackDefinition("SP-036");assert.ok(d);assert.equal(d.heroCompositions.length,2);assert.deepEqual(d.heroCompositions.map(({heroCompositionId})=>heroCompositionId),["HC-001","HC-002"]);});
+test("SP-036 appears only in art-studio",()=>{const ids=catalogJtbdCollections.filter(({cardIds})=>cardIds.includes("nineties-nostalgia")).map(({id})=>id);assert.deepEqual(ids,["art-studio"]);});
