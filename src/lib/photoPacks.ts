@@ -673,6 +673,17 @@ const currentBasePhotoPacks: Omit<PhotoPack, 'pricing' | 'photoCount' | 'priceRu
     features: ["2 профессиональных фото", "Чёрно-белая luxury editorial серия", "Элегантный вечерний образ"],
     deliverables: ["Ресторанный портрет с бокалом", "Портрет у зеркала с помадой"],
   },
+  {
+    id: 'nineties-nostalgia', slug: 'nineties-nostalgia', title: 'Ностальгия 90-х',
+    description: 'Тёплая плёночная fashion-фотосессия с ностальгией по 1990-м',
+    summary: 'Два цельных кадра: fashion-портрет у киоска с шоколадками и тёплый домашний портрет на красном покрывале.',
+    photos: 2, price: '99 ₽', category: 'fashion', categoryLabel: 'Арт',
+    image: '/package-previews/sp036-nineties-nostalgia-model-b-hc001.jpg',
+    gallery: ['/package-previews/sp036-nineties-nostalgia-model-b-hc001.jpg', '/package-previews/sp036-nineties-nostalgia-model-b-hc002.jpg'],
+    suitableFor: ['Арт', 'Соцсети', 'Для себя'],
+    features: ['2 профессиональных фото', 'Тёплая плёночная эстетика 1990-х', 'Молодой fashion-образ'],
+    deliverables: ['Портрет у киоска', 'Домашний плёночный портрет'],
+  },
 ];
 
 type PhotoPackEconomy = Pick<PhotoPack, 'photoCount' | 'priceRub' | 'priceCrystals'>;
@@ -703,6 +714,7 @@ const economyByPack: Record<string, PhotoPackEconomy> = {
   'glamour-look': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   roses: { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   'awaiting-miracle': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
+  'nineties-nostalgia': { photoCount: 2, priceRub: 99, priceCrystals: 20 },
   career: { photoCount: 4, priceRub: 189, priceCrystals: 38 },
   dating: { photoCount: 4, priceRub: 179, priceCrystals: 36 },
   sup: { photoCount: 6, priceRub: 279, priceCrystals: 56 },
