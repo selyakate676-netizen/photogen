@@ -571,7 +571,7 @@ export default function ProfileWorkspace({
                   <div className={styles.personaColumnHeading}>
                     <div>
                       <h3>Фотографии</h3>
-                      <p>Загрузите до 5 лучших селфи. Первое фото используется как основной референс внешности.</p>
+                      <p>Рекомендуем загрузить 1–2 качественные фотографии, где вам нравится, как вы выглядите. Лицо должно быть хорошо видно, освещение — естественным, а фильтры — минимальными. Качество исходных фото сильно влияет на сходство результата. Технически можно загрузить до 5 фото; первое используется как основной референс внешности.</p>
                     </div>
                     <span>{personaPhotos.length} из {MAX_PERSONA_PHOTOS}</span>
                   </div>
@@ -865,10 +865,10 @@ export default function ProfileWorkspace({
 
       <section className={`${styles.profileSection} ${styles.compactProfileSection}`}>
         <h2>Поддержка</h2>
-        <p className={styles.panelDescription}>Каналы поддержки будут подключены отдельно.</p>
+        <p className={styles.panelDescription}>Свяжитесь с нами удобным способом.</p>
         <div className={styles.supportLinks}>
-          <button type="button" className={styles.secondaryButton} disabled>Telegram</button>
-          <button type="button" className={styles.secondaryButton} disabled>Email</button>
+          <a className={styles.secondaryButton} href="https://t.me/photogenlab" target="_blank" rel="noreferrer">Telegram</a>
+          <a className={styles.secondaryButton} href="mailto:photogenlab@mail.ru">Email</a>
         </div>
       </section>
 
