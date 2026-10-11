@@ -15,7 +15,12 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '96000000-0000-4000-8000-000000000096', true);
 select set_config('request.jwt.claim.role', 'authenticated', true);
 select public.create_persona(null, null, null, 'woman', 'green');
-select public.add_persona_photo((select id from public.personas where user_id = auth.uid()), 'personas/96000000-0000-4000-8000-000000000096/source.jpg');
+select public.add_persona_photo(
+  (select id from public.personas where user_id = auth.uid()),
+  'personas/96000000-0000-4000-8000-000000000096/'
+    || (select id from public.personas where user_id = auth.uid())
+    || '/source.jpg'
+);
 select public.create_photoshoot_with_persona((select id from public.personas where user_id = auth.uid()), 'rub-pack', '{}', 'woman', 'average', 'green', '', null, null, null, null, null, 2, '{"id":"rub-pack","slug":"rub-pack","name":"RUB","price_rub":99,"price_crystals":20}'::jsonb);
 select public.create_photoshoot_with_persona((select id from public.personas where user_id = auth.uid()), 'crystal-pack', '{}', 'woman', 'average', 'green', '', null, null, null, null, null, 2, '{"id":"crystal-pack","slug":"crystal-pack","name":"Crystal","price_rub":99,"price_crystals":2}'::jsonb);
 select public.create_cloudpayments_payment((select id from public.photoshoots where style_id = 'rub-pack'));
