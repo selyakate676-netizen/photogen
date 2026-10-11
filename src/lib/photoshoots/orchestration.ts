@@ -68,3 +68,20 @@ export async function startQueuedPhotoshootGeneration(photoshootId: string, user
     throw new Error(SAFE_GENERATION_ERROR.code);
   }
 }
+export async function startQueuedPhotoshootGenerationFromPayment(photoshootId: string) {
+  const serviceClient = createServiceRoleClient();
+  const { data: photoshoot, error } = await serviceClient
+    .from("photoshoots")
+    .select("id,user_id,status,payment_source")
+    .eq("id", photoshootId)
+    .single();
+
+  if (error || !photoshoot || photoshoot.status !== "queued" || photoshoot.payment_source !== "rub") {
+    throw new Error("PAYMENT_GENERATION_NOT_READY");
+  }
+
+  return startMvpGenerationForPhotoshoot(photoshoot.id, {
+    waitForCompletion: false,
+    userId: photoshoot.user_id,
+  });
+}

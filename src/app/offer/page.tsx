@@ -48,6 +48,14 @@ export default function OfferPage() {
         </section>
 
         <section className={styles.section}>
+          <h2>{"\u0420\u0435\u043a\u0432\u0438\u0437\u0438\u0442\u044b \u043f\u0440\u043e\u0434\u0430\u0432\u0446\u0430"}</h2>
+          <p>
+            {"\u0418\u043d\u0434\u0438\u0432\u0438\u0434\u0443\u0430\u043b\u044c\u043d\u044b\u0439 \u043f\u0440\u0435\u0434\u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0442\u0435\u043b\u044c \u0422\u0430\u0431\u0443\u043d\u043e\u0432 \u041c\u0438\u0445\u0430\u0438\u043b \u0412\u0430\u043b\u0435\u0440\u044c\u0435\u0432\u0438\u0447."}<br />
+            {"\u0418\u041d\u041d 773379585100. \u041e\u0413\u0420\u041d\u0418\u041f 313774608601167."}
+          </p>
+        </section>
+
+        <section className={styles.section}>
           <h2>Связь с поддержкой</h2>
           <p>Email: <a href="mailto:photogenlab@mail.ru">photogenlab@mail.ru</a>. Telegram: <a href="https://t.me/photogenlab">@photogenlab</a>.</p>
         </section>

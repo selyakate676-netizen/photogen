@@ -1589,7 +1589,8 @@ export async function startMvpGenerationForPhotoshoot(
     throw new Error("Authentication required.");
   }
 
-  const { data: photoshoot, error } = await sessionClient
+  const photoshootClient = userId ? createServiceRoleClient() : sessionClient;
+  const { data: photoshoot, error } = await photoshootClient
     .from("photoshoots")
     .select("*")
     .eq("id", photoshootId)

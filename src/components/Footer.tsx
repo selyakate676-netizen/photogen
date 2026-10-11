@@ -46,6 +46,7 @@ export default function Footer() {
 
         <div className={styles.footerBottom}>
           <p className={styles.copyright}>© 2026 PhotoGen.</p>
+          <p className={styles.footerNote}>{"\u0418\u041f \u0422\u0430\u0431\u0443\u043d\u043e\u0432 \u00b7 \u0418\u041d\u041d 773379585100"}</p>
           <p className={styles.footerNote}>
             Сервис создания изображений с помощью искусственного интеллекта
           </p>

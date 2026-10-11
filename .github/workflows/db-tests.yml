@@ -43,6 +43,9 @@ jobs:
           cp supabase_crystal_wallet.sql supabase/migrations/20260807001200_crystal_wallet.sql
           cp supabase_marketing_attribution.sql supabase/migrations/20260807001300_marketing_attribution.sql
           cp supabase_pending_action_lifecycle.sql supabase/migrations/20260807001400_pending_action_lifecycle.sql
+          cp supabase_photoshoot_crystal_charge.sql supabase/migrations/20260807001500_photoshoot_crystal_charge.sql
+          cp supabase_failed_generation_refund.sql supabase/migrations/20260807001600_failed_generation_refund.sql
+          cp supabase_cloudpayments_direct_rub.sql supabase/migrations/20260807001700_cloudpayments_direct_rub.sql
 
       - name: Start ephemeral Supabase
         run: supabase start
@@ -67,6 +70,17 @@ jobs:
       - name: Run pending action lifecycle pgTAP tests
         run: supabase test db tests/pending_action_lifecycle.pgtap.sql
 
+      - name: Run CloudPayments Direct RUB pgTAP tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -v \
+            -e '^\\ir ../supabase_photoshoot_crystal_charge.sql$' \
+            -e '^\\ir ../supabase_failed_generation_refund.sql$' \
+            -e '^\\ir ../supabase_cloudpayments_direct_rub.sql$' \
+            tests/cloudpayments_direct_rub.pgtap.sql \
+            > tests/cloudpayments_direct_rub_ci.pgtap.sql
+          supabase test db tests/cloudpayments_direct_rub_ci.pgtap.sql
       - name: Run RPC ACL hardening pgTAP tests
         run: supabase test db tests/rpc_acl_hardening.pgtap.sql
 

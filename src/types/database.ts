@@ -34,6 +34,8 @@ export interface Database {
           safe_error: string | null;
           requested_images_count: number | null;
           package_snapshot: Json | null;
+          payment_source: "crystals" | "rub" | null;
+          payment_id: string | null;
           attribution_snapshot: Json | null;
           completed_at: string | null;
           created_at: string;
@@ -62,6 +64,8 @@ export interface Database {
           safe_error?: string | null;
           requested_images_count?: number | null;
           package_snapshot?: Json | null;
+          payment_source?: "crystals" | "rub" | null;
+          payment_id?: string | null;
           attribution_snapshot?: Json | null;
           completed_at?: string | null;
           created_at?: string;
@@ -90,6 +94,8 @@ export interface Database {
           safe_error?: string | null;
           requested_images_count?: number | null;
           package_snapshot?: Json | null;
+          payment_source?: "crystals" | "rub" | null;
+          payment_id?: string | null;
           attribution_snapshot?: Json | null;
           completed_at?: string | null;
           created_at?: string;
@@ -99,6 +105,31 @@ export interface Database {
             foreignKeyName: "photoshoots_user_id_fkey";
             columns: ["user_id"];
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cloudpayments_payments: {
+        Row: {
+          id: string; purchase_type: "direct_photoshoot" | "crystal_topup"; photoshoot_id: string | null; user_id: string; provider: "cloudpayments";
+          amount_minor: number; currency: "RUB"; status: "pending" | "succeeded" | "failed";
+          provider_transaction_id: string | null; created_at: string; updated_at: string;
+          paid_at: string | null; failed_at: string | null;
+        };
+        Insert: {
+          purchase_type?: "direct_photoshoot" | "crystal_topup"; photoshoot_id?: string | null; user_id: string; amount_minor: number;
+          currency?: "RUB"; provider?: "cloudpayments";
+        };
+        Update: {
+          status?: "pending" | "succeeded" | "failed";
+          provider_transaction_id?: string | null; updated_at?: string;
+          paid_at?: string | null; failed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cloudpayments_payments_photoshoot_id_fkey";
+            columns: ["photoshoot_id"];
+            referencedRelation: "photoshoots";
             referencedColumns: ["id"];
           },
         ];
@@ -180,6 +211,22 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      create_cloudpayments_payment: {
+        Args: { p_photoshoot_id: string };
+        Returns: Database["public"]["Tables"]["cloudpayments_payments"]["Row"];
+      };
+      process_cloudpayments_notification: {
+        Args: {
+          p_notification_type: string; p_invoice_id: string;
+          p_provider_transaction_id: string; p_amount_minor: number; p_currency: string;
+        };
+        Returns: Array<{
+          accepted: boolean;
+          should_start_generation: boolean;
+          photoshoot_id: string | null;
+          result_code: string;
+        }>;
+      };
       is_photoshoot_safe_to_cancel: {
         Args: { p_photoshoot_id: string };
         Returns: boolean;

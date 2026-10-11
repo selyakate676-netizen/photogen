@@ -21,7 +21,9 @@ type EnvName =
   | "AI_PIPELINE_MODE"
   | "AI_GENERATION_MODEL"
   | "OPENAI_API_KEY"
-  | "DATABASE_URL";
+  | "DATABASE_URL"
+  | "NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID"
+  | "CLOUDPAYMENTS_API_SECRET";
 
 export const DEFAULT_AI_PIPELINE_MODE: AiPipelineVersion = "legacy-lora-v1";
 
@@ -93,3 +95,6 @@ export function getSupabasePublicConfig(): { url: string; anonKey: string } {
     anonKey: getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
   };
 }
+
+export function getCloudPaymentsPublicId(): string { return getEnv("NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID"); }
+export function getCloudPaymentsApiSecret(): string { return getEnv("CLOUDPAYMENTS_API_SECRET"); }

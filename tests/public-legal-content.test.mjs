@@ -45,6 +45,9 @@ test('owner-approved service, refund, use, safety, and contact terms are public'
     assert.match(source, /photogenlab@mail\.ru/);
     assert.match(source, /https:\/\/t\.me\/photogenlab/);
   }
+  assert.match(offer, /773379585100/);
+  assert.match(offer, /313774608601167/);
+  assert.match(footer, /773379585100/);
 });
 test('authenticated upload copy matches private Persona storage behavior', () => {
   const upload = read('src/app/dashboard/new/PhotoUpload.tsx');
