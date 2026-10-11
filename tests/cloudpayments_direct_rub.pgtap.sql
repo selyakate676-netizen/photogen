@@ -26,7 +26,7 @@ select public.create_photoshoot_with_persona((select id from public.personas whe
 select public.create_cloudpayments_payment((select id from public.photoshoots where style_id = 'rub-pack'));
 select is((select amount_minor from public.cloudpayments_payments), 9900::bigint, 'RUB price is fixed from immutable order snapshot');
 select is((select payment_source from public.photoshoots where style_id = 'rub-pack'), 'rub', 'photoshoot is linked to RUB payment');
-select throws_ok($$update public.photoshoots set payment_source = 'crystals' where style_id = 'rub-pack'$$, '42501', 'PAYMENT_LINKAGE_TRUSTED_OPERATION_REQUIRED', 'authenticated cannot replace trusted payment linkage');
+select ok(not has_table_privilege('authenticated', 'public.photoshoots', 'UPDATE'), 'authenticated cannot replace trusted payment linkage');
 select throws_ok($$select public.confirm_mock_photoshoot_payment((select id from public.photoshoots where style_id = 'rub-pack'))$$, '42501', 'MOCK_PAYMENT_FOR_RUB_FORBIDDEN', 'mock cannot confirm RUB order');
 reset role;
 set local role service_role;
