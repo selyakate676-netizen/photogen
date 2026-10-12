@@ -4,7 +4,7 @@
 \ir ../supabase_cloudpayments_rub_generation_recovery.sql
 begin;
 create extension if not exists pgtap;
-select plan(24);
+select plan(25);
 
 insert into auth.users(id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values ('97000000-0000-4000-8000-000000000097', '00000000-0000-4000-8000-000000000000',

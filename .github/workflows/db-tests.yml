@@ -85,10 +85,10 @@ jobs:
         run: |
           set -euo pipefail
           grep -v \
-            -e '^\ir ../supabase_photoshoot_crystal_charge.sql$' \
-            -e '^\ir ../supabase_failed_generation_refund.sql$' \
-            -e '^\ir ../supabase_cloudpayments_direct_rub.sql$' \
-            -e '^\ir ../supabase_cloudpayments_rub_generation_recovery.sql$' \
+            -e '^\\ir ../supabase_photoshoot_crystal_charge.sql$' \
+            -e '^\\ir ../supabase_failed_generation_refund.sql$' \
+            -e '^\\ir ../supabase_cloudpayments_direct_rub.sql$' \
+            -e '^\\ir ../supabase_cloudpayments_rub_generation_recovery.sql$' \
             tests/cloudpayments_rub_generation_recovery.pgtap.sql \
             > tests/cloudpayments_rub_generation_recovery_ci.pgtap.sql
           supabase test db tests/cloudpayments_rub_generation_recovery_ci.pgtap.sql
