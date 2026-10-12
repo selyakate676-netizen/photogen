@@ -22,7 +22,9 @@ select set_config('request.jwt.claim.role', 'authenticated', true);
 select public.create_persona(null, null, null, 'woman', 'green');
 select public.add_persona_photo(
   (select id from public.personas where user_id = auth.uid()),
-  'personas/97000000-0000-4000-8000-000000000097/source.jpg'
+  'personas/97000000-0000-4000-8000-000000000097/'
+    || (select id from public.personas where user_id = auth.uid())
+    || '/source.jpg'
 );
 select public.create_photoshoot_with_persona(
   (select id from public.personas where user_id = auth.uid()), 'rub-recovery-pack', '{}',
