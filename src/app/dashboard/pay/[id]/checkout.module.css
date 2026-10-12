@@ -1,0 +1,51 @@
+.checkoutCard {
+  width: min(100%, 440px);
+  padding: clamp(20px, 5vw, 32px);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+}
+
+.orderMeta {
+  margin: 16px 0 24px;
+  color: var(--text-on-dark-secondary);
+  line-height: 1.6;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid var(--border-dark);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.price {
+  color: var(--accent-primary);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.statusMessage {
+  max-width: 420px;
+  margin-top: 16px;
+  color: var(--text-on-dark-secondary);
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .checkoutCard {
+    padding: 20px 16px;
+  }
+
+  .priceRow {
+    align-items: flex-start;
+    flex-direction: column;
+    text-align: left;
+  }
+}

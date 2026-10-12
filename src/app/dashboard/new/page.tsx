@@ -38,11 +38,13 @@ export default function NewPhotoshootPage() {
   const [styleError, setStyleError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const [paymentMethod, setPaymentMethod] = useState<'rub' | 'crystals'>('rub');
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const requestedStyleId = searchParams.get('style');
     const requestedPersonaId = searchParams.get('personaId');
+    setPaymentMethod(searchParams.get('payment') === 'crystals' ? 'crystals' : 'rub');
     const requestedPack = requestedStyleId ? getPhotoPack(requestedStyleId) : undefined;
 
     if (requestedPack) setSelectedStyle(requestedPack.id);
@@ -121,7 +123,7 @@ export default function NewPhotoshootPage() {
         source_page: 'new_photoshoot',
         ...attributionAnalyticsParams(getBrowserAttribution()),
       });
-      router.push(`/dashboard/pay/${result.data.id}`);
+      router.push(`/dashboard/pay/${result.data.id}${paymentMethod === 'crystals' ? '?payment=crystals' : ''}`);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Не удалось создать фотосессию.');
     } finally {

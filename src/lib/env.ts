@@ -1,4 +1,4 @@
-import type { AiPipelineVersion } from "@/lib/ai/pipeline/types";
+﻿import type { AiPipelineVersion } from "@/lib/ai/pipeline/types";
 import {
   DEFAULT_AI_GENERATION_MODEL,
   resolveAiGenerationModel,
@@ -23,7 +23,9 @@ type EnvName =
   | "OPENAI_API_KEY"
   | "DATABASE_URL"
   | "NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID"
-  | "CLOUDPAYMENTS_API_SECRET";
+  | "CLOUDPAYMENTS_API_SECRET"
+  | "CLOUDPAYMENTS_RUB_CHECKOUT_MODE"
+  | "CLOUDPAYMENTS_RUB_CHECKOUT_TEST_USER_IDS";
 
 export const DEFAULT_AI_PIPELINE_MODE: AiPipelineVersion = "legacy-lora-v1";
 
