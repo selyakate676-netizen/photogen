@@ -193,3 +193,39 @@ export async function claimPhotoshootGeneration(
   }
   return data === true;
 }
+export async function beginRubProviderDispatch(
+  supabase: PhotoshootSupabaseClient,
+  photoshootId: string,
+  generationAttemptId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("begin_rub_provider_dispatch", {
+    p_photoshoot_id: photoshootId,
+    p_generation_attempt_id: generationAttemptId,
+  });
+  return !error && data === true;
+}
+
+export async function confirmRubProviderPrediction(
+  supabase: PhotoshootSupabaseClient,
+  photoshootId: string,
+  generationAttemptId: string,
+  predictionId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("confirm_rub_provider_prediction", {
+    p_photoshoot_id: photoshootId,
+    p_generation_attempt_id: generationAttemptId,
+    p_prediction_id: predictionId,
+  });
+  return !error && data === true;
+}
+
+export async function markRubProviderDispatchAmbiguous(
+  supabase: PhotoshootSupabaseClient,
+  photoshootId: string,
+  generationAttemptId: string,
+): Promise<void> {
+  await supabase.rpc("mark_rub_provider_dispatch_ambiguous", {
+    p_photoshoot_id: photoshootId,
+    p_generation_attempt_id: generationAttemptId,
+  });
+}

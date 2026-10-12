@@ -31,6 +31,9 @@ export interface Database {
           training_id: string | null;
           lora_url: string | null;
           generation_id: string | null;
+          generation_attempt_id: string | null;
+          generation_claimed_at: string | null;
+          provider_dispatch_state: "not_started" | "dispatching" | "confirmed" | "ambiguous" | null;
           safe_error: string | null;
           requested_images_count: number | null;
           package_snapshot: Json | null;
@@ -61,6 +64,9 @@ export interface Database {
           training_id?: string | null;
           lora_url?: string | null;
           generation_id?: string | null;
+          generation_attempt_id?: string | null;
+          generation_claimed_at?: string | null;
+          provider_dispatch_state?: "not_started" | "dispatching" | "confirmed" | "ambiguous" | null;
           safe_error?: string | null;
           requested_images_count?: number | null;
           package_snapshot?: Json | null;
@@ -88,6 +94,9 @@ export interface Database {
           training_id?: string | null;
           lora_url?: string | null;
           generation_id?: string | null;
+          generation_attempt_id?: string | null;
+          generation_claimed_at?: string | null;
+          provider_dispatch_state?: "not_started" | "dispatching" | "confirmed" | "ambiguous" | null;
           height_class?: PhotoshootHeightClass | null;
           body_shape?: PhotoshootBodyShape | null;
           body_build?: PhotoshootBodyBuild | null;
@@ -276,6 +285,22 @@ export interface Database {
         Returns: Database['public']['Tables']['photoshoots']['Row'][];
       };
       claim_photoshoot_generation: {
+        Args: { p_photoshoot_id: string };
+        Returns: boolean;
+      };
+      begin_rub_provider_dispatch: {
+        Args: { p_photoshoot_id: string; p_generation_attempt_id: string };
+        Returns: boolean;
+      };
+      confirm_rub_provider_prediction: {
+        Args: { p_photoshoot_id: string; p_generation_attempt_id: string; p_prediction_id: string };
+        Returns: boolean;
+      };
+      mark_rub_provider_dispatch_ambiguous: {
+        Args: { p_photoshoot_id: string; p_generation_attempt_id: string };
+        Returns: boolean;
+      };
+      recover_rub_generation_pre_provider: {
         Args: { p_photoshoot_id: string };
         Returns: boolean;
       };

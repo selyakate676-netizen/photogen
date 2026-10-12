@@ -36,7 +36,14 @@ import {
   splitSceneAndHeroPrompt,
 } from "@/lib/ai/prompt-system-quality";
 import { s3Client } from "@/lib/s3";
-import { claimPhotoshootGeneration, updatePhotoshootGenerationStatus, updatePhotoshootStatus } from "@/lib/photoshoots/status";
+import {
+  beginRubProviderDispatch,
+  claimPhotoshootGeneration,
+  confirmRubProviderPrediction,
+  markRubProviderDispatchAmbiguous,
+  updatePhotoshootGenerationStatus,
+  updatePhotoshootStatus,
+} from "@/lib/photoshoots/status";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import type { Photoshoot } from "@/types/database";
@@ -1637,6 +1644,20 @@ export async function startMvpGenerationForPhotoshoot(
 
   logGenerationEvent("info", "generation_claim_acquired", "wallet_payment_gate", photoshoot.id);
 
+  let rubGenerationAttemptId: string | null = null;
+  if (photoshoot.payment_source === "rub") {
+    const { data: claimedPhotoshoot, error: claimedPhotoshootError } = await serviceClient
+      .from("photoshoots")
+      .select("generation_attempt_id")
+      .eq("id", photoshoot.id)
+      .single();
+
+    if (claimedPhotoshootError || !claimedPhotoshoot?.generation_attempt_id) {
+      throw new Error("RUB_GENERATION_ATTEMPT_NOT_RECORDED");
+    }
+    rubGenerationAttemptId = claimedPhotoshoot.generation_attempt_id;
+  }
+
   const requestedImageCount = getRequestedImageCount(photoshoot.requested_images_count);
   const isShortNanoPack = isShortNanoPackStyle(photoshoot.style_id);
   const shouldRunHeroSet = shouldRunHeroCompositionSet(photoshoot, options);
@@ -1678,26 +1699,55 @@ export async function startMvpGenerationForPhotoshoot(
       : isShortNanoPack
         ? generation.scenePackage
         : buildMvpPromptWithScenePackage(photoshoot, generation.scenePackage);
+    if (rubGenerationAttemptId) {
+      const dispatchStarted = await beginRubProviderDispatch(
+        serviceClient,
+        photoshoot.id,
+        rubGenerationAttemptId,
+      );
+      if (!dispatchStarted) throw new Error("RUB_PROVIDER_DISPATCH_NOT_ALLOWED");
+    }
+
     logGenerationEvent("info", "provider_call_started", "provider_call", photoshoot.id);
-    const prediction = (await createPredictionWithRateLimit(replicate, {
-      ...predictionTarget,
-      input: buildReplicateImageInput(generationModel, finalPrompt, referenceUrls),
-      ...(shouldWaitForCompletion
-        ? {}
-        : {
-            webhook: webhookUrl,
-            webhook_events_filter: ["completed"],
-          }),
-    })) as ReplicatePredictionResponse;
+    let prediction: ReplicatePredictionResponse;
+    try {
+      prediction = (await createPredictionWithRateLimit(replicate, {
+        ...predictionTarget,
+        input: buildReplicateImageInput(generationModel, finalPrompt, referenceUrls),
+        ...(shouldWaitForCompletion
+          ? {}
+          : {
+              webhook: webhookUrl,
+              webhook_events_filter: ["completed"],
+            }),
+      })) as ReplicatePredictionResponse;
+    } catch (error) {
+      if (rubGenerationAttemptId) {
+        await markRubProviderDispatchAmbiguous(serviceClient, photoshoot.id, rubGenerationAttemptId);
+      }
+      throw error;
+    }
 
     predictionIds.push(prediction.id);
     logGenerationEvent("info", "prediction_created", "prediction", photoshoot.id);
 
-    await serviceClient
-      .from("photoshoots")
-      .update({ generation_id: predictionIds.join(",") })
-      .eq("id", photoshoot.id);
-
+    if (rubGenerationAttemptId) {
+      const predictionRecorded = await confirmRubProviderPrediction(
+        serviceClient,
+        photoshoot.id,
+        rubGenerationAttemptId,
+        prediction.id,
+      );
+      if (!predictionRecorded) {
+        await markRubProviderDispatchAmbiguous(serviceClient, photoshoot.id, rubGenerationAttemptId);
+        throw new Error("RUB_PROVIDER_PREDICTION_NOT_RECORDED");
+      }
+    } else {
+      await serviceClient
+        .from("photoshoots")
+        .update({ generation_id: predictionIds.join(",") })
+        .eq("id", photoshoot.id);
+    }
     if (!shouldWaitForCompletion) {
       continue;
     }
