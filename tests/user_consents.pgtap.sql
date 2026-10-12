@@ -121,6 +121,9 @@ select is(
   0::bigint,
   'authenticated has no direct consent mutation grants'
 );
+-- Switch out of the other authenticated fixture user before inspecting the trigger-owned audit row.
+reset role;
+
 select is(
   (select document_version from public.user_consents where user_id = 'c3000000-0000-4000-8000-000000000003'),
   '2026-10-10',
