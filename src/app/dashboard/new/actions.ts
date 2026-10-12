@@ -54,6 +54,9 @@ export async function createPhotoshoot({ personaId, styleId, attribution }: Crea
 
   if (error) {
     console.error('Database error:', error);
+    if (error.message.includes('PERSONAL_DATA_CONSENT_REQUIRED')) {
+      return { error: 'Подтвердите согласие на обработку персональных данных в профиле', status: 428 };
+    }
     if (error.code === 'P0002' || error.message.includes('PERSONA_NOT_FOUND')) {
       return { error: 'Persona не найдена. Выберите её заново', status: 404 };
     }

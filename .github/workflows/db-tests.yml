@@ -70,6 +70,9 @@ jobs:
       - name: Run RPC ACL hardening pgTAP tests
         run: supabase test db tests/rpc_acl_hardening.pgtap.sql
 
+      - name: Run personal-data consent pgTAP tests
+        run: supabase test db tests/user_consents.pgtap.sql
+
       - name: Stop ephemeral Supabase
         if: always()
         run: supabase stop --no-backup

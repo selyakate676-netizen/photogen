@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import { trackAnalyticsGoal } from '@/lib/analytics';
-import SocialAuth from '@/components/SocialAuth';
+import { PERSONAL_DATA_CONSENT } from '@/lib/consents';
 import styles from '../login/login.module.css';
 
 export default function SignupPage() {
@@ -15,6 +15,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [personalDataConsent, setPersonalDataConsent] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -28,6 +29,11 @@ export default function SignupPage() {
       return;
     }
 
+    if (!personalDataConsent) {
+      setError('Для регистрации необходимо согласие на обработку персональных данных');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -35,7 +41,12 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?personal_data_consent=${encodeURIComponent(PERSONAL_DATA_CONSENT.version)}`,
+          data: {
+            personal_data_consent_accepted: true,
+            personal_data_consent_version: PERSONAL_DATA_CONSENT.version,
+            personal_data_consent_path: PERSONAL_DATA_CONSENT.path,
+          },
         },
       });
 
@@ -87,9 +98,9 @@ export default function SignupPage() {
         <div className={styles.guarantee}>
           <div className={styles.shield}>🛡️</div>
           <div>
-            <span className={styles.guaranteeTitle}>100% Гарантия качества</span>
+            <span className={styles.guaranteeTitle}>Поддержка при технических ошибках</span>
             <p className={styles.guaranteeText}>
-              Мы уверены в результате. Если вам не понравятся сгенерированные фотографии, мы вернем оплату в полном объеме.
+              Если генерация не стартовала или сервис технически не смог предоставить результат, применяется предусмотренный сервисом механизм восстановления или возврата.
             </p>
           </div>
         </div>
@@ -134,6 +145,20 @@ export default function SignupPage() {
             />
           </div>
 
+          <label className={styles.consentRow}>
+            <input
+              type="checkbox"
+              checked={personalDataConsent}
+              onChange={(event) => setPersonalDataConsent(event.target.checked)}
+              required
+            />
+            <span>
+              Я даю согласие на обработку персональных данных. Ознакомиться с{' '}
+              <Link href="/personal-data-consent">согласием</Link>,{' '}
+              <Link href="/privacy">политикой конфиденциальности</Link> и{' '}
+              <Link href="/offer">офертой</Link>.
+            </span>
+          </label>
           {error && <div className={styles.error}>{error}</div>}
 
           <button 
@@ -144,10 +169,7 @@ export default function SignupPage() {
             {loading ? 'Регистрация...' : 'Зарегистрироваться'}
           </button>
         </form>
-
-        <SocialAuth />
-
-        <div className={styles.footer}>
+<div className={styles.footer}>
           Уже есть аккаунт? 
           <Link href="/login" className={styles.link}>Войти</Link>
         </div>

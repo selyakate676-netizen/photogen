@@ -8,7 +8,29 @@ export type PhotoshootBodyBuild = "slim" | "average" | "full";
 
 export interface Database {
   public: {
-    Tables: {
+Tables: {
+      user_consents: {
+        Row: {
+          id: string;
+          user_id: string;
+          consent_type: string;
+          document_version: string;
+          document_path: string;
+          accepted_at: string;
+          photoshoot_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          consent_type: string;
+          document_version: string;
+          document_path: string;
+          accepted_at?: string;
+          photoshoot_id?: string | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
       photoshoots: {
         Row: {
           id: string;
@@ -179,7 +201,15 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: {
+Functions: {
+      has_current_personal_data_consent: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      accept_personal_data_consent: {
+        Args: { p_document_version: string; p_document_path: string };
+        Returns: Database['public']['Tables']['user_consents']['Row'][];
+      };
       is_photoshoot_safe_to_cancel: {
         Args: { p_photoshoot_id: string };
         Returns: boolean;

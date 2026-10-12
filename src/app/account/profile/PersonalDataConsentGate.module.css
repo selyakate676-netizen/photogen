@@ -1,0 +1,46 @@
+.main {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-xl);
+}
+
+.card {
+  width: min(100%, 640px);
+  padding: var(--space-xl);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--surface-primary);
+}
+
+.card form,
+.consentRow {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.card form {
+  flex-direction: column;
+  margin-top: var(--space-lg);
+}
+
+.consentRow {
+  align-items: flex-start;
+  line-height: 1.5;
+}
+
+.consentRow input {
+  margin-top: 0.25rem;
+  accent-color: var(--accent-primary);
+}
+
+.consentRow a,
+.resultsLink {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+
+.resultsLink {
+  display: inline-block;
+  margin-top: var(--space-lg);
+}

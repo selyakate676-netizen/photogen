@@ -46,6 +46,22 @@ test('owner-approved service, refund, use, safety, and contact terms are public'
     assert.match(source, /https:\/\/t\.me\/photogenlab/);
   }
 });
+test('auth pages use the published technical-failure refund wording', () => {
+  const offer = read('src/app/offer/page.tsx');
+  const authPages = [
+    read('src/app/login/page.tsx'),
+    read('src/app/signup/page.tsx'),
+  ];
+  const neutralCopy = 'Если генерация не стартовала или сервис технически не смог предоставить результат, применяется предусмотренный сервисом механизм восстановления или возврата.';
+
+  assert.ok(offer.includes(neutralCopy));
+  for (const source of authPages) {
+    assert.match(source, /Поддержка при технических ошибках/);
+    assert.ok(source.includes(neutralCopy));
+    assert.doesNotMatch(source, /100% Гарантия качества/);
+    assert.doesNotMatch(source, /Если вам не понравятся.*вернем оплату в полном объеме/s);
+  }
+});
 test('authenticated upload copy matches private Persona storage behavior', () => {
   const upload = read('src/app/dashboard/new/PhotoUpload.tsx');
   assert.match(upload, /хранятся приватно/);

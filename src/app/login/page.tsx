@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import SocialAuth from '@/components/SocialAuth';
 import styles from './login.module.css';
 
 export default function LoginPage() {
@@ -51,9 +50,9 @@ export default function LoginPage() {
         <div className={styles.guarantee}>
           <div className={styles.shield}>🛡️</div>
           <div>
-            <span className={styles.guaranteeTitle}>100% Гарантия качества</span>
+            <span className={styles.guaranteeTitle}>Поддержка при технических ошибках</span>
             <p className={styles.guaranteeText}>
-              Мы уверены в результате. Если вам не понравятся сгенерированные фотографии, мы вернем оплату в полном объеме.
+              Если генерация не стартовала или сервис технически не смог предоставить результат, применяется предусмотренный сервисом механизм восстановления или возврата.
             </p>
           </div>
         </div>
@@ -73,7 +72,10 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.group}>
-            <label className={styles.label} htmlFor="password">Пароль</label>
+            <div className={styles.passwordLabelRow}>
+              <label className={styles.label} htmlFor="password">Пароль</label>
+              <Link href="/forgot-password" className={styles.forgotPasswordLink}>Забыли пароль?</Link>
+            </div>
             <input
               id="password"
               type="password"
@@ -96,7 +98,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <SocialAuth />
 
         <div className={styles.footer}>
           Нет аккаунта? 

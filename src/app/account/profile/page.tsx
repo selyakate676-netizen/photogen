@@ -1,11 +1,15 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import ProfileWorkspace from './ProfileWorkspace';
+import PersonalDataConsentGate from './PersonalDataConsentGate';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+
+  const { data: hasCurrentConsent } = await supabase.rpc('has_current_personal_data_consent');
+  if (!hasCurrentConsent) return <PersonalDataConsentGate />;
 
   const displayName = typeof user.user_metadata?.name === 'string'
     ? user.user_metadata.name
