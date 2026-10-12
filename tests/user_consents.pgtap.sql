@@ -65,8 +65,8 @@ reset role;
 select set_config('request.jwt.claim.sub', '', true);
 insert into public.personas(user_id, name, is_default, status)
 values ('c2000000-0000-4000-8000-000000000002', 'Legacy Persona', true, 'active');
-insert into public.persona_photos(persona_id, storage_path)
-select id, 'personas/c2000000-0000-4000-8000-000000000002/' || id || '/one.jpg'
+insert into public.persona_photos(persona_id, storage_path, sort_order)
+select id, 'personas/c2000000-0000-4000-8000-000000000002/' || id || '/one.jpg', 0
 from public.personas where user_id = 'c2000000-0000-4000-8000-000000000002';
 
 set local role authenticated;
