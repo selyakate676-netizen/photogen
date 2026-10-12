@@ -44,6 +44,7 @@ jobs:
           cp supabase_crystal_wallet.sql supabase/migrations/20260807001200_crystal_wallet.sql
           cp supabase_marketing_attribution.sql supabase/migrations/20260807001300_marketing_attribution.sql
           cp supabase_pending_action_lifecycle.sql supabase/migrations/20260807001400_pending_action_lifecycle.sql
+          cp supabase_user_consents.sql supabase/migrations/20260807001500_user_consents.sql
 
       - name: Start ephemeral Supabase
         run: supabase start

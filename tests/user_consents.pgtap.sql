@@ -1,5 +1,3 @@
-\ir ../supabase_user_consents.sql
-
 begin;
 create extension if not exists pgtap;
 select plan(24);
