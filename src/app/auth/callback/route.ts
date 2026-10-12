@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { PERSONAL_DATA_CONSENT } from '@/lib/consents';
 import { createClient } from '@/utils/supabase/server';
 
 function safeNextPath(value: string | null): string {
@@ -30,16 +29,6 @@ export async function GET(request: Request) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     return NextResponse.redirect(redirectUrl(request, authErrorDestination(next)));
-  }
-
-  if (url.searchParams.get('personal_data_consent') === PERSONAL_DATA_CONSENT.version) {
-    const { error: consentError } = await supabase.rpc('accept_personal_data_consent', {
-      p_document_version: PERSONAL_DATA_CONSENT.version,
-      p_document_path: PERSONAL_DATA_CONSENT.path,
-    });
-    if (consentError) {
-      return NextResponse.redirect(redirectUrl(request, '/auth/auth-code-error'));
-    }
   }
 
   return NextResponse.redirect(redirectUrl(request, next));

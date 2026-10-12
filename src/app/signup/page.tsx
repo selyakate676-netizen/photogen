@@ -41,7 +41,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?personal_data_consent=${encodeURIComponent(PERSONAL_DATA_CONSENT.version)}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             personal_data_consent_accepted: true,
             personal_data_consent_version: PERSONAL_DATA_CONSENT.version,

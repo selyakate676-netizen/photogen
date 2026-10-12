@@ -15,11 +15,14 @@ test('signup requires the current personal-data consent and links all referenced
   assert.match(constants, /version: '2026-10-10'/);
 });
 
-test('OAuth callback and existing-user profile gate persist consent through the trusted RPC', () => {
+test('callback never accepts consent from URL parameters and existing users use the explicit profile form', () => {
+  const signup = read('src/app/signup/page.tsx');
   const callback = read('src/app/auth/callback/route.ts');
   const profile = read('src/app/account/profile/page.tsx');
   const action = read('src/app/account/profile/consent-actions.ts');
-  assert.match(callback, /accept_personal_data_consent/);
+  assert.doesNotMatch(callback, /personal_data_consent|accept_personal_data_consent|PERSONAL_DATA_CONSENT/);
+  assert.match(signup, /emailRedirectTo:\s*`\$\{window\.location\.origin\}\/auth\/callback`/);
+  assert.doesNotMatch(signup, /emailRedirectTo:[^\n]*personal_data_consent/);
   assert.match(profile, /has_current_personal_data_consent/);
   assert.match(profile, /PersonalDataConsentGate/);
   assert.match(action, /accept_personal_data_consent/);
