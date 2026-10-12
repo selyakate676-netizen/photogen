@@ -95,7 +95,7 @@ select set_config('request.jwt.claim.role', 'authenticated', true);
 select public.confirm_mock_photoshoot_payment((select id from public.photoshoots where style_id = 'crystal-recovery-control'));
 select throws_ok($$select public.recover_rub_generation_pre_provider(
   (select id from public.photoshoots where style_id = 'rub-recovery-pack'))$$,
-  '42501', 'SERVICE_ROLE_REQUIRED', 'authenticated user cannot invoke recovery');
+  '42501', 'permission denied for function recover_rub_generation_pre_provider', 'authenticated user cannot invoke recovery');
 reset role;
 
 set local role service_role;
