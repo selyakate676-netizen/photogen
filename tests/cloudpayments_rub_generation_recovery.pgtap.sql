@@ -36,12 +36,15 @@ select public.create_photoshoot_with_persona(
   'woman', 'average', 'green', '', null, null, null, null, null, 2,
   '{"id":"crystal-recovery-control","slug":"crystal-recovery-control","name":"Crystal control","price_rub":99,"price_crystals":2}'::jsonb
 );
-select public.create_cloudpayments_payment((select id from public.photoshoots where style_id = 'rub-recovery-pack'));
 reset role;
 
 set local role service_role;
 select set_config('request.jwt.claim.sub', '', true);
 select set_config('request.jwt.claim.role', 'service_role', true);
+select public.create_cloudpayments_payment(
+  (select id from public.photoshoots where style_id = 'rub-recovery-pack'),
+  '97000000-0000-4000-8000-000000000097'
+);
 select * from public.process_cloudpayments_notification(
   'pay', (select id from public.cloudpayments_payments), 'tx-recovery', 9900, 'RUB'
 );
