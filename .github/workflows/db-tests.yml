@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/crystal-wallet-ledger
+      - feature/cloudpayments-direct-rub
 
 permissions:
   contents: read

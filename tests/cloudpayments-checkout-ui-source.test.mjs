@@ -73,6 +73,9 @@ test('RUB checkout is server-gated for controlled production rollout', () => {
   assert.match(create, /isCloudPaymentsRubCheckoutAllowed\(user\.id\)/);
   assert.match(create, /RUB_CHECKOUT_NOT_AVAILABLE/);
   assert.ok(create.indexOf('RUB_CHECKOUT_NOT_AVAILABLE') < create.indexOf('create_cloudpayments_payment'));
+  assert.match(create, /\.eq\("user_id", user\.id\)/);
+  assert.match(create, /createServiceRoleClient\(\)/);
+  assert.match(create, /p_user_id: user\.id/);
   assert.match(page, /rubCheckoutAllowed = crystalFlow \|\| isCloudPaymentsRubCheckoutAllowed\(user\.id\)/);
   assert.match(page, /rubCheckoutAllowed \? \([\s\S]*?<CloudPaymentsCheckout/);
   assert.match(page, /Оплата банковской картой сейчас доступна только в закрытом тесте/);

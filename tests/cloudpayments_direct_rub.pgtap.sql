@@ -3,7 +3,7 @@
 \ir ../supabase_cloudpayments_direct_rub.sql
 begin;
 create extension if not exists pgtap;
-select plan(16);
+select plan(18);
 insert into auth.users(id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values ('96000000-0000-4000-8000-000000000096', '00000000-0000-4000-8000-000000000000', 'authenticated', 'authenticated', 'cloudpayments@example.test', '', now(), now());
 set local role service_role;
@@ -23,7 +23,32 @@ select public.add_persona_photo(
 );
 select public.create_photoshoot_with_persona((select id from public.personas where user_id = auth.uid()), 'rub-pack', '{}', 'woman', 'average', 'green', '', null, null, null, null, null, 2, '{"id":"rub-pack","slug":"rub-pack","name":"RUB","price_rub":99,"price_crystals":20}'::jsonb);
 select public.create_photoshoot_with_persona((select id from public.personas where user_id = auth.uid()), 'crystal-pack', '{}', 'woman', 'average', 'green', '', null, null, null, null, null, 2, '{"id":"crystal-pack","slug":"crystal-pack","name":"Crystal","price_rub":99,"price_crystals":2}'::jsonb);
-select public.create_cloudpayments_payment((select id from public.photoshoots where style_id = 'rub-pack'));
+select throws_ok(
+  $$select public.create_cloudpayments_payment((select id from public.photoshoots where style_id = 'rub-pack'), auth.uid())$$,
+  '42501',
+  'permission denied for function create_cloudpayments_payment',
+  'authenticated cannot create a payment directly'
+);
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', 'service_role', true);
+select throws_ok(
+  $$select public.create_cloudpayments_payment(
+    (select id from public.photoshoots where style_id = 'rub-pack'),
+    '97000000-0000-4000-8000-000000000097'
+  )$$,
+  'P0002',
+  'PHOTOSHOOT_NOT_FOUND',
+  'server cannot create a payment for a non-owner'
+);
+select public.create_cloudpayments_payment(
+  (select id from public.photoshoots where style_id = 'rub-pack'),
+  '96000000-0000-4000-8000-000000000096'
+);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '96000000-0000-4000-8000-000000000096', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
 select is((select amount_minor from public.cloudpayments_payments), 9900::bigint, 'RUB price is fixed from immutable order snapshot');
 select is((select payment_source from public.photoshoots where style_id = 'rub-pack'), 'rub', 'photoshoot is linked to RUB payment');
 select ok(not has_table_privilege('authenticated', 'public.photoshoots', 'UPDATE'), 'authenticated cannot replace trusted payment linkage');

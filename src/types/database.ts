@@ -221,7 +221,7 @@ export interface Database {
     Views: Record<string, never>;
     Functions: {
       create_cloudpayments_payment: {
-        Args: { p_photoshoot_id: string };
+        Args: { p_photoshoot_id: string; p_user_id: string };
         Returns: Database["public"]["Tables"]["cloudpayments_payments"]["Row"];
       };
       process_cloudpayments_notification: {

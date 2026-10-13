@@ -65,22 +65,29 @@ create trigger guard_photoshoot_payment_linkage
 before update of payment_source, payment_id on public.photoshoots
 for each row execute function public.guard_photoshoot_payment_linkage();
 
-create or replace function public.create_cloudpayments_payment(p_photoshoot_id uuid)
+drop function if exists public.create_cloudpayments_payment(uuid);
+
+create or replace function public.create_cloudpayments_payment(
+  p_photoshoot_id uuid,
+  p_user_id uuid
+)
 returns public.cloudpayments_payments
 language plpgsql security definer set search_path = public as $$
 declare
-  v_user uuid := auth.uid();
   v_photoshoot public.photoshoots;
   v_payment public.cloudpayments_payments;
   v_price_text text;
   v_amount_minor bigint;
 begin
-  if v_user is null then
-    raise exception using errcode = '42501', message = 'AUTH_REQUIRED';
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception using errcode = '42501', message = 'SERVICE_ROLE_REQUIRED';
+  end if;
+  if p_user_id is null then
+    raise exception using errcode = '22023', message = 'USER_REQUIRED';
   end if;
 
   select * into v_photoshoot from public.photoshoots
-  where id = p_photoshoot_id and user_id = v_user for update;
+  where id = p_photoshoot_id and user_id = p_user_id for update;
   if not found then raise exception using errcode = 'P0002', message = 'PHOTOSHOOT_NOT_FOUND'; end if;
   if v_photoshoot.status <> 'awaiting_payment' then
     raise exception using errcode = '23514', message = 'PHOTOSHOOT_NOT_AWAITING_PAYMENT';
@@ -105,7 +112,7 @@ begin
     where id = v_payment.id returning * into v_payment;
   else
     insert into public.cloudpayments_payments(photoshoot_id, user_id, amount_minor, currency)
-    values (v_photoshoot.id, v_user, v_amount_minor, 'RUB')
+    values (v_photoshoot.id, p_user_id, v_amount_minor, 'RUB')
     returning * into v_payment;
   end if;
 
@@ -277,9 +284,9 @@ begin
   return true;
 end $$;
 
-revoke all privileges on function public.create_cloudpayments_payment(uuid)
+revoke all privileges on function public.create_cloudpayments_payment(uuid, uuid)
   from public, anon, authenticated, service_role;
-grant execute on function public.create_cloudpayments_payment(uuid) to authenticated;
+grant execute on function public.create_cloudpayments_payment(uuid, uuid) to service_role;
 revoke all privileges on function public.process_cloudpayments_notification(text, uuid, text, bigint, text)
   from public, anon, authenticated, service_role;
 grant execute on function public.process_cloudpayments_notification(text, uuid, text, bigint, text) to service_role;

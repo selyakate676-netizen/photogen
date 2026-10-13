@@ -12,6 +12,18 @@ test("checkout fixes RUB amount and invoice on the server", () => {
   assert.match(migration, /v_price_text::bigint \* 100/);
   assert.doesNotMatch(create, /payload\.(amount|currency|status|invoiceId)/);
 });
+test("only the server can create a payment for the authenticated order owner", () => {
+  assert.match(migration, /create_cloudpayments_payment\(\s*p_photoshoot_id uuid,\s*p_user_id uuid\s*\)/);
+  assert.match(migration, /drop function if exists public\.create_cloudpayments_payment\(uuid\)/);
+  assert.match(migration, /SERVICE_ROLE_REQUIRED/);
+  assert.match(migration, /where id = p_photoshoot_id and user_id = p_user_id for update/);
+  assert.match(migration, /grant execute on function public\.create_cloudpayments_payment\(uuid, uuid\) to service_role/);
+  assert.doesNotMatch(migration, /grant execute on function public\.create_cloudpayments_payment[^;]+to authenticated/);
+  assert.match(create, /\.eq\("user_id", user\.id\)/);
+  assert.match(create, /createServiceRoleClient\(\)/);
+  assert.match(create, /p_user_id: user\.id/);
+  assert.doesNotMatch(create, /payload\.userId/);
+});
 test("payment schema reserves a future top-up type without implementing it", () => {
   assert.match(migration, /purchase_type in \('direct_photoshoot', 'crystal_topup'\)/);
   assert.match(migration, /purchase_type = 'crystal_topup' and photoshoot_id is null/);
