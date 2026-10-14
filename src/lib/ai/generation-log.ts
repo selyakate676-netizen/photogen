@@ -21,7 +21,8 @@ export type GenerationErrorCode =
   | "INVALID_PROVIDER_OUTPUT"
   | "RESULT_PERSISTENCE_ERROR"
   | "RESULT_COUNT_ERROR"
-  | "RESULT_TRANSITION_ERROR";
+  | "RESULT_TRANSITION_ERROR"
+  | "RECOVERY_ERROR";
 
 type GenerationLogLevel = "info" | "warn" | "error";
 

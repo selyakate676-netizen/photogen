@@ -40,11 +40,25 @@ test("RUB claim bypasses wallet only after succeeded linked payment", () => {
   assert.match(migration, /else[\s\S]*perform public\.debit_wallet\(/);
   assert.match(migration, /MOCK_PAYMENT_FOR_RUB_FORBIDDEN/);
   assert.match(migration, /PAYMENT_LINKAGE_TRUSTED_OPERATION_REQUIRED/);
+  assert.match(migration, /revoke all privileges on function public\.guard_photoshoot_payment_linkage\(\)[\s\S]*from public, anon, authenticated, service_role/);
 });
-test("Pay is idempotent and Fail cannot undo success", () => {
+test("Pay is idempotent, Fail cannot undo success, and webhook does not await generation", () => {
   assert.match(migration, /if v_payment\.status = 'succeeded'[\s\S]*return query select true, false/);
   assert.match(migration, /if v_payment\.status <> 'succeeded' then[\s\S]*status = 'failed'/);
-  assert.match(webhook, /data\.should_start_generation/);
+  assert.doesNotMatch(webhook, /startQueuedPhotoshootGenerationFromPayment|data\.should_start_generation/);
+  assert.match(webhook, /if \(error \|\| !data\?\.accepted\)[\s\S]*return NextResponse\.json\(\{ code: 0 \}\)/);
+});
+test("notification RPC rejects null required fields and rotates failed attempts", () => {
+  assert.match(migration, /p_notification_type is null/);
+  assert.match(migration, /p_invoice_id is null[\s\S]*INVOICE_REQUIRED/);
+  assert.match(migration, /p_amount_minor is null[\s\S]*AMOUNT_REQUIRED/);
+  assert.match(migration, /p_currency is null[\s\S]*CURRENCY_REQUIRED/);
+  assert.match(migration, /p_notification_type = 'pay'[\s\S]*TRANSACTION_ID_REQUIRED/);
+  assert.match(migration, /v_payment\.status = 'pending'[\s\S]*PAYMENT_REUSE_STATE_INVALID/);
+  assert.match(migration, /v_payment\.status = 'failed'[\s\S]*set id = gen_random_uuid\(\)/);
+  assert.match(migration, /v_payment\.status = 'failed'[\s\S]*set_config\('photogen\.allow_payment_linkage', 'on', true\)[\s\S]*set payment_id = null/);
+  assert.match(migration, /provider_transaction_id = null/);
+  assert.match(migration, /PAYMENT_REUSE_CONTRACT_MISMATCH/);
 });
 test("payment secrets and payloads are not logged", () => {
   assert.match(signature, /import "server-only"/);

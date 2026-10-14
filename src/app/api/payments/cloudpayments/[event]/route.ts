@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { parseCloudPaymentsBody, type CloudPaymentsNotificationType, verifyCloudPaymentsSignature } from "@/lib/payments/cloudpayments";
-import { startQueuedPhotoshootGenerationFromPayment } from "@/lib/photoshoots/orchestration";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 
 const EVENTS = new Set<CloudPaymentsNotificationType>(["check", "pay", "fail"]);
@@ -26,8 +25,5 @@ export async function POST(request: Request, context: { params: Promise<{ event:
     p_currency: notification.currency,
   }).single();
   if (error || !data?.accepted) return NextResponse.json({ code: 13 });
-  if (event === "pay" && data.should_start_generation && data.photoshoot_id) {
-    await startQueuedPhotoshootGenerationFromPayment(data.photoshoot_id);
-  }
   return NextResponse.json({ code: 0 });
 }

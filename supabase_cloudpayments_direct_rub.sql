@@ -59,6 +59,9 @@ begin
   end if;
   return new;
 end $$;
+revoke all privileges on function public.guard_photoshoot_payment_linkage()
+  from public, anon, authenticated, service_role;
+
 
 drop trigger if exists guard_photoshoot_payment_linkage on public.photoshoots;
 create trigger guard_photoshoot_payment_linkage
@@ -104,12 +107,28 @@ begin
     and photoshoot_id = v_photoshoot.id for update;
 
   if found then
+    if v_payment.user_id is distinct from p_user_id
+       or v_payment.provider <> 'cloudpayments'
+       or v_payment.amount_minor <> v_amount_minor
+       or v_payment.currency <> 'RUB' then
+      raise exception using errcode = '23514', message = 'PAYMENT_REUSE_CONTRACT_MISMATCH';
+    end if;
     if v_payment.status = 'succeeded' then
       raise exception using errcode = '23505', message = 'PAYMENT_ALREADY_SUCCEEDED';
     end if;
-    update public.cloudpayments_payments
-    set status = 'pending', failed_at = null, updated_at = now()
-    where id = v_payment.id returning * into v_payment;
+    if v_payment.status = 'pending' then
+      if v_payment.provider_transaction_id is not null or v_payment.paid_at is not null then
+        raise exception using errcode = '23514', message = 'PAYMENT_REUSE_STATE_INVALID';
+      end if;
+    elsif v_payment.status = 'failed' then
+      perform set_config('photogen.allow_payment_linkage', 'on', true);
+      update public.photoshoots set payment_id = null where id = v_photoshoot.id;
+      update public.cloudpayments_payments
+      set id = gen_random_uuid(), status = 'pending', provider_transaction_id = null,
+          amount_minor = v_amount_minor, currency = 'RUB', paid_at = null,
+          failed_at = null, updated_at = now()
+      where id = v_payment.id returning * into v_payment;
+    end if;
   else
     insert into public.cloudpayments_payments(photoshoot_id, user_id, amount_minor, currency)
     values (v_photoshoot.id, p_user_id, v_amount_minor, 'RUB')
@@ -145,8 +164,23 @@ begin
   if coalesce(auth.role(), '') <> 'service_role' then
     raise exception using errcode = '42501', message = 'SERVICE_ROLE_REQUIRED';
   end if;
-  if p_notification_type not in ('check', 'pay', 'fail') then
+  if p_notification_type is null
+     or p_notification_type not in ('check', 'pay', 'fail') then
     raise exception using errcode = '22023', message = 'INVALID_NOTIFICATION_TYPE';
+  end if;
+  if p_invoice_id is null then
+    raise exception using errcode = '22004', message = 'INVOICE_REQUIRED';
+  end if;
+  if p_amount_minor is null then
+    raise exception using errcode = '22004', message = 'AMOUNT_REQUIRED';
+  end if;
+  if p_currency is null or nullif(btrim(p_currency), '') is null then
+    raise exception using errcode = '22004', message = 'CURRENCY_REQUIRED';
+  end if;
+  if p_notification_type = 'pay'
+     and (p_provider_transaction_id is null
+          or nullif(btrim(p_provider_transaction_id), '') is null) then
+    raise exception using errcode = '22004', message = 'TRANSACTION_ID_REQUIRED';
   end if;
 
   select * into v_payment from public.cloudpayments_payments
@@ -175,7 +209,12 @@ begin
   if p_notification_type = 'fail' then
     if v_payment.status <> 'succeeded' then
       update public.cloudpayments_payments
-      set status = 'failed', failed_at = now(), updated_at = now()
+      set status = 'failed',
+          provider_transaction_id = coalesce(
+            provider_transaction_id,
+            nullif(btrim(p_provider_transaction_id), '')
+          ),
+          failed_at = now(), updated_at = now()
       where id = v_payment.id;
     end if;
     return query select true, false, v_photoshoot.id, 'OK'; return;

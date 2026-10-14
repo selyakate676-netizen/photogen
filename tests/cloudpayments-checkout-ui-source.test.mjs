@@ -37,12 +37,13 @@ test('status is authenticated, ownership-scoped and read-only', () => {
   assert.doesNotMatch(status, /createServiceRoleClient|\.insert\(|\.update\(|\.rpc\(/);
 });
 
-test('widget success waits for webhook-confirmed status before generation navigation', () => {
+test('widget success waits for webhook-confirmed status without starting generation in the request', () => {
   assert.match(checkout, /onSuccess:[\s\S]*?beginStatusCheck/);
   assert.match(checkout, /paymentStatus === 'succeeded'/);
   assert.match(checkout, /MAX_POLL_ATTEMPTS = 30/);
   assert.doesNotMatch(checkout, /startQueuedPhotoshootGeneration|process_cloudpayments_notification/);
-  assert.match(webhook, /event === "pay"[\s\S]*startQueuedPhotoshootGenerationFromPayment/);
+  assert.doesNotMatch(webhook, /startQueuedPhotoshootGenerationFromPayment|startMvpGenerationForPhotoshoot/);
+  assert.match(webhook, /process_cloudpayments_notification[\s\S]*return NextResponse\.json\(\{ code: 0 \}\)/);
 });
 
 test('pending reopen, failure, cancellation and repeated clicks are bounded', () => {

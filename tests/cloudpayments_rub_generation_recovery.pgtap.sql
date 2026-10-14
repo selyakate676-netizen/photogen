@@ -4,7 +4,7 @@
 \ir ../supabase_cloudpayments_rub_generation_recovery.sql
 begin;
 create extension if not exists pgtap;
-select plan(25);
+select plan(27);
 
 insert into auth.users(id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values ('97000000-0000-4000-8000-000000000097', '00000000-0000-4000-8000-000000000000',
@@ -65,6 +65,8 @@ select is((select status from public.cloudpayments_payments), 'succeeded', 'reco
 select is((select count(*) from public.wallet_transactions where transaction_type = 'debit'), 0::bigint, 'RUB recovery does not debit crystals');
 select is(public.claim_photoshoot_generation(
   (select id from public.photoshoots where style_id = 'rub-recovery-pack')), true, 'recovered order can be claimed once');
+select is(public.claim_photoshoot_generation(
+  (select id from public.photoshoots where style_id = 'rub-recovery-pack')), false, 'overlapping worker cannot claim the same recovered order twice');
 select isnt((select generation_attempt_id::text from public.photoshoots where style_id = 'rub-recovery-pack'),
   current_setting('photogen.first_attempt'), 'new claim replaces attempt token');
 select is(public.begin_rub_provider_dispatch(
@@ -73,6 +75,9 @@ select is(public.begin_rub_provider_dispatch(
 select is(public.begin_rub_provider_dispatch(
   (select id from public.photoshoots where style_id = 'rub-recovery-pack'),
   (select generation_attempt_id from public.photoshoots where style_id = 'rub-recovery-pack')), true, 'dispatch is fenced by current attempt');
+select is(public.begin_rub_provider_dispatch(
+  (select id from public.photoshoots where style_id = 'rub-recovery-pack'),
+  (select generation_attempt_id from public.photoshoots where style_id = 'rub-recovery-pack')), false, 'overlapping worker cannot dispatch the same attempt twice');
 select is(public.confirm_rub_provider_prediction(
   (select id from public.photoshoots where style_id = 'rub-recovery-pack'),
   (select generation_attempt_id from public.photoshoots where style_id = 'rub-recovery-pack'), 'prediction-1'), true, 'first HC prediction is recorded atomically');

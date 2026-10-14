@@ -96,6 +96,9 @@ jobs:
       - name: Run RPC ACL hardening pgTAP tests
         run: supabase test db tests/rpc_acl_hardening.pgtap.sql
 
+      - name: Run CloudPayments server integration source tests
+        run: node --test tests/cloudpayments-direct-rub-source.test.mjs tests/cloudpayments-rub-recovery-source.test.mjs tests/cloudpayments-checkout-ui-source.test.mjs tests/cloudpayments-generation-worker-source.test.mjs
+
       - name: Stop ephemeral Supabase
         if: always()
         run: supabase stop --no-backup

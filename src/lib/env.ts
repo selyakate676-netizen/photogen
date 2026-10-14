@@ -24,6 +24,7 @@ type EnvName =
   | "DATABASE_URL"
   | "NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID"
   | "CLOUDPAYMENTS_API_SECRET"
+  | "CLOUDPAYMENTS_GENERATION_CRON_SECRET"
   | "CLOUDPAYMENTS_RUB_CHECKOUT_MODE"
   | "CLOUDPAYMENTS_RUB_CHECKOUT_TEST_USER_IDS";
 
@@ -100,3 +101,4 @@ export function getSupabasePublicConfig(): { url: string; anonKey: string } {
 
 export function getCloudPaymentsPublicId(): string { return getEnv("NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID"); }
 export function getCloudPaymentsApiSecret(): string { return getEnv("CLOUDPAYMENTS_API_SECRET"); }
+export function getCloudPaymentsGenerationCronSecret(): string { return getEnv("CLOUDPAYMENTS_GENERATION_CRON_SECRET"); }
