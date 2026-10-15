@@ -13,10 +13,10 @@ const styles = readFileSync(new URL('../src/components/HowItWorks.module.css', i
 
 test('homepage renders only the canonical HowItWorks component', () => {
   assert.match(home, /import HowItWorks from '@\/components\/HowItWorks';/);
-  assert.equal((home.match(/<HowItWorks \/>/g) ?? []).length, 1);
+  assert.equal((home.match(/<HowItWorks ctaState=/g) ?? []).length, 1);
 });
 test('related navigation always targets the canonical homepage section', () => {
-  assert.match(navbar, /href: '\/#how-it-works'/);
+  assert.match(navbar, /href: '\/\?section=how-it-works#how-it-works'/);
   assert.match(footer, /href="\/#how-it-works"/);
   assert.doesNotMatch(footer, /href="#how-it-works"/);
 });

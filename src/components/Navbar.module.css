@@ -33,7 +33,7 @@
 .logo {
   z-index: 1001;
   display: inline-flex;
-  width: 142px;
+  width: max-content;
   height: 34px;
   flex: 0 0 auto;
   align-items: center;
@@ -42,10 +42,12 @@
 
 .logoMark {
   display: inline-flex;
-  width: 100%;
+  width: max-content;
+  min-width: max-content;
   height: 100%;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .leftNav, .userRow { gap: clamp(14px, 1.5vw, 24px); }
@@ -193,7 +195,6 @@
 
 @media (max-width: 430px) {
   .navbar { height: 72px; }
-  .logo { width: 132px; }
   .mobileActionRow { flex-wrap: wrap; }
   .mobileActionRow .balanceCta { width: 100%; justify-content: center; }
 }

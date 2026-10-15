@@ -9,7 +9,7 @@ import ThemeToggle from './ThemeToggle';
 import styles from './Navbar.module.css';
 
 const leftLinks = [
-  { href: '/#how-it-works', label: 'Как это работает' },
+  { href: '/?section=how-it-works#how-it-works', label: 'Как это работает' },
   { href: '/#catalog', label: 'Каталог' },
   { href: '/studio', label: 'Студия' },
 ];
