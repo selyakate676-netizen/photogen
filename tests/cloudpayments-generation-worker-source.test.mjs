@@ -32,6 +32,11 @@ test("worker starts only succeeded linked direct RUB payments", () => {
   assert.match(worker, /linked\.payment_id !== payment\.id/);
 });
 
+test("worker disambiguates the payment photoshoot relationship", () => {
+  assert.match(worker, /photoshoots!cloudpayments_payments_photoshoot_id_fkey!inner/);
+  assert.doesNotMatch(worker, /photoshoots!inner/);
+});
+
 test("overlapping cron runs remain fenced by the existing atomic claim", () => {
   assert.match(worker, /DEFAULT_START_LIMIT = 1/);
   assert.match(worker, /startQueuedPhotoshootGenerationFromPayment/);

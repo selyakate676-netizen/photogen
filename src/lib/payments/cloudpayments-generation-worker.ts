@@ -100,7 +100,7 @@ export async function runCloudPaymentsGenerationWorker(options: {
 
   const { data: payments, error: queueScanError } = await supabase
     .from("cloudpayments_payments")
-    .select("id,photoshoot_id,photoshoots!inner(id,status,payment_source,payment_id)")
+    .select("id,photoshoot_id,photoshoots!cloudpayments_payments_photoshoot_id_fkey!inner(id,status,payment_source,payment_id)")
     .eq("purchase_type", "direct_photoshoot")
     .eq("provider", "cloudpayments")
     .eq("status", "succeeded")
