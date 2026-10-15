@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import styles from '../legal.module.css';
 
-export const metadata = { title: 'Политика конфиденциальности — PhotoGen' };
+export const metadata = { title: 'Политика конфиденциальности — Фотогенично' };
 
 export default function PrivacyPage() {
   return (
@@ -9,7 +9,12 @@ export default function PrivacyPage() {
       <article className={styles.content}>
         <Link className={styles.back} href="/">← На главную</Link>
         <h1 className={styles.title}>Политика конфиденциальности</h1>
-        <p className={styles.lead}>На этой странице описано, какие данные использует PhotoGen для работы сервиса.</p>
+        <p className={styles.lead}>На этой странице описано, какие данные использует сервис «Фотогенично», доступный на photogenlab.ru, для своей работы.</p>
+
+        <section className={styles.section}>
+          <h2>Оператор персональных данных</h2>
+          <p>Оператором персональных данных является индивидуальный предприниматель Табунов Михаил Валерьевич, ИНН 773379585100.</p>
+        </section>
 
         <section className={styles.section}>
           <h2>Какие данные обрабатываются</h2>
@@ -39,7 +44,7 @@ export default function PrivacyPage() {
 
         <section className={styles.section}>
           <h2>Cookies и аналитика</h2>
-          <p>PhotoGen использует необходимые cookies для авторизации и работы сервиса. Яндекс Метрика загружается после согласия пользователя на аналитические cookies.</p>
+          <p>Сервис «Фотогенично» использует необходимые cookies для авторизации и работы сервиса. Яндекс Метрика загружается после согласия пользователя на аналитические cookies.</p>
         </section>
         <section className={styles.section}>
           <h2>Связь по вопросам данных</h2>

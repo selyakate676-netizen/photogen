@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import styles from '../legal.module.css';
 
-export const metadata = { title: 'Согласие на обработку персональных данных — PhotoGen' };
+export const metadata = { title: 'Согласие на обработку персональных данных — Фотогенично' };
 
 export default function PersonalDataConsentPage() {
   return (
@@ -9,7 +9,12 @@ export default function PersonalDataConsentPage() {
       <article className={styles.content}>
         <Link className={styles.back} href="/">← На главную</Link>
         <h1 className={styles.title}>Согласие на обработку персональных данных</h1>
-        <p className={styles.lead}>Создавая аккаунт и используя PhotoGen, пользователь подтверждает согласие на обработку данных, необходимых для работы выбранных функций сервиса.</p>
+        <p className={styles.lead}>Создавая аккаунт и используя сервис «Фотогенично», доступный на photogenlab.ru, пользователь предоставляет оператору согласие на обработку данных, необходимых для работы выбранных функций сервиса.</p>
+
+        <section className={styles.section}>
+          <h2>Оператор персональных данных</h2>
+          <p>Оператором персональных данных является индивидуальный предприниматель Табунов Михаил Валерьевич, ИНН 773379585100.</p>
+        </section>
 
         <section className={styles.section}>
           <h2>Состав данных</h2>
@@ -23,7 +28,7 @@ export default function PersonalDataConsentPage() {
 
         <section className={styles.section}>
           <h2>Действия с данными</h2>
-          <p>Сервис может получать, записывать, хранить, использовать, передавать необходимым инфраструктурным и AI-провайдерам и удалять данные в пределах функций PhotoGen.</p>
+          <p>Сервис может получать, записывать, хранить, использовать, передавать необходимым инфраструктурным и AI-провайдерам и удалять данные в пределах функций сервиса «Фотогенично».</p>
         </section>
 
         <section className={styles.section}>
