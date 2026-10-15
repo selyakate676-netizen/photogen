@@ -8,7 +8,7 @@ export default function Footer() {
         <div className={styles.footerInner}>
           <div className={styles.brand}>
             <div className={styles.brandName}>
-              <span className="gradient-text">PhotoGen</span>
+              <span className="gradient-text">Фотогенично</span>
             </div>
             <p className={styles.brandDesc}>
               Профессиональные фотографии с помощью искусственного интеллекта.
@@ -45,7 +45,7 @@ export default function Footer() {
         </div>
 
         <div className={styles.footerBottom}>
-          <p className={styles.copyright}>© 2026 PhotoGen.</p>
+          <p className={styles.copyright}>© 2026 «Фотогенично».</p>
           <p className={styles.footerNote}>{"\u0418\u041f \u0422\u0430\u0431\u0443\u043d\u043e\u0432 \u00b7 \u0418\u041d\u041d 773379585100"}</p>
           <p className={styles.footerNote}>
             Сервис создания изображений с помощью искусственного интеллекта

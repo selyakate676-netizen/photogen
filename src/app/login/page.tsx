@@ -41,7 +41,7 @@ export default function LoginPage() {
     <main className={styles.main}>
       <div className={styles.loginCard}>
         <div className={styles.header}>
-          <Link href="/" className={`${styles.logo} gradient-text`}>PhotoGen</Link>
+          <Link href="/" className={`${styles.logo} gradient-text`}>Фотогенично</Link>
           <h1 className={styles.title}>Создайте личный кабинет</h1>
           <p className={styles.description}>
             Здесь будут безопасно храниться ваши исходники и готовые профессиональные фотографии в высоком разрешении.

@@ -11,7 +11,7 @@ export default async function ProfilePage() {
     ? user.user_metadata.name
     : typeof user.user_metadata?.full_name === 'string'
       ? user.user_metadata.full_name
-      : 'Пользователь PhotoGen';
+      : 'Пользователь «Фотогенично»';
 
   return (
     <ProfileWorkspace

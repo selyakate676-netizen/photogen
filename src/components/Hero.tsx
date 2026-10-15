@@ -97,7 +97,7 @@ export default function Hero() {
             <HeroCarousel groups={heroVisualGroups} />
           </div>
 
-          <div className={styles.heroBenefits} aria-label="Преимущества PhotoGen">
+          <div className={styles.heroBenefits} aria-label="Преимущества сервиса «Фотогенично»">
             {heroBenefits.map((benefit) => (
               <div className={styles.heroBenefit} key={benefit.title}>
                 <BenefitIcon name={benefit.icon} />

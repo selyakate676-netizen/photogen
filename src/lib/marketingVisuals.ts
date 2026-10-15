@@ -88,6 +88,6 @@ export const howItWorksVisuals = [
     slot: 'HowItWorks / step 3 / generated result',
     src: '/marketing/how-it-works/step-3-pack.png',
     replacementPath: '/marketing/how-it-works/step-3-pack.png',
-    alt: 'Готовый результат AI-фотосессии PhotoGen',
+    alt: 'Готовый результат AI-фотосессии «Фотогенично»',
   },
 ] as const satisfies readonly MarketingImageSlot[];

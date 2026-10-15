@@ -4,7 +4,7 @@ type PhotoGenLogoProps = HTMLAttributes<HTMLSpanElement> & {
   title?: string;
 };
 
-export default function PhotoGenLogo({ title = 'PhotoGen', className, ...props }: PhotoGenLogoProps) {
+export default function PhotoGenLogo({ title = 'Фотогенично', className, ...props }: PhotoGenLogoProps) {
   return (
     <span className={className} role="img" aria-label={title} {...props}>
       <img
@@ -36,7 +36,7 @@ export default function PhotoGenLogo({ title = 'PhotoGen', className, ...props }
           letterSpacing: 0,
         }}
       >
-        PhotoGen
+        Фотогенично
       </span>
     </span>
   );

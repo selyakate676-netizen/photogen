@@ -15,7 +15,7 @@ export default async function SettingsPage() {
       <div className={styles.settingsShell}>
         <header className={styles.sectionHeader}>
           <div>
-            <p className={styles.eyebrow}>PhotoGen</p>
+            <p className={styles.eyebrow}>Фотогенично</p>
             <h2>Настройки</h2>
             <p>Интерфейс и язык. Данные профиля находятся отдельно.</p>
           </div>

@@ -54,7 +54,7 @@ export default function SignupPage() {
       <main className={styles.main}>
         <div className={styles.loginCard}>
           <div className={styles.header}>
-            <Link href="/" className={`${styles.logo} gradient-text`}>PhotoGen</Link>
+            <Link href="/" className={`${styles.logo} gradient-text`}>Фотогенично</Link>
             <h1 className={styles.title}>Проверьте почту</h1>
           </div>
           <p style={{ textAlign: 'center', color: 'var(--text-on-dark-secondary)', lineHeight: '1.6' }}>
@@ -77,7 +77,7 @@ export default function SignupPage() {
     <main className={styles.main}>
       <div className={styles.loginCard}>
         <div className={styles.header}>
-          <Link href="/" className={`${styles.logo} gradient-text`}>PhotoGen</Link>
+          <Link href="/" className={`${styles.logo} gradient-text`}>Фотогенично</Link>
           <h1 className={styles.title}>Создать аккаунт</h1>
           <p className={styles.description}>
             Регистрация позволит вам управлять своими нейрофотосессиями и скачивать результаты в любое время.

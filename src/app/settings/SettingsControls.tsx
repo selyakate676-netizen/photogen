@@ -25,7 +25,7 @@ export default function SettingsControls() {
     <div className={styles.settingsStack}>
       <section className={styles.panel}>
         <h2>Интерфейс</h2>
-        <p className={styles.panelDescription}>Выберите оформление PhotoGen.</p>
+        <p className={styles.panelDescription}>Выберите оформление «Фотогенично».</p>
         <div className={styles.choiceGrid} role="radiogroup" aria-label="Тема интерфейса">
           {(['light', 'dark'] as const).map((value) => (
             <button key={value} type="button" role="radio" aria-checked={theme === value} className={theme === value ? styles.choiceActive : styles.choice} onClick={() => selectTheme(value)}>

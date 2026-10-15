@@ -17,11 +17,11 @@ export async function generateMetadata({ params }: PackPageProps) {
   const pack = getPhotoPack(slug);
 
   if (!pack) {
-    return { title: 'Фотосессия не найдена | PhotoGen' };
+    return { title: 'Фотосессия не найдена | Фотогенично' };
   }
 
   return {
-    title: `${pack.title} | PhotoGen`,
+    title: `${pack.title} | Фотогенично`,
     description: pack.summary,
   };
 }
