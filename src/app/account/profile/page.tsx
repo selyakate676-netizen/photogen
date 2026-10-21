@@ -18,7 +18,6 @@ export default async function ProfilePage() {
       displayName={displayName}
       email={user.email ?? 'Не указан'}
       registeredAt={new Date(user.created_at).toLocaleDateString('ru-RU')}
-      referralCode={user.id.slice(0, 8)}
     />
   );
 }
