@@ -9,7 +9,6 @@ import {
   Camera,
   Check,
   ChevronDown,
-  Copy,
   Focus,
   Glasses,
   GripVertical,
@@ -28,7 +27,6 @@ type ProfileWorkspaceProps = {
   displayName: string;
   email: string;
   registeredAt: string;
-  referralCode: string;
 };
 
 type Persona = {
@@ -116,7 +114,6 @@ export default function ProfileWorkspace({
   displayName,
   email,
   registeredAt,
-  referralCode,
 }: ProfileWorkspaceProps) {
   const router = useRouter();
   const [personas, setPersonas] = useState<Persona[]>([]);
@@ -128,8 +125,6 @@ export default function ProfileWorkspace({
   const [loadError, setLoadError] = useState('');
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [uploadPersonaId, setUploadPersonaId] = useState<string | null>(null);
-  const [referralUrl, setReferralUrl] = useState(`/signup?ref=${referralCode}`);
-  const [copied, setCopied] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -182,9 +177,8 @@ export default function ProfileWorkspace({
   }, [photos]);
 
   useEffect(() => {
-    setReferralUrl(`${window.location.origin}/signup?ref=${referralCode}`);
     void loadPersonas();
-  }, [loadPersonas, referralCode]);
+  }, [loadPersonas]);
 
   const setMessage = (personaId: string, message: string) => {
     setMessages((current) => ({ ...current, [personaId]: message }));
@@ -479,12 +473,6 @@ export default function ProfileWorkspace({
     } finally {
       setPendingAction(null);
     }
-  };
-
-  const copyReferral = async () => {
-    await navigator.clipboard.writeText(referralUrl);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1600);
   };
 
   return (
@@ -851,15 +839,8 @@ export default function ProfileWorkspace({
 
       <section className={styles.referralHighlight}>
         <div>
-          <span className={styles.referralKicker}>Реферальная программа</span>
-          <h2>Пригласите друга</h2>
-          <p>Получите бонусные токены после первой генерации приглашённого пользователя.</p>
-        </div>
-        <div className={styles.referralControls}>
-          <div className={styles.referralBox}>{referralUrl}</div>
-          <button type="button" className={styles.primaryButton} onClick={copyReferral}>
-            <Copy size={17} />{copied ? 'Скопировано' : 'Скопировать'}
-          </button>
+          <h2>Реферальная программа — скоро</h2>
+          <p>Скоро вы сможете приглашать друзей и получать бонусные кристаллы.</p>
         </div>
       </section>
 
