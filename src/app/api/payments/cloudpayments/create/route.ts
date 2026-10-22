@@ -3,10 +3,17 @@ import { getCloudPaymentsPublicId } from "@/lib/env";
 import { isCloudPaymentsRubCheckoutAllowed } from "@/lib/payments/cloudpayments-gate";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
+import { REQUIRED_ORDER_CONSENTS } from "@/lib/legal/consents";
+import { requireCurrentConsents } from "@/lib/legal/server";
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "AUTH_REQUIRED" }, { status: 401 });
+  try {
+    await requireCurrentConsents(supabase, user.id, REQUIRED_ORDER_CONSENTS);
+  } catch {
+    return NextResponse.json({ error: "LEGAL_CONSENTS_REQUIRED" }, { status: 403 });
+  }
   if (!isCloudPaymentsRubCheckoutAllowed(user.id)) {
     return NextResponse.json({ error: "RUB_CHECKOUT_NOT_AVAILABLE" }, { status: 403 });
   }

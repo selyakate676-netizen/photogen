@@ -9,6 +9,12 @@ export type PhotoshootBodyBuild = "slim" | "average" | "full";
 export interface Database {
   public: {
     Tables: {
+      user_legal_consents: {
+        Row: { id: string; user_id: string; consent_type: 'offer' | 'privacy' | 'personal_data' | 'generation'; document_version: string; action_context: 'registration' | 'upload' | 'order'; accepted_at: string };
+        Insert: { id?: string; user_id: string; consent_type: 'offer' | 'privacy' | 'personal_data' | 'generation'; document_version: string; action_context: 'registration' | 'upload' | 'order'; accepted_at?: string };
+        Update: never;
+        Relationships: [];
+      };
       photoshoots: {
         Row: {
           id: string;
@@ -220,6 +226,10 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      record_user_legal_consent: {
+        Args: { p_consent_type: string; p_action_context: string };
+        Returns: boolean;
+      };
       create_cloudpayments_payment: {
         Args: { p_photoshoot_id: string; p_user_id: string };
         Returns: Database["public"]["Tables"]["cloudpayments_payments"]["Row"];

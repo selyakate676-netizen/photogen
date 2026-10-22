@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { getPhotoPack } from '@/lib/photoPacks';
 import { authenticatedDb } from '@/lib/personas/api';
 import { sanitizeAttributionSnapshot, type AttributionSnapshot } from '@/lib/marketingAttribution';
+import { REQUIRED_ORDER_CONSENTS } from '@/lib/legal/consents';
+import { requireCurrentConsents } from '@/lib/legal/server';
 
 type CreatePhotoshootProps = {
   personaId: string;
@@ -14,6 +16,11 @@ type CreatePhotoshootProps = {
 export async function createPhotoshoot({ personaId, styleId, attribution }: CreatePhotoshootProps) {
   const { db, user } = await authenticatedDb();
   if (!user) return { error: 'Нужно войти в систему', status: 401 };
+  try {
+    await requireCurrentConsents(db, user.id, REQUIRED_ORDER_CONSENTS);
+  } catch {
+    return { error: 'Подтвердите актуальные юридические согласия', status: 403 };
+  }
   if (!personaId) return { error: 'Выберите Persona для фотосессии', status: 400 };
 
   const pack = getPhotoPack(styleId);

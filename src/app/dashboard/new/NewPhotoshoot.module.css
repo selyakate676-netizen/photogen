@@ -525,3 +525,13 @@
     max-width: 280px;
   }
 }
+.consentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  color: var(--text-on-dark-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+.consentRow input { margin-top: 0.15rem; accent-color: var(--accent-primary); }
+.consentRow a { color: var(--accent-secondary); }

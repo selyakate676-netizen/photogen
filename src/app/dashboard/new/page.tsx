@@ -37,6 +37,11 @@ export default function NewPhotoshootPage() {
   const [personaError, setPersonaError] = useState('');
   const [styleError, setStyleError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [consentsLoaded, setConsentsLoaded] = useState(false);
+  const [registrationAccepted, setRegistrationAccepted] = useState(false);
+  const [generationAccepted, setGenerationAccepted] = useState(false);
+  const [confirmRegistration, setConfirmRegistration] = useState(false);
+  const [confirmGeneration, setConfirmGeneration] = useState(false);
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'rub' | 'crystals'>('rub');
 
@@ -85,7 +90,24 @@ export default function NewPhotoshootPage() {
       }
     };
 
+    const loadConsents = async () => {
+      try {
+        const response = await fetch('/api/consents', { cache: 'no-store', signal: controller.signal });
+        if (!response.ok) throw new Error('CONSENTS_LOAD_FAILED');
+        const payload = await response.json() as { registrationAccepted?: boolean; generationAccepted?: boolean };
+        setRegistrationAccepted(payload.registrationAccepted === true);
+        setGenerationAccepted(payload.generationAccepted === true);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setStyleError('Не удалось проверить юридические согласия. Обновите страницу.');
+        }
+      } finally {
+        if (!controller.signal.aborted) setConsentsLoaded(true);
+      }
+    };
+
     void loadPersonas();
+    void loadConsents();
     return () => controller.abort();
   }, []);
 
@@ -95,7 +117,10 @@ export default function NewPhotoshootPage() {
     selectedPersona
       && selectedPersona.status === 'active'
       && selectedPersona.photos.length > 0
-      && selectedPack,
+      && selectedPack
+      && consentsLoaded
+      && (registrationAccepted || confirmRegistration)
+      && (generationAccepted || confirmGeneration),
   );
 
   const handleStart = async () => {
@@ -108,8 +133,28 @@ export default function NewPhotoshootPage() {
       return;
     }
 
+    if (!registrationAccepted && !confirmRegistration) {
+      setStyleError('Подтвердите оферту и согласие на обработку персональных данных.');
+      return;
+    }
+    if (!generationAccepted && !confirmGeneration) {
+      setStyleError('Подтвердите согласие на AI-генерацию.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      for (const consentGroup of [
+        ...(!registrationAccepted ? ['registration'] : []),
+        ...(!generationAccepted ? ['generation'] : []),
+      ]) {
+        const response = await fetch('/api/consents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ consentGroup }),
+        });
+        if (!response.ok) throw new Error('Не удалось сохранить юридическое согласие.');
+      }
       const result = await createPhotoshoot({
         personaId: selectedPersona.id,
         styleId: selectedPack.id,
@@ -253,6 +298,18 @@ export default function NewPhotoshootPage() {
             </section>
 
             <div className={styles.finalAction}>
+              {consentsLoaded && !registrationAccepted ? (
+                <label className={styles.consentRow}>
+                  <input type="checkbox" checked={confirmRegistration} onChange={(event) => setConfirmRegistration(event.target.checked)} />
+                  <span>Я принимаю <Link href="/offer" target="_blank">оферту</Link>, ознакомлен(а) с <Link href="/privacy" target="_blank">политикой</Link> и даю <Link href="/personal-data-consent" target="_blank">согласие на обработку данных</Link>.</span>
+                </label>
+              ) : null}
+              {consentsLoaded && !generationAccepted ? (
+                <label className={styles.consentRow}>
+                  <input type="checkbox" checked={confirmGeneration} onChange={(event) => setConfirmGeneration(event.target.checked)} />
+                  <span>Я даю <Link href="/generation-consent" target="_blank">согласие на AI-генерацию изображений</Link>.</span>
+                </label>
+              ) : null}
               <div className={styles.hintBox}>
                 {canCreate ? (
                   <p className={styles.hintSuccess}>Всё готово для создания фотосессии.</p>
