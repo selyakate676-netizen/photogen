@@ -46,6 +46,8 @@ import {
 } from "@/lib/photoshoots/status";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
+import { REQUIRED_ORDER_CONSENTS } from "@/lib/legal/consents";
+import { requireCurrentConsents } from "@/lib/legal/server";
 import type { Photoshoot } from "@/types/database";
 
 const ENABLE_SP004_HERO_COMPOSITION_SET_EXPERIMENT = true;
@@ -1627,6 +1629,7 @@ export async function startMvpGenerationForPhotoshoot(
   }
 
   const serviceClient = createServiceRoleClient();
+  await requireCurrentConsents(serviceClient, photoshoot.user_id, REQUIRED_ORDER_CONSENTS);
   logGenerationEvent("info", "generation_claim_started", "claim", photoshoot.id);
   const claimed = await claimPhotoshootGeneration(serviceClient, photoshoot.id);
   if (!claimed) {

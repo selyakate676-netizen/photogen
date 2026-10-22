@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       if (error) throw error;
 
-      router.push('/dashboard');
+      router.push('/consent?next=/dashboard');
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка при входе');
@@ -46,16 +46,6 @@ export default function LoginPage() {
           <p className={styles.description}>
             Здесь будут безопасно храниться ваши исходники и готовые профессиональные фотографии в высоком разрешении.
           </p>
-        </div>
-
-        <div className={styles.guarantee}>
-          <div className={styles.shield}>🛡️</div>
-          <div>
-            <span className={styles.guaranteeTitle}>100% Гарантия качества</span>
-            <p className={styles.guaranteeText}>
-              Мы уверены в результате. Если вам не понравятся сгенерированные фотографии, мы вернем оплату в полном объеме.
-            </p>
-          </div>
         </div>
 
         <form className={styles.form} onSubmit={handleLogin}>

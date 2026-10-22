@@ -4,6 +4,8 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { REQUIRED_ORDER_CONSENTS } from '@/lib/legal/consents';
+import { requireCurrentConsents } from '@/lib/legal/server';
 import {
   confirmMockPaymentAndQueue,
   startQueuedPhotoshootGeneration,
@@ -18,6 +20,11 @@ export async function mockPayment(formData: FormData) {
   
   if (!user) {
     redirect('/login');
+  }
+  try {
+    await requireCurrentConsents(supabase, user.id, REQUIRED_ORDER_CONSENTS);
+  } catch {
+    redirect(`/consent?next=/dashboard/pay/${photoshootId}?payment=crystals`);
   }
 
   const payment = await confirmMockPaymentAndQueue(photoshootId, user.id);

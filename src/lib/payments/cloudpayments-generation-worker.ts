@@ -3,6 +3,8 @@ import "server-only";
 import { logGenerationEvent } from "@/lib/ai/generation-log";
 import { startQueuedPhotoshootGenerationFromPayment } from "@/lib/photoshoots/orchestration";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
+import { REQUIRED_ORDER_CONSENTS } from "@/lib/legal/consents";
+import { hasCurrentConsents } from "@/lib/legal/server";
 
 const RECOVERY_AGE_MS = 15 * 60 * 1000;
 const DEFAULT_RUN_BUDGET_MS = 50_000;
@@ -100,18 +102,19 @@ export async function runCloudPaymentsGenerationWorker(options: {
 
   const { data: payments, error: queueScanError } = await supabase
     .from("cloudpayments_payments")
-    .select("id,photoshoot_id,photoshoots!cloudpayments_payments_photoshoot_id_fkey!inner(id,status,payment_source,payment_id)")
+    .select("id,user_id,photoshoot_id,photoshoots!cloudpayments_payments_photoshoot_id_fkey!inner(id,status,payment_source,payment_id)")
     .eq("purchase_type", "direct_photoshoot")
     .eq("provider", "cloudpayments")
     .eq("status", "succeeded")
     .eq("photoshoots.status", "queued")
     .eq("photoshoots.payment_source", "rub")
     .order("paid_at", { ascending: true })
-    .limit(startLimit);
+    .limit(Math.max(startLimit * 10, 10));
 
   if (queueScanError) throw new Error("RUB_GENERATION_QUEUE_SCAN_FAILED");
 
   for (const payment of payments ?? []) {
+    if (summary.started >= startLimit) break;
     if (Date.now() >= deadline) {
       summary.deadlineReached = true;
       break;
@@ -119,6 +122,10 @@ export async function runCloudPaymentsGenerationWorker(options: {
 
     const linked = payment.photoshoots as unknown as LinkedPhotoshoot;
     if (!payment.photoshoot_id || linked.id !== payment.photoshoot_id || linked.payment_id !== payment.id) {
+      continue;
+    }
+    if (!await hasCurrentConsents(supabase, payment.user_id, REQUIRED_ORDER_CONSENTS)) {
+      summary.needsManualAttention += 1;
       continue;
     }
 
