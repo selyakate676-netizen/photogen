@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import SocialAuth from '@/components/SocialAuth';
 import styles from './login.module.css';
 
 export default function LoginPage() {
@@ -85,8 +84,6 @@ export default function LoginPage() {
             {loading ? 'Вход...' : 'Войти по Email'}
           </button>
         </form>
-
-        <SocialAuth />
 
         <div className={styles.footer}>
           Нет аккаунта? 

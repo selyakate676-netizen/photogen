@@ -5,10 +5,36 @@ import styles from './Reviews.module.css';
 import Reveal from './Reveal';
 
 const useCases = [
-  { title: 'Фото для социальных сетей', description: 'Серия кадров в едином стиле для профиля, публикаций и сторис.', image: '/dating-woman-2.png' },
-  { title: 'Анкета для знакомств', description: 'Несколько живых портретов с разным настроением и композицией.', image: '/dating-woman-1.png' },
-  { title: 'Личный бренд', description: 'Профессиональные образы для сайта эксперта, презентаций и блога.', image: '/social-woman-1.png' },
-  { title: 'Деловой профиль', description: 'Спокойные современные портреты для резюме и рабочих аккаунтов.', image: '/ashley-1.png' },
+  {
+    name: 'Татьяна',
+    title: 'Это действительно я, только фотогеничная',
+    description: 'Обычно на AI-фото я похожа на дальнюю родственницу. А здесь посмотрела и подумала: это действительно я, только фотогеничная.',
+    image: '/jtbd-stories/01_recognition_cafe.png',
+  },
+  {
+    name: 'Ольга',
+    title: 'Без гламура и странных поз',
+    description: 'Не хотела гламурных фотосессий, где все сидят на корточках с загадочным лицом. Нужны были просто красивые, живые фото. Такие и получились.',
+    image: '/jtbd-stories/02_no_glamour_park.png',
+  },
+  {
+    name: 'Евгения',
+    title: 'Для резюме и рабочих аватарок',
+    description: 'Искала работу и поняла, что нормальной фотографии для резюме и аватарок в Telegram и ВК у меня нет. Теперь есть несколько вариантов, и не пришлось идти в студию.',
+    image: '/jtbd-stories/03_work_avatar_bench.png',
+  },
+  {
+    name: 'Марина',
+    title: 'Для сайта знакомств',
+    description: 'Хотела обновить фотографии для сайта знакомств, но боялась, что нейросеть сделает из меня куклу. А получилась именно я — с хорошим светом, красивым макияжем и без ощущения, что на фото совершенно другой человек.',
+    image: '/jtbd-stories/04_dating_cardigan.png',
+  },
+  {
+    name: 'Ксения',
+    title: 'Реальные люди, а не модели',
+    description: 'Везде показывают идеальных моделей. А мне хотелось увидеть, как такие фотографии выглядят на обычном человеке. Здесь наконец нашла то, что искала.',
+    image: '/jtbd-stories/05_real_people_autumn.png',
+  },
 ];
 
 export default function Reviews() {
@@ -16,30 +42,37 @@ export default function Reviews() {
     <section className="section section-light-alt" id="use-cases">
       <div className="container">
         <Reveal>
-          <h2 className="section-title">
-            Примеры <span className="gradient-text">использования</span>
-          </h2>
+          <p className={styles.eyebrow}>Примеры использования PhotoGen</p>
+          <h2 className="section-title">Это действительно я. Только фотогеничная.</h2>
           <p className="section-subtitle">
-            Подберите фотосессию под личную или профессиональную задачу
+            Хорошие фотографии нужны не только для особых случаев. Иногда — чтобы обновить аватарку, найти работу или просто понравиться себе в кадре.
           </p>
         </Reveal>
 
-        <div className={styles.masonryGrid}>
-          {useCases.map((item, idx) => (
-            <Reveal key={item.title} delay={idx * 0.1}>
-              <article className={`${styles.reviewCard} ${styles.imageCard}`}>
-                <div className={styles.imageWrapper}>
-                  <Image src={item.image} alt={item.title} fill className={styles.bgImage} sizes="(max-width: 768px) 100vw, 400px" />
-                  <div className={styles.overlay}>
-                    <div className={styles.overlayContent}>
-                      <h3 className={styles.nameOnImage}>{item.title}</h3>
-                      <p className={styles.textOnImage}>{item.description}</p>
+        <div className={styles.railFrame}>
+          <div className={styles.reviewRail} aria-label="Примеры задач пользователей">
+            {useCases.map((item, index) => (
+              <Reveal key={item.title} delay={index * 0.1} className={styles.cardReveal}>
+                <article className={styles.reviewCard}>
+                  <header className={styles.authorHeader}>
+                    <Image
+                      src={item.image}
+                      alt=""
+                      width={64}
+                      height={64}
+                      className={styles.avatar}
+                      sizes="64px"
+                    />
+                    <div>
+                      <p className={styles.name}>{item.name}</p>
+                      <h3 className={styles.cardTitle}>{item.title}</h3>
                     </div>
-                  </div>
-                </div>
-              </article>
-            </Reveal>
-          ))}
+                  </header>
+                  <p className={styles.reviewText}>{item.description}</p>
+                </article>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </div>
     </section>
