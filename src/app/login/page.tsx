@@ -72,6 +72,9 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className={styles.fieldAction}>
+              <Link href="/forgot-password" className={styles.link}>Забыли пароль?</Link>
+            </div>
           </div>
 
           {error && <div className={styles.error}>{error}</div>}
