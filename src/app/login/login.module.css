@@ -133,6 +133,12 @@
   box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
 }
 
+.btnSubmit:disabled { cursor: not-allowed; opacity: 0.65; transform: none; box-shadow: none; }
+.success { font-size: var(--font-size-sm); color: #7ed6a5; line-height: 1.5; text-align: center; }
+.fieldAction { display: flex; justify-content: flex-end; }
+.fieldAction .link { margin-left: 0; font-size: var(--font-size-sm); }
+.helperText { color: var(--text-on-dark-secondary); font-size: var(--font-size-sm); line-height: 1.5; text-align: center; }
+
 /* Social Buttons Grid */
 .socialContainer {
   margin: var(--space-lg) 0;

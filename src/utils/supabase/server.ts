@@ -1,8 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
+import { clearSupabaseAuthCookies } from '@/lib/auth/supabase-cookie-cleanup'
 import { getSupabasePublicConfig } from '@/lib/env'
 import type { Database } from '@/types/database'
 import { cookies } from 'next/headers'
 
+
+export async function clearCurrentSupabaseAuthCookies() {
+  const cookieStore = await cookies()
+  const supabaseConfig = getSupabasePublicConfig()
+  return clearSupabaseAuthCookies(cookieStore, supabaseConfig.url)
+}
 export async function createClient() {
   const cookieStore = await cookies()
   const supabaseConfig = getSupabasePublicConfig()
