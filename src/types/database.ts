@@ -149,6 +149,34 @@ export interface Database {
           },
         ];
       };
+      cloudpayments_rub_refunds: {
+        Row: {
+          id: string; payment_id: string; amount_minor: number; currency: "RUB";
+          original_provider_transaction_id: string; refund_transaction_id: string | null;
+          status: "intent" | "pending" | "succeeded" | "failed" | "generation_released";
+          reason: string; failure_reason: string | null; requested_at: string; completed_at: string | null;
+        };
+        Insert: {
+          id?: string; payment_id: string; amount_minor: number; currency: "RUB";
+          original_provider_transaction_id: string; refund_transaction_id?: string | null;
+          status: "intent" | "pending" | "succeeded" | "failed" | "generation_released";
+          reason: string; failure_reason?: string | null; requested_at?: string; completed_at?: string | null;
+        };
+        Update: {
+          refund_transaction_id?: string | null;
+          status?: "intent" | "pending" | "succeeded" | "failed" | "generation_released";
+          failure_reason?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cloudpayments_rub_refunds_payment_id_fkey";
+            columns: ["payment_id"];
+            referencedRelation: "cloudpayments_payments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wallets: {
         Row: {
           user_id: string;
@@ -313,6 +341,26 @@ export interface Database {
       recover_rub_generation_pre_provider: {
         Args: { p_photoshoot_id: string };
         Returns: boolean;
+      };
+      register_cloudpayments_rub_refund_intent: {
+        Args: { p_payment_id: string; p_amount_minor: number; p_reason: string };
+        Returns: Database["public"]["Tables"]["cloudpayments_rub_refunds"]["Row"];
+      };
+      record_cloudpayments_rub_refund_pending: {
+        Args: { p_refund_id: string; p_refund_transaction_id?: string | null };
+        Returns: Database["public"]["Tables"]["cloudpayments_rub_refunds"]["Row"];
+      };
+      confirm_cloudpayments_rub_refund_succeeded: {
+        Args: { p_refund_id: string; p_refund_transaction_id: string };
+        Returns: Database["public"]["Tables"]["cloudpayments_rub_refunds"]["Row"];
+      };
+      record_cloudpayments_rub_refund_failed: {
+        Args: { p_refund_id: string; p_failure_reason: string };
+        Returns: Database["public"]["Tables"]["cloudpayments_rub_refunds"]["Row"];
+      };
+      release_cloudpayments_rub_refund_generation: {
+        Args: { p_refund_id: string };
+        Returns: Database["public"]["Tables"]["cloudpayments_rub_refunds"]["Row"];
       };
       record_photoshoot_result_images: {
         Args: {
