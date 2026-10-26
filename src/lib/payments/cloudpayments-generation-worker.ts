@@ -113,6 +113,18 @@ export async function runCloudPaymentsGenerationWorker(options: {
 
   if (queueScanError) throw new Error("RUB_GENERATION_QUEUE_SCAN_FAILED");
 
+  const paymentIds = (payments ?? []).map((payment) => payment.id);
+  const blockedPaymentIds = new Set<string>();
+  if (paymentIds.length > 0) {
+    const { data: refunds, error: refundScanError } = await supabase
+      .from("cloudpayments_rub_refunds")
+      .select("payment_id")
+      .in("payment_id", paymentIds)
+      .in("status", ["intent", "pending", "succeeded", "failed"]);
+    if (refundScanError) throw new Error("RUB_REFUND_GATE_SCAN_FAILED");
+    for (const refund of refunds ?? []) blockedPaymentIds.add(refund.payment_id);
+  }
+
   for (const payment of payments ?? []) {
     if (summary.started >= startLimit) break;
     if (Date.now() >= deadline) {
@@ -124,6 +136,7 @@ export async function runCloudPaymentsGenerationWorker(options: {
     if (!payment.photoshoot_id || linked.id !== payment.photoshoot_id || linked.payment_id !== payment.id) {
       continue;
     }
+    if (blockedPaymentIds.has(payment.id)) continue;
     if (!await hasCurrentConsents(supabase, payment.user_id, REQUIRED_ORDER_CONSENTS)) {
       summary.needsManualAttention += 1;
       continue;
