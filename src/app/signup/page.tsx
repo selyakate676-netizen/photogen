@@ -1,10 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import { trackAnalyticsGoal } from '@/lib/analytics';
+import {
+  authContinuationFromLocation,
+  DEFAULT_AUTH_CONTINUATION,
+  withAuthContinuation,
+} from '@/lib/auth/continuation';
 import styles from '../login/login.module.css';
 import signupStyles from './signup.module.css';
 
@@ -17,8 +22,14 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [continuation, setContinuation] = useState(DEFAULT_AUTH_CONTINUATION);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setContinuation(authContinuationFromLocation()), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +49,21 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(continuation)}`,
         },
       });
 
       if (error) throw error;
       trackAnalyticsGoal('registration_completed', { source_page: 'signup' });
+      if (data.session) {
+        router.push(`/consent?next=${encodeURIComponent(continuation)}`);
+        router.refresh();
+        return;
+      }
       setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка при регистрации');
@@ -69,7 +85,7 @@ export default function SignupPage() {
             Пожалуйста, перейдите по ней, чтобы активировать аккаунт.
           </p>
           <button 
-            onClick={() => router.push('/login')} 
+            onClick={() => router.push(withAuthContinuation('/login', continuation))}
             className={styles.btnSubmit}
             style={{ marginTop: 'var(--space-xl)' }}
           >
@@ -161,7 +177,7 @@ export default function SignupPage() {
 
         <div className={styles.footer}>
           Уже есть аккаунт? 
-          <Link href="/login" className={styles.link}>Войти</Link>
+          <Link href={withAuthContinuation('/login', continuation)} className={styles.link}>Войти</Link>
         </div>
 
         <Link href="/" className={styles.backLink}>
