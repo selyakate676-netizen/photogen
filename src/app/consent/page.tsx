@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { safeAuthContinuation } from '@/lib/auth/continuation';
 
 import styles from './consent.module.css';
 
@@ -10,10 +11,6 @@ type ConsentStatus = {
   registrationAccepted: boolean;
   generationAccepted: boolean;
 };
-
-function safeNext(value: string | null) {
-  return value?.startsWith('/') && !value.startsWith('//') ? value : '/dashboard';
-}
 
 export default function ConsentPage() {
   const router = useRouter();
@@ -28,7 +25,7 @@ export default function ConsentPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const destination = safeNext(params.get('next'));
+    const destination = safeAuthContinuation(params.get('next'));
     const requiresOrderConsent = params.get('scope') === 'order';
     setNextPath(destination);
     setOrderScope(requiresOrderConsent);

@@ -1,9 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
+import {
+  authContinuationFromLocation,
+  DEFAULT_AUTH_CONTINUATION,
+  withAuthContinuation,
+} from '@/lib/auth/continuation';
 import styles from './login.module.css';
 
 export default function LoginPage() {
@@ -11,8 +16,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [continuation, setContinuation] = useState(DEFAULT_AUTH_CONTINUATION);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setContinuation(authContinuationFromLocation()), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +38,7 @@ export default function LoginPage() {
 
       if (error) throw error;
 
-      router.push('/consent?next=/dashboard');
+      router.push(`/consent?next=${encodeURIComponent(continuation)}`);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка при входе');
@@ -90,7 +101,7 @@ export default function LoginPage() {
 
         <div className={styles.footer}>
           Нет аккаунта? 
-          <Link href="/signup" className={styles.link}>Зарегистрироваться</Link>
+          <Link href={withAuthContinuation('/signup', continuation)} className={styles.link}>Зарегистрироваться</Link>
         </div>
 
         <Link href="/" className={styles.backLink}>

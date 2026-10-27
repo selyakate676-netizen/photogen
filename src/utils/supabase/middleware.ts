@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { getSupabasePublicConfig } from '@/lib/env'
 import type { Database } from '@/types/database'
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeAuthContinuation } from '@/lib/auth/continuation'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -47,6 +48,11 @@ export async function updateSession(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.search = ''
+    url.searchParams.set(
+      'next',
+      safeAuthContinuation(`${request.nextUrl.pathname}${request.nextUrl.search}`),
+    )
     return NextResponse.redirect(url)
   }
 
@@ -56,7 +62,10 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === '/login'
   ) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    const next = safeAuthContinuation(request.nextUrl.searchParams.get('next'))
+    url.pathname = '/consent'
+    url.search = ''
+    url.searchParams.set('next', next)
     return NextResponse.redirect(url)
   }
 
