@@ -9,6 +9,12 @@ export type PhotoshootBodyBuild = "slim" | "average" | "full";
 export interface Database {
   public: {
     Tables: {
+      pinterest_feed_items: {
+        Row: { id: string; schema_version: number; bundle_id: string; bundle_sha256: string; pack_id: string; hero_composition_id: string; pack_url: string; preview_path: string; preview_sha256: string; telegram_channel_message_id: number; telegram_comment_message_id: number; telegram_prompt_url: string; pinterest_excluded: boolean; content_sha256: string; received_at: string; rss_scheduled_at: string };
+        Insert: { id?: string; schema_version: number; bundle_id: string; bundle_sha256: string; pack_id: string; hero_composition_id: string; pack_url: string; preview_path: string; preview_sha256: string; telegram_channel_message_id: number; telegram_comment_message_id: number; telegram_prompt_url: string; pinterest_excluded?: boolean; content_sha256: string; received_at?: string; rss_scheduled_at?: string };
+        Update: { pinterest_excluded?: boolean };
+        Relationships: [];
+      };
       user_legal_consents: {
         Row: { id: string; user_id: string; consent_type: 'offer' | 'privacy' | 'personal_data' | 'generation'; document_version: string; action_context: 'registration' | 'upload' | 'order'; accepted_at: string };
         Insert: { id?: string; user_id: string; consent_type: 'offer' | 'privacy' | 'personal_data' | 'generation'; document_version: string; action_context: 'registration' | 'upload' | 'order'; accepted_at?: string };
